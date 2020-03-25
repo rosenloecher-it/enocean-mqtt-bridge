@@ -123,7 +123,7 @@ class Process:
                 ConfMainKey.MQTT_HOST.value, ConfMainKey.MQTT_CLIENT_ID.value
             ))
 
-        self._mqtt = mqtt.Client(client_id=client_id, protocol = protocol)
+        self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol)
 
         if is_ssl:
             self._mqtt.tls_set(ca_certs=ssl_ca_certs, certfile=ssl_certfile, keyfile=ssl_keyfile)
