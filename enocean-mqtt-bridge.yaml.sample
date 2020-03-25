@@ -23,6 +23,7 @@ main:
   mqtt_host:              "<your_server>"
   mqtt_port:              1883  # integer
   # mqtt_keepalive:       60  # integer
+  # mqtt_protocol:        3  # 3==MQTTv31 (default), 4==MQTTv311, 5==default/MQTTv5,
   # mqtt_ssl_ca_certs:    "/etc/mosquitto/certs/ca.crt"
   # mqtt_insecure_ssl:    True
   # mqtt_user_name:       "<your_user_name>"
@@ -42,6 +43,7 @@ devices:
   winhandle-office:
     enocean_id:           0x0123456a
     mqtt_channel:         "smarthome/enocean/winhandle-office"
+    # mqtt_qos:           1  # == default (integer)
 
     # secific to "Eltako FFG7B-rw" devices; creates JSON
     # tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR
