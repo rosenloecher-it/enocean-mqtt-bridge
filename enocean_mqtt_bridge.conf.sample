@@ -19,19 +19,19 @@ main:
   enocean_port:           "/dev/ttyUSB0"
 
   # see https://pypi.org/project/paho-mqtt/
-  mqtt_client_id:         "enocean_mqtt_bridge_roof"
-  mqtt_ssl_ca_certs:      "/etc/mosquitto/certs/ca.crt"
-  mqtt_host:              "homeserver"
-  mqtt_port:              8883  # integer
-  mqtt_insecure_ssl:      True
-  mqtt_keepalive:         60  # integer
-  mqtt_user_name:         "mqtt_user_name"
-  mqtt_user_pwd:          "mqtt_password"
+  mqtt_client_id:         "(hostname)-enomqtt-bridge"
+  mqtt_host:              "<your_server>"
+  mqtt_port:              1883  # integer
+  # mqtt_keepalive:       60  # integer
+  # mqtt_ssl_ca_certs:    "/etc/mosquitto/certs/ca.crt"
+  # mqtt_insecure_ssl:    True
+  # mqtt_user_name:       "<your_user_name>"
+  # mqtt_user_pwd:        "<your_password>"
 
 
 # copy device settings template; not interpreted directly! (see YAML features)
 device-default: &device-default
-  mqtt_last_will:         '{"STATUS": "OFFLINE"}'
+  mqtt_last_will:         '{"VALUE": "OFFLINE", "INFO": "last will"}'
   mqtt_retain:            True  # should MQTT broker store message
   mqtt_time_offline:      1200  # integer; time in seconds, after which *this client* sends the last will!
 
@@ -43,13 +43,14 @@ devices:
     enocean_id:           0x0123456a
     mqtt_channel:         "smarthome/enocean/winhandle-office"
 
+    # secific to "Eltako FFG7B-rw" devices; creates JSON
+    # tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR
+    device_class:         "src.device.eltako_ffg7b_device.EltakoFFG7BDevice"
     # device_class:       "src.device.log_device.LogDevice"  # log out as it is
     # device_class:       "src.device.generic_device.GenericDevice"  # forward to MQTT as it is
 
-    # secific to "Eltako FFG7B-rw" devices; creates JSON
-    # tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR
-    # e.g.: {"TIMESTAMP": "2020-03-16T21:09:37.205911+00:00", "STATUS": "CLOSED", "RSSI": -61}
-    device_class:         "src.device.eltako_ffg7b_device.EltakoFFG7BDevice"
+    write_since:          True
+    storage_file:         ./__work__/storage-winhandle-office.yaml
 
     # enocean lib settings: see https://github.com/kipe/enocean
     enocean_rorg:         0xf6

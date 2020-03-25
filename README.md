@@ -105,22 +105,22 @@ Choose one of the available devices (modules pathes), which will handle Enocean 
 
 ```bash
 # see command line options
-./enocean_mqtt_bridge.sh --help
+./enocean-mqtt-bridge.sh --help
 
 # prepare your own config file based on ./enocean_mqtt_bridge.conf.sample
-./enocean_mqtt_bridge.sh -p -c ./enocean_mqtt_bridge.conf
+./enocean-mqtt-bridge.sh -p -c ./enocean_mqtt_bridge.conf
 ```
 
 ## Register as systemd service
 ```bash
-# prepare your own service script based on enocean_mqtt_bridge.service.sample
-cp ./enocean_mqtt_bridge.service.sample ./enocean_mqtt_bridge.service
+# prepare your own service script based on enocean-mqtt-bridge.service.sample
+cp ./enocean-mqtt-bridge.service.sample ./enocean-mqtt-bridge.service
 
-# edit/adapt pathes in enocean_mqtt_bridge.service
-vi ./enocean_mqtt_bridge.service
+# edit/adapt pathes in enocean-mqtt-bridge.service
+vi ./enocean-mqtt-bridge.service
 
 #
-sudo cp ./enocean_mqtt_bridge.service /etc/systemd/system/
+sudo cp ./enocean-mqtt-bridge.service /etc/systemd/system/
 # after changes
 sudo systemctl daemon-reload
 
@@ -131,7 +131,7 @@ sudo systemctl start enocean_mqtt_bridge
 journalctl -u enocean_mqtt_bridge
 
 # enable autostart at boot time
-sudo systemctl enable enocean_mqtt_bridge.service
+sudo systemctl enable enocean-mqtt-bridge.service
 ```
 
 ## Troubleshouting
@@ -142,16 +142,16 @@ On a Ubunutu system all was working fine even without user and password.
 
 sudo service enocean_mqtt_bridge status
 
-Mar 18 06:22:18 roofpi systemd[1]: enocean_mqtt_bridge.service: Current command vanished from the unit file, execution of the command list won't be resumed.
+Mar 18 06:22:18 roofpi systemd[1]: enocean-mqtt-bridge.service: Current command vanished from the unit file, execution of the command list won't be resumed.
 
-sudo systemctl disable enocean_mqtt_bridge.service
-sudo rm /etc/systemd/system/enocean_mqtt_bridge.service
+sudo systemctl disable enocean-mqtt-bridge.service
+sudo rm /etc/systemd/system/enocean-mqtt-bridge.service
 sudo systemctl daemon-reload
 
-sudo cp ./enocean_mqtt_bridge.service /etc/systemd/system/
-sudo rm /etc/systemd/system/enocean_mqtt_bridge.service
+sudo cp ./enocean-mqtt-bridge.service /etc/systemd/system/
+sudo rm /etc/systemd/system/enocean-mqtt-bridge.service
 sudo service enocean_mqtt_bridge start
-sudo systemctl enable enocean_mqtt_bridge.service
+sudo systemctl enable enocean-mqtt-bridge.service
 
 
 ## Related projects
