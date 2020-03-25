@@ -6,7 +6,7 @@ Type=simple
 ExecStart=/home/pi/projects/enocean-mqtt-bridge/enocean-mqtt-bridge.sh -s -p -c /home/pi/projects/enocean-mqtt-bridge/enocean-mqtt-bridge.yaml
 Restart=always
 RestartSec=300
-WorkingDirectory=/home/pi/enocean_mqtt_bridge
+WorkingDirectory=/home/pi/projects/enocean-mqtt-bridge
 User=pi
 
 [Install]
