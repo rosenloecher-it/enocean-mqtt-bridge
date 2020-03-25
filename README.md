@@ -23,7 +23,7 @@ devices will do. (Tested with a DOSMUNG Gateway USB Stick with SMA Port, chipset
   (e.g. an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
 - check sensor state based on repeated messages and send an configurable OFFLINE message if the device is silent
   for a configurable timeout.
-- supports different message handler (see for samples in [enocean_mqtt_bridge.conf.sample](./enocean_mqtt_bridge.conf.sample)):
+- supports different message handler (see for samples in [enocean-mqtt-bridge.yaml.sample](./enocean-mqtt-bridge.yaml.sample)):
     - logging: just write Enocean message to logfile or console
     - generic: just sends what could be extracted
     - "Eltako FFG7B-rw"-specific JSON: tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR and last change time
@@ -79,10 +79,10 @@ pip install -r requirements.txt
 ```bash
 # cd ... goto project dir
 
-cp ./enocean_mqtt_bridge.conf.sample ./enocean_mqtt_bridge.conf
+cp ./enocean-mqtt-bridge.yaml.sample ./enocean-mqtt-bridge.yaml
 ```
 
-Edit your `enocean_mqtt_bridge.conf`. See comments too.
+Edit your `enocean-mqtt-bridge.yaml`. See comments too.
 
 Choose one of the available devices (modules pathes), which will handle Enocean message differently:
 - `src.device.log_device.LogDevice`: Log/print messages as it is.
@@ -107,8 +107,8 @@ Choose one of the available devices (modules pathes), which will handle Enocean 
 # see command line options
 ./enocean-mqtt-bridge.sh --help
 
-# prepare your own config file based on ./enocean_mqtt_bridge.conf.sample
-./enocean-mqtt-bridge.sh -p -c ./enocean_mqtt_bridge.conf
+# prepare your own config file based on ./enocean-mqtt-bridge.yaml.sample
+./enocean-mqtt-bridge.sh -p -c ./enocean-mqtt-bridge.yaml
 ```
 
 ## Register as systemd service
@@ -119,16 +119,17 @@ cp ./enocean-mqtt-bridge.service.sample ./enocean-mqtt-bridge.service
 # edit/adapt pathes in enocean-mqtt-bridge.service
 vi ./enocean-mqtt-bridge.service
 
-#
+# install service
 sudo cp ./enocean-mqtt-bridge.service /etc/systemd/system/
+# alternativ: sudo cp ./enocean-mqtt-bridge.service.sample /etc/systemd/system//enocean-mqtt-bridge.service
 # after changes
 sudo systemctl daemon-reload
 
 # start service
-sudo systemctl start enocean_mqtt_bridge
+sudo systemctl start enocean-mqtt-bridge
 
 # check logs
-journalctl -u enocean_mqtt_bridge
+journalctl -u enocean-mqtt-bridge
 
 # enable autostart at boot time
 sudo systemctl enable enocean-mqtt-bridge.service
@@ -140,7 +141,7 @@ There happend some very quick connects/disconnects from/to MQTT broker (Mosquitt
 was secured only by certificate. The problem went away after configuring user name and password for the MQTT broker.
 On a Ubunutu system all was working fine even without user and password.
 
-sudo service enocean_mqtt_bridge status
+`sudo service enocean-mqtt-bridge status`
 
 Mar 18 06:22:18 roofpi systemd[1]: enocean-mqtt-bridge.service: Current command vanished from the unit file, execution of the command list won't be resumed.
 
@@ -150,7 +151,7 @@ sudo systemctl daemon-reload
 
 sudo cp ./enocean-mqtt-bridge.service /etc/systemd/system/
 sudo rm /etc/systemd/system/enocean-mqtt-bridge.service
-sudo service enocean_mqtt_bridge start
+sudo service enocean-mqtt-bridge start
 sudo systemctl enable enocean-mqtt-bridge.service
 
 
