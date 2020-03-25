@@ -32,6 +32,7 @@ class ConfMainKey(Enum):
 
     MQTT_HOST = "mqtt_host"
     MQTT_PORT = "mqtt_port"
+    MQTT_PROTOCOL = "mqtt_protocol"
     MQTT_CLIENT_ID = "mqtt_client_id"
     MQTT_KEEPALIVE = "mqtt_keepalive"
     MQTT_SSL_CA_CERTS = "mqtt_ssl_ca_certs"
@@ -95,6 +96,8 @@ class Config:
 
         self.post_process_int(self._config, ConfMainKey.MQTT_KEEPALIVE, Constant.DEFAULT_MQTT_KEEPALIVE)
         self.post_process_int(self._config, ConfMainKey.MQTT_PORT, None)
+        self.post_process_int(self._config, ConfMainKey.MQTT_PROTOCOL, Constant.DEFAULT_MQTT_PROTOCOL)
+
         self.post_process_bool(self._config, ConfMainKey.MQTT_SSL_INSECURE, False)
 
     def _load_conf_file(self):

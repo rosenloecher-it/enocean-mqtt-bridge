@@ -43,6 +43,7 @@ class Process:
             self._mqtt.disconnect()
             self._mqtt.loop_forever()  # will block until disconnect complete
             self._mqtt = None
+            _logger.debug("mqtt closed.")
 
     def run(self):
         time_step = 0.05
@@ -97,6 +98,7 @@ class Process:
     def connect_mqtt(self):
         host = self._config.get(ConfMainKey.MQTT_HOST.value)
         port = self._config.get(ConfMainKey.MQTT_PORT.value)
+        protocol = self._config.get(ConfMainKey.MQTT_PROTOCOL.value)
         keepalive = self._config.get(ConfMainKey.MQTT_KEEPALIVE.value)
         client_id = self._config.get(ConfMainKey.MQTT_CLIENT_ID.value)
         ssl_ca_certs = self._config.get(ConfMainKey.MQTT_SSL_CA_CERTS.value)
@@ -115,7 +117,7 @@ class Process:
                 ConfMainKey.MQTT_HOST.value, ConfMainKey.MQTT_CLIENT_ID.value
             ))
 
-        self._mqtt = mqtt.Client(client_id=client_id)
+        self._mqtt = mqtt.Client(client_id=client_id, protocol = protocol)
 
         if is_ssl:
             self._mqtt.tls_set(ca_certs=ssl_ca_certs, certfile=ssl_certfile, keyfile=ssl_keyfile)
@@ -136,7 +138,8 @@ class Process:
             except DeviceException as ex:
                 _logger.error(ex)
 
-        self._mqtt.username_pw_set(user_name, user_pwd)
+        if user_name or user_pwd:
+            self._mqtt.username_pw_set(user_name, user_pwd)
         self._mqtt.connect_async(host, port=port, keepalive=keepalive)
         self._mqtt.loop_start()
 
