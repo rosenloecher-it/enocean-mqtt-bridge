@@ -168,6 +168,7 @@ class BaseDevice(abc.ABC):
                     qos=self._mqtt_qos,
                     retain=self._mqtt_retain
                 )
+                self._logger.debug("last will set: {0}".format(self._mqtt_last_will))
             except TypeError as ex:
                 raise DeviceException(ex)
 
