@@ -96,7 +96,7 @@ class Config:
 
         self.post_process_int(self._config, ConfMainKey.MQTT_KEEPALIVE, Constant.DEFAULT_MQTT_KEEPALIVE)
         self.post_process_int(self._config, ConfMainKey.MQTT_PORT, None)
-        self.post_process_int(self._config, ConfMainKey.MQTT_PROTOCOL, None)
+        self.post_process_int(self._config, ConfMainKey.MQTT_PROTOCOL, Constant.DEFAULT_MQTT_PROTOCOL)
 
         self.post_process_bool(self._config, ConfMainKey.MQTT_SSL_INSECURE, False)
 
