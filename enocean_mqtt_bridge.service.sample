@@ -1,0 +1,13 @@
+[Unit]
+Description=Enocean MQTT Bridge
+
+[Service]
+Type=simple
+ExecStart=/home/pi/projects/enocean_mqtt_bridge/enocean_mqtt_bridge.sh
+Restart=always
+RestartSec=300
+WorkingDirectory=/home/pi/enocean_mqtt_bridge
+User=pi
+
+[Install]
+WantedBy=multi-user.target

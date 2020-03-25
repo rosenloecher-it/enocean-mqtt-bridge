@@ -1,0 +1,3 @@
+
+class DeviceException(Exception):
+    pass

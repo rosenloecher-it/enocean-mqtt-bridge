@@ -1,0 +1,64 @@
+# configuration in YAML style!
+#
+# Take care of quotes '". It makes the difference between number and text.
+#
+# only available via command line interface are the followings options
+# - conf_file
+# - log_print
+# - systemd
+
+
+main:
+  # "-p" (== --print) makes logging obsolet (espcically if you running a systemd service)
+  # log_file:             "./enocean_mqtt_bridge.log"
+  log_level:              "debug"  # values: debug, info, warning, error
+  # log_max_bytes:        1048576  # default
+  # log_max_count:        10       # default
+
+  # check USB port with `lsusb` and `dmesg | grep -i "usb"`
+  enocean_port:           "/dev/ttyUSB0"
+
+  # see https://pypi.org/project/paho-mqtt/
+  mqtt_client_id:         "enocean_mqtt_bridge_roof"
+  mqtt_ssl_ca_certs:      "/etc/mosquitto/certs/ca.crt"
+  mqtt_host:              "homeserver"
+  mqtt_port:              8883  # integer
+  mqtt_insecure_ssl:      True
+  mqtt_keepalive:         60  # integer
+  mqtt_user_name:         "mqtt_user_name"
+  mqtt_user_pwd:          "mqtt_password"
+
+
+# copy device settings template; not interpreted directly! (see YAML features)
+device-default: &device-default
+  mqtt_last_will:         '{"STATUS": "OFFLINE"}'
+  mqtt_retain:            True  # should MQTT broker store message
+  mqtt_time_offline:      1200  # integer; time in seconds, after which *this client* sends the last will!
+
+
+devices:
+
+  # define (unique) device name via section
+  winhandle-office:
+    enocean_id:           0x0123456a
+    mqtt_channel:         "smarthome/enocean/winhandle-office"
+
+    # device_class:       "src.device.log_device.LogDevice"  # log out as it is
+    # device_class:       "src.device.generic_device.GenericDevice"  # forward to MQTT as it is
+
+    # secific to "Eltako FFG7B-rw" devices; creates JSON
+    # tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR
+    # e.g.: {"TIMESTAMP": "2020-03-16T21:09:37.205911+00:00", "STATUS": "CLOSED", "RSSI": -61}
+    device_class:         "src.device.eltako_ffg7b_device.EltakoFFG7BDevice"
+
+    # enocean lib settings: see https://github.com/kipe/enocean
+    enocean_rorg:         0xf6
+    enocean_func:         0x10
+    enocean_type:         0x00
+
+    # copy default settings here. see YAML features!
+    <<: *device-default
+
+  dummy:
+    # devices without `device_class` (== "~") gets skipped!
+    device_class:         ~
