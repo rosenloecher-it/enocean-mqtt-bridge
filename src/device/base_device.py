@@ -142,11 +142,17 @@ class BaseDevice(abc.ABC):
             now = self._now()
             diff = (now - self._enocean_activity).total_seconds()
             if diff >= self._mqtt_time_offline:
-                self.sent_last_will()
+                self.sent_last_will_no_refresh()
 
-    def sent_last_will(self):
+    def sent_last_will_no_refresh(self):
         if self._mqtt_last_will:
             self._publish(self._mqtt_last_will)
+            self._logger.warning("last will sent: missing refresh")
+
+    def sent_last_will_disconnect(self):
+        if self._mqtt_last_will:
+            self._publish(self._mqtt_last_will)
+            self._logger.debug("last will sent: disconnecting")
 
     def _publish(self, message: str):
         try:

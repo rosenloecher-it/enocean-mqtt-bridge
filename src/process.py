@@ -38,6 +38,12 @@ class Process:
             self._enocean = None
 
         if self._mqtt is not None:
+            for channel, device in self._mqtt_channels.items():
+                try:
+                    device.sent_last_will_disconnect()
+                except DeviceException as ex:
+                    _logger.error(ex)
+
             self._mqtt_publisher.close()
             self._mqtt.loop_stop()
             self._mqtt.disconnect()
