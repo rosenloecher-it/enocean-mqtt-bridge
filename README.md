@@ -60,7 +60,11 @@ mosquitto_pub -h homeserver -p 1883 -i "client_pub" -d -t smarthome/test -m "tes
 
 ### Prepare environment
 ```bash
-git clone https://github.com/rosenloecher-it/enocean-mqtt-bridge
+cd /opt
+sudo mkdir enocean-mqtt-bridge
+sudo chown pi:pi enocean-mqtt-bridge
+git clone https://github.com/rosenloecher-it/enocean-mqtt-bridge enocean-mqtt-bridge
+
 cd enocean-mqtt-bridge
 virtualenv -p /usr/bin/python3 venv
 
@@ -145,6 +149,7 @@ On a Ubunutu system all was working fine even without user and password.
 
 Mar 18 06:22:18 roofpi systemd[1]: enocean-mqtt-bridge.service: Current command vanished from the unit file, execution of the command list won't be resumed.
 
+```
 sudo systemctl disable enocean-mqtt-bridge.service
 sudo rm /etc/systemd/system/enocean-mqtt-bridge.service
 sudo systemctl daemon-reload
@@ -153,6 +158,7 @@ sudo cp ./enocean-mqtt-bridge.service /etc/systemd/system/
 sudo rm /etc/systemd/system/enocean-mqtt-bridge.service
 sudo service enocean-mqtt-bridge start
 sudo systemctl enable enocean-mqtt-bridge.service
+```
 
 
 ## Related projects

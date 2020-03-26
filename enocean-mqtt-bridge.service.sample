@@ -3,10 +3,10 @@ Description=Enocean MQTT Bridge
 
 [Service]
 Type=simple
-ExecStart=/home/pi/projects/enocean-mqtt-bridge/enocean-mqtt-bridge.sh -s -p -c /home/pi/projects/enocean-mqtt-bridge/enocean-mqtt-bridge.yaml
+ExecStart=/opt/enocean-mqtt-bridge/enocean-mqtt-bridge.sh -s -p -c /opt/enocean-mqtt-bridge/enocean-mqtt-bridge.yaml
 Restart=always
 RestartSec=300
-WorkingDirectory=/home/pi/projects/enocean-mqtt-bridge
+WorkingDirectory=/opt/enocean-mqtt-bridge
 User=pi
 
 [Install]
