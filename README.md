@@ -44,25 +44,26 @@ sudo usermod -a -G dialout $USER
 sudo apt-get install mosquitto-clients
 
 # preprare credentials
+SERVER="<your server>"
 MQTT_USER="<user>"
 MQTT_PWD="<pwd>"
 
 # start listener
-mosquitto_sub -h homeserver -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_sub" -d -t smarthome/#
+mosquitto_sub -h $SERVER -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_sub" -d -t smarthome/#
 # or
-mosquitto_sub -h homeserver -p 1883 -i "client_sub" -d -t smarthome/#
+mosquitto_sub -h $SERVER -p 1883 -i "client_sub" -d -t smarthome/#
 
 # send single message
-mosquitto_pub -h homeserver -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
+mosquitto_pub -h $SERVER -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
 # or
-mosquitto_pub -h homeserver -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
+mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
 ```
 
 ### Prepare environment
 ```bash
 cd /opt
 sudo mkdir enocean-mqtt-bridge
-sudo chown pi:pi enocean-mqtt-bridge
+sudo chown pi:pi enocean-mqtt-bridge  # type in your user
 git clone https://github.com/rosenloecher-it/enocean-mqtt-bridge enocean-mqtt-bridge
 
 cd enocean-mqtt-bridge
@@ -95,7 +96,7 @@ Choose one of the available devices (modules pathes), which will handle Enocean 
     - specific to "Eltako FFG7B-rw" devices; creates JSON
     - tranform states to (STATUS): OPEN, CLOSED, TILTED, OFFLINE, ERROR
     - "SINCE" contains th last change time
-    - samples
+    - example
         ```
         {
             "STATUS": "CLOSED",
@@ -120,7 +121,7 @@ Choose one of the available devices (modules pathes), which will handle Enocean 
 # prepare your own service script based on enocean-mqtt-bridge.service.sample
 cp ./enocean-mqtt-bridge.service.sample ./enocean-mqtt-bridge.service
 
-# edit/adapt pathes in enocean-mqtt-bridge.service
+# edit/adapt pathes and user in enocean-mqtt-bridge.service
 vi ./enocean-mqtt-bridge.service
 
 # install service
