@@ -39,7 +39,7 @@ sudo usermod -a -G dialout $USER
 # logout & login
 ```
 
-### Test working MQTT broker (here Mosquitto):
+### Test working MQTT broker (here Mosquitto)
 ```bash
 sudo apt-get install mosquitto-clients
 
@@ -57,9 +57,12 @@ mosquitto_sub -h $SERVER -p 1883 -i "client_sub" -d -t smarthome/#
 mosquitto_pub -h $SERVER -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
 # or
 mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
+
+# just as info: clear retained messages
+mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -n -r -d
 ```
 
-### Prepare environment
+### Prepare python environment
 ```bash
 cd /opt
 sudo mkdir enocean-mqtt-bridge
