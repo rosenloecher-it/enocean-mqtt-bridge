@@ -162,6 +162,7 @@ class BaseDevice(abc.ABC):
                 qos=self._mqtt_qos,
                 retain=self._mqtt_retain
             )
+            self._logger.info("mqtt publish: {0}={1}".format(self._mqtt_channel, message))
         except TypeError as ex:
             raise DeviceException(ex)
 
@@ -174,7 +175,7 @@ class BaseDevice(abc.ABC):
                     qos=self._mqtt_qos,
                     retain=self._mqtt_retain
                 )
-                self._logger.debug("last will set: {0}".format(self._mqtt_last_will))
+                self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel, self._mqtt_last_will))
             except TypeError as ex:
                 raise DeviceException(ex)
 

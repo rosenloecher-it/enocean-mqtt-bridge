@@ -24,5 +24,4 @@ class GenericDevice(BaseDevice):
         except Exception as ex:
             message = str(ex)
 
-        self._logger.info("proceed_enocean - send: %s", message)
         self._publish(message)

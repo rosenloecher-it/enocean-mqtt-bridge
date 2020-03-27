@@ -175,5 +175,4 @@ class EltakoFFG7BDevice(BaseDevice):
             since = None
 
         message = self._create_message(value, since, rssi)
-        self._logger.info("proceed_enocean - send: %s", message)
         self._publish(message)
