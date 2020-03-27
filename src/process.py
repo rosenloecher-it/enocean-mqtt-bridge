@@ -1,4 +1,5 @@
 import logging
+import signal
 from typing import List
 
 import paho.mqtt.client as mqtt
@@ -26,11 +27,19 @@ class Process:
 
         self._mqtt = None
         self._enocean = None
+        self._shutdown = False
+
+        signal.signal(signal.SIGINT, self._shutdown_gracefully)
+        signal.signal(signal.SIGTERM, self._shutdown_gracefully)
 
         _logger.debug("config: %s", self._config)
 
     def __del__(self):
         self.close()
+
+    def _shutdown_gracefully(self, sig, frame):
+        _logger.info("shutdown signaled (%s)", sig)
+        self._shutdown = True
 
     def close(self):
         if self._enocean is not None:  # and self._enocean.is_alive():
@@ -43,6 +52,9 @@ class Process:
                     device.sent_last_will_disconnect()
                 except DeviceException as ex:
                     _logger.error(ex)
+
+            self._mqtt_channels = {}
+            self._mqtt_channels = {}
 
             self._mqtt_publisher.close()
             self._mqtt.loop_stop()
@@ -57,7 +69,7 @@ class Process:
         time_check_offline = 0
 
         try:
-            while True:
+            while not self._shutdown:
 
                 # TODO check mqtt
 
@@ -76,6 +88,8 @@ class Process:
 
         except KeyboardInterrupt:
             _logger.debug("finishing...")
+        finally:
+            self.close()
 
     def connect_enocean(self):
         key = ConfMainKey.ENOCEAN_PORT.value
