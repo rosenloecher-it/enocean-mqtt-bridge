@@ -82,11 +82,12 @@ class Process:
                 if time_check_offline >= 5:
                     self._check_and_send_offline()
 
-                time.Sleep(time_step)
+                time.sleep(time_step)
                 time_wait_for_refresh += time_step
                 time_check_offline += time_step
 
         except KeyboardInterrupt:
+            # gets called without signal-handler
             _logger.debug("finishing...")
         finally:
             self.close()

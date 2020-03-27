@@ -37,7 +37,7 @@ class EnoceanConnector:
                 self.close()
                 self.open()
 
-    def handle_messages(self):
+    def handle_messages(self, block:bool = False):
         loop = 0
         while self._enocean.is_alive() and loop < 50:
             loop += 1
@@ -49,7 +49,7 @@ class EnoceanConnector:
             # loop to empty the queue...
             try:
                 # get next packet
-                packet = self._enocean.receive.get(block=True)
+                packet = self._enocean.receive.get(block=block)
 
                 # check packet type
                 if packet.packet_type == PACKET.RADIO:
