@@ -83,18 +83,20 @@ class BaseDevice(abc.ABC):
                 self._name)
             raise DeviceException(txt)
 
-        key = ConfDeviceKey.MQTT_CHANNEL.value
-        self._mqtt_channel = self._config.get(key)
-        if not self._mqtt_channel:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key, self._name)
-            self._logger.error(message)
-            raise DeviceException(message)
+        self._mqtt_channel = self._config.get(ConfDeviceKey.MQTT_CHANNEL.value)
+        self._check_mqtt_channel()
 
         self._mqtt_last_will = Config.post_process_str(self._config, ConfDeviceKey.MQTT_LAST_WILL, None)
         self._mqtt_qos = Config.post_process_int(self._config, ConfDeviceKey.MQTT_QUALITY,
                                                  Constant.DEFAULT_MQTT_QUALITY)
         self._mqtt_retain = Config.post_process_bool(self._config, ConfDeviceKey.MQTT_RETAIN, False)
         self._mqtt_time_offline = Config.post_process_int(self._config, ConfDeviceKey.MQTT_TIME_OFFLINE, None)
+
+    def _check_mqtt_channel(self):
+        if not self._mqtt_channel:
+            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.MQTT_CHANNEL.value, self._name)
+            self._logger.error(message)
+            raise DeviceException(message)
 
     def _extract_message(self, packet, store_extra_data=False):
         """

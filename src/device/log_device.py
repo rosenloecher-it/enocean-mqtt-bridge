@@ -10,6 +10,9 @@ class LogDevice(BaseDevice):
     def set_config(self, config):
         super().set_config(config)
 
+    def _check_mqtt_channel(self):
+        pass
+
     def proceed_enocean(self, message):
         self._update_enocean_activity()
 
@@ -24,3 +27,9 @@ class LogDevice(BaseDevice):
             self._logger.info("proceed_enocean - extracted:\n  %s", data)
         except DeviceException as ex:
             self._logger.exception("proceed_enocean - could not extract:\n%s", ex)
+
+    def _publish(self, message: str):
+        pass
+
+    def set_last_will(self):
+        pass
