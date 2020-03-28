@@ -28,16 +28,16 @@ class EnoceanConnector:
             self._enocean.stop()
             self._enocean = None
 
-    def refresh_connection(self):  # TODO force
-
+    def assure_connection(self):  # TODO force option?
         if self._enocean is None:
             self.open()
         else:
             if not self._enocean.is_alive():
+                _logger.warning("enocean is not alive - try to reopen! (may crash, restart via systemd)")
                 self.close()
                 self.open()
 
-    def handle_messages(self, block:bool = False):
+    def handle_messages(self, block: bool = False):
         loop = 0
         while self._enocean.is_alive() and loop < 50:
             loop += 1

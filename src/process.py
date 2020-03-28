@@ -71,11 +71,11 @@ class Process:
         try:
             while not self._shutdown:
 
-                # TODO check mqtt
+                # TODO check for mqtt connection loss
 
-                if time_wait_for_refresh >= 600:
+                if time_wait_for_refresh >= 30:
                     time_wait_for_refresh = 0
-                    self._enocean.refresh_connection()
+                    self._enocean.assure_connection()
 
                 self._enocean.handle_messages()
 
@@ -138,7 +138,7 @@ class Process:
                 ConfMainKey.MQTT_HOST.value, ConfMainKey.MQTT_CLIENT_ID.value
             ))
 
-        self._mqtt = mqtt.Client(client_id=client_id, protocol = protocol)
+        self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol)
 
         if is_ssl:
             self._mqtt.tls_set(ca_certs=ssl_ca_certs, certfile=ssl_certfile, keyfile=ssl_keyfile)
@@ -229,13 +229,15 @@ class Process:
             self._enocean_ids[enocean_id] = [device_instance]
 
         channel = device_instance.mqtt_channel
-        former_device = self._mqtt_channels.get(channel)
-        if former_device is not None:
-            raise DeviceException("double assignment of mqtt channel '{}' to devices '{}' and '{}'!".format(
-                former_device.name,
-                name
-            ))
-        self._mqtt_channels[channel] = device_instance
+        if channel:
+            # LogDevice does not send
+            former_device = self._mqtt_channels.get(channel)
+            if former_device is not None:
+                raise DeviceException("double assignment of mqtt channel '{}' to devices '{}' and '{}'!".format(
+                    former_device.name,
+                    name
+                ))
+            self._mqtt_channels[channel] = device_instance
 
     @classmethod
     def _load_class(cls, path: str) -> BaseDevice.__class__:
