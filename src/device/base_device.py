@@ -142,6 +142,7 @@ class BaseDevice(abc.ABC):
             now = self._now()
             diff = (now - self._enocean_activity).total_seconds()
             if diff >= self._mqtt_time_offline:
+                self._update_enocean_activity()
                 self.sent_last_will_no_refresh()
 
     def sent_last_will_no_refresh(self):
