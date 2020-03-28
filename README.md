@@ -138,6 +138,7 @@ sudo systemctl start enocean-mqtt-bridge
 
 # check logs
 journalctl -u enocean-mqtt-bridge
+journalctl -u enocean-mqtt-bridge --no-pager --since "5 minutes ago"
 
 # enable autostart at boot time
 sudo systemctl enable enocean-mqtt-bridge.service
