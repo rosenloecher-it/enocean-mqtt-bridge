@@ -5,7 +5,7 @@ import unittest
 from tzlocal import get_localzone
 
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.eltako_ffg7b_device import HandleValue, EltakoFFG7BDevice, ConfDeviceExKey, StorageKey
+from src.device.ffg7b_device import HandleValue, EltakoFFG7BDevice, ConfDeviceExKey, StorageKey
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 from test.device.test_base_device import PACKET_WIN_TILTED
