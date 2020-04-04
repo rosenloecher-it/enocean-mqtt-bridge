@@ -5,7 +5,7 @@ import unittest
 from tzlocal import get_localzone
 
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.ffg7b_device import HandleValue, FFG7BDevice, ConfDeviceExKey, StorageKey
+from src.device.ffg7b_device import HandleValue, FFG7BDevice, StorageKey
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 from test.device.test_base_device import PACKET_WIN_TILTED
@@ -42,7 +42,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             ConfDeviceKey.ENOCEAN_TYPE.value: 123,
             ConfDeviceKey.MQTT_CHANNEL_STATE.value: "channel",
 
-            ConfDeviceExKey.WRITE_SINCE.value: True
+            ConfDeviceKey.WRITE_SINCE.value: True
         })
 
         time_1 = datetime.datetime(2020, 1, 1, 2, 2, 3, tzinfo=get_localzone())
@@ -119,7 +119,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
             ConfDeviceKey.MQTT_CHANNEL_STATE.value: "channel",
 
-            ConfDeviceExKey.WRITE_SINCE.value: True
+            ConfDeviceKey.WRITE_SINCE.value: True
         })
 
         time_1 = datetime.datetime.now(tz=get_localzone())

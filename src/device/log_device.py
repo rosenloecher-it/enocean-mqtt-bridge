@@ -1,22 +1,10 @@
 import logging
-from enum import Enum
 
 from src.config import Config
 from src.device.base_device import BaseDevice
+from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
 from src.tools import Tools
-
-
-class ConfDeviceExKey(Enum):
-    DUMP_PACKETS = "dump_packets"
-    ENOCEAN_IDS = "enocean_ids"
-    ENOCEAN_IDS_SKIP = "enocean_ids_skip"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
 
 
 class LogDevice(BaseDevice):
@@ -54,11 +42,11 @@ class LogDevice(BaseDevice):
             self._enocean_ids.add(None)  # listen to all!
         else:
             add_id_not_none(self._enocean_ids, self._enocean_id)
-            add_id_not_none(self._enocean_ids, self._config.get(ConfDeviceExKey.ENOCEAN_IDS.value))
+            add_id_not_none(self._enocean_ids, self._config.get(ConfDeviceKey.ENOCEAN_IDS.value))
 
-        add_id_not_none(self._enocean_ids_skip, self._config.get(ConfDeviceExKey.ENOCEAN_IDS_SKIP.value))
+        add_id_not_none(self._enocean_ids_skip, self._config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))
 
-        self._dump_packet = Config.post_process_bool(self._config, ConfDeviceExKey.DUMP_PACKETS, False)
+        self._dump_packet = Config.post_process_bool(self._config, ConfDeviceKey.DUMP_PACKETS, False)
 
     def proceed_enocean(self, message):
         packet = message.payload
@@ -76,7 +64,7 @@ class LogDevice(BaseDevice):
 
         if None not in [self._enocean_func, self._enocean_rorg, self._enocean_type]:
             try:
-                data = self._extract_message(packet, store_extra_data=True)
+                data = self._extract_message(packet)
                 self._logger.info("proceed_enocean - extracted: %s", data)
             except DeviceException as ex:
                 self._logger.exception("proceed_enocean - could not extract:\n%s", ex)

@@ -44,7 +44,6 @@ class TestSnifferSamples(unittest.TestCase):
     #
     #     direction = None
     #     command = None
-    #     store_extra_data = True
     #
     #     for f in range(0, 255):
     #         for t in range(0, 255):
@@ -66,10 +65,6 @@ class TestSnifferSamples(unittest.TestCase):
     #                     raw_value = property['raw_value']
     #                     data[prop_name] = raw_value
     #
-    #                     if store_extra_data:
-    #                         value = prop['value']
-    #                         if value is not None and value != raw_value:
-    #                             data[prop_name + "_EXT"] = value
     #                 except AttributeError:
     #                     data[prop_name] = "!?"
     #

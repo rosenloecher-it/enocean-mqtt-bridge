@@ -115,7 +115,6 @@ class BaseDevice(abc.ABC):
     def _extract_message(self, packet):
         """
         :param enocean.protocol.packet.RadioPacket packet:
-        :param bool store_extra_data:
         :rtype: dict{str, object}
         """
         if packet.packet_type == PACKET.RADIO and packet.rorg == self._enocean_rorg:

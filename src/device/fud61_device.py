@@ -6,6 +6,7 @@ from enocean.protocol.packet import Packet, RadioPacket
 
 from src.config import Config
 from src.device.base_device import BaseDevice
+from src.device.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
 from src.tools import Tools
@@ -15,22 +16,6 @@ class ButtonAction(Enum):
     ON = "on"  # press
     OFF = "off"  # press
     RELEASE = "release"
-
-
-class ConfDeviceExKey(Enum):
-    STORAGE_FILE = "storage_file"
-
-
-PACKET_STATUS_ON_33 = """
-gANjZW5vY2Vhbi5wcm90b2NvbC5wYWNrZXQKUmFkaW9QYWNrZXQKcQApgXEBfXECKFgLAAAAcGFj
-a2V0X3R5cGVxA0sBWAQAAAByb3JncQRLpVgJAAAAcm9yZ19mdW5jcQVOWAkAAAByb3JnX3R5cGVx
-Bk5YEQAAAHJvcmdfbWFudWZhY3R1cmVycQdOWAgAAAByZWNlaXZlZHEIY2RhdGV0aW1lCmRhdGV0
-aW1lCnEJQwoH5AMdECwNB6j9cQqFcQtScQxYBAAAAGRhdGFxDV1xDihLpUsCSyFLAEsJSwVLGksu
-S3xLAGVYCAAAAG9wdGlvbmFscQ9dcRAoSwBL/0v/S/9L/0s3SwBlWAYAAABzdGF0dXNxEUsAWAYA
-AABwYXJzZWRxEmNjb2xsZWN0aW9ucwpPcmRlcmVkRGljdApxEylScRRYDgAAAHJlcGVhdGVyX2Nv
-dW50cRVLAFgIAAAAX3Byb2ZpbGVxFk5YCwAAAGRlc3RpbmF0aW9ucRddcRgoS/9L/0v/S/9lWAMA
-AABkQm1xGUrJ////WAYAAABzZW5kZXJxGl1xGyhLBUsaSy5LfGVYBQAAAGxlYXJucRyJdWIu
-"""
 
 
 class Fud61Device(BaseDevice):
@@ -77,7 +62,7 @@ class Fud61Device(BaseDevice):
     def set_config(self, config):
         super().set_config(config)
 
-        storage_file = Config.post_process_str(self._config, ConfDeviceExKey.STORAGE_FILE, None)
+        storage_file = Config.post_process_str(self._config, ConfDeviceKey.STORAGE_FILE, None)
         self._storage.set_file(storage_file)
 
         try:

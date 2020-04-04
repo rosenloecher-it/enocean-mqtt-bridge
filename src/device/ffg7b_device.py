@@ -9,22 +9,11 @@ from enocean.protocol.packet import Packet
 
 from src.config import Config
 from src.device.base_device import BaseDevice, PropName
+from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
 from src.tools import Tools
-
-
-class ConfDeviceExKey(Enum):
-    STORAGE_FILE = "storage_file"
-    WRITE_SINCE_SEPARATE_ERROR = "write_since_separate_error"
-    WRITE_SINCE = "write_since"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
 
 
 class StorageKey(Enum):
@@ -89,11 +78,11 @@ class FFG7BDevice(BaseDevice):
     def set_config(self, config):
         super().set_config(config)
 
-        self._write_since = Config.post_process_bool(self._config, ConfDeviceExKey.WRITE_SINCE, False)
+        self._write_since = Config.post_process_bool(self._config, ConfDeviceKey.WRITE_SINCE, False)
         self._write_since_no_error = Config.post_process_bool(self._config,
-                                                              ConfDeviceExKey.WRITE_SINCE_SEPARATE_ERROR, True)
+                                                              ConfDeviceKey.WRITE_SINCE_SEPARATE_ERROR, True)
 
-        storage_file = Config.post_process_str(self._config, ConfDeviceExKey.STORAGE_FILE, None)
+        storage_file = Config.post_process_str(self._config, ConfDeviceKey.STORAGE_FILE, None)
         self._storage.set_file(storage_file)
 
         if self._write_since:
