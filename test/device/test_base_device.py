@@ -60,21 +60,21 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
     def test_close(self):
         packet = Tools.unpickle(PACKET_WIN_CLOSE)
 
-        comp = {'RSSI': -74, 'WIN': 3, 'T21': 1, 'NU': 0}
+        comp = {'WIN': 3, 'T21': 1, 'NU': 0}
         data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
 
     def test_tilted(self):
         packet = Tools.unpickle(PACKET_WIN_TILTED)
 
-        comp = {'RSSI': -58, 'WIN': 1, 'T21': 1, 'NU': 0}
+        comp = {'WIN': 1, 'T21': 1, 'NU': 0}
         data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
 
     def test_open(self):
         packet = Tools.unpickle(PACKET_WIN_OPEN)
 
-        comp = {'RSSI': -64, 'WIN': 2, 'T21': 1, 'NU': 0}
+        comp = {'WIN': 2, 'T21': 1, 'NU': 0}
         data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
 

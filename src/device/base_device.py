@@ -131,9 +131,6 @@ class BaseDevice(abc.ABC):
         else:
             data = {}
 
-        if hasattr(packet, "dBm"):
-            data[PropName.RSSI.value] = packet.dBm
-
         return data
 
     def _send_enocean_packet(self, packet, delay=0):

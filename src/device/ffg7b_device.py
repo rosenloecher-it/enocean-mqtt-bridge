@@ -160,8 +160,9 @@ class FFG7BDevice(BaseDevice):
         data = self._extract_message(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
+        rssi = packet.dBm  # if hasattr(packet, "dBm") else None
+
         try:
-            rssi = data.get(PropName.RSSI.value)
             value = self.extract_handle_state(data.get("WIN"))
         except DeviceException as ex:
             self._logger.exception(ex)
