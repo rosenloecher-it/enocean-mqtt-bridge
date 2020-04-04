@@ -1,7 +1,7 @@
+import time
 from enum import Enum
 
-import time
-from enocean.protocol.constants import PACKET, RETURN_CODE
+from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet, RadioPacket
 
 from src.config import Config
@@ -12,7 +12,7 @@ from src.storage import Storage, StorageException
 from src.tools import Tools
 
 
-class ButtonAction(Enum):
+class SwitchAction(Enum):
     ON = "on"  # press
     OFF = "off"  # press
     RELEASE = "release"
@@ -50,7 +50,7 @@ class Fud61Device(BaseDevice):
         self._enocean_type = 0x08
         self._enocean_command = 0x02
 
-        # simulate rocjker switch
+        # simulate rocker switch
         self._switch_rorg = 0xf6
         self._switch_func = 0x02
         self._switch_type = 0x02
@@ -85,16 +85,6 @@ class Fud61Device(BaseDevice):
         data = self._extract_message(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
-        # check packet type
-        if packet.packet_type == PACKET.RADIO:
-            # self._process_packet(packet)
-            self._logger.debug("TODO process_packet")
-        elif packet.packet_type == PACKET.RESPONSE:
-            response_code = RETURN_CODE(packet.data[0])
-            self._logger.warning("TODO got response packet: {}".format(response_code.name))
-        else:
-            self._logger.debug("TODO got non-RF packet: {}".format(packet))
-
         # try:
         #     rssi = data.get(PropName.RSSI.value)
         #     value = self.extract_handle_state(data.get("WIN"))
@@ -118,19 +108,19 @@ class Fud61Device(BaseDevice):
         super().set_enocean(enocean)
         self._send_switch()
 
-    def _create_packet(self, action):
+    def _create_switch_packet(self, action):
         # simulate rocker switch
 
-        if action == ButtonAction.ON:
+        if action == SwitchAction.ON:
             props = {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        elif action == ButtonAction.OFF:
+        elif action == SwitchAction.OFF:
             props = {'R1': 0, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        elif action == ButtonAction.RELEASE:
+        elif action == SwitchAction.RELEASE:
             props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
         else:
             RuntimeError()
 
-        # destination = Tools.int_to_byte_list(0xffffffff, 4)
+        # could also b e 0xffffffff
         destination = Tools.int_to_byte_list(self._enocean_id, 4)
 
         packet = RadioPacket.create(
@@ -147,16 +137,16 @@ class Fud61Device(BaseDevice):
         return "A rocker switch is simulated for switching! Set teach target to EC1 == direction switch!"
 
     def send_teach_message(self):
-        self._simulate_button_press(ButtonAction.ON)
+        self._simulate_button_press(SwitchAction.ON)
 
-    def _simulate_button_press(self, action: ButtonAction):
+    def _simulate_button_press(self, action: SwitchAction):
 
-        if action != ButtonAction.RELEASE:
-            packet = self._create_packet(action)
+        if action != SwitchAction.RELEASE:
+            packet = self._create_switch_packet(action)
             self._send_enocean_packet(packet)
             time.sleep(0.05)
 
-        packet = self._create_packet(ButtonAction.RELEASE)
+        packet = self._create_switch_packet(SwitchAction.RELEASE)
         self._send_enocean_packet(packet)
 
     def _send_switch(self):
@@ -172,6 +162,6 @@ class Fud61Device(BaseDevice):
 
         # curr_action = True
 
-        button_action = ButtonAction.ON if curr_action else ButtonAction.OFF
+        button_action = SwitchAction.ON if curr_action else SwitchAction.OFF
         self._logger.info("switch {}".format(button_action.value))
         self._simulate_button_press(button_action)

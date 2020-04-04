@@ -155,12 +155,6 @@ class BaseDevice(abc.ABC):
             t = Timer(delay, do_send)
             t.start()
 
-    def get_teach_message(self):
-        return None
-
-    def send_teach_message(self):
-        raise NotImplementedError()
-
     @abc.abstractmethod
     def proceed_enocean(self, message: EnoceanMessage):
         """
@@ -213,6 +207,13 @@ class BaseDevice(abc.ABC):
                 self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel_state, self._mqtt_last_will))
             except TypeError as ex:
                 raise DeviceException(ex)
+
+    def get_teach_message(self):
+        return None
+
+    def send_teach_message(self):
+        # NotImplementedError matchs better, but let PyCharm complain about not implemented functions.
+        raise RuntimeError("No teaching implemented!")
 
     def _now(self):
         """overwrite in test to simulate different times"""

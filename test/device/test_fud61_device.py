@@ -1,6 +1,6 @@
 import unittest
 
-from src.device.fud61_device import Fud61Device, ButtonAction
+from src.device.fud61_device import Fud61Device, SwitchAction
 from src.tools import Tools
 
 PACKET_STATUS_ON_100 = """
@@ -80,7 +80,7 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
 
     def test_created_packet(self):
         device = _MockDevice()
-        packet = device._create_packet(ButtonAction.ON)
+        packet = device._create_switch_packet(SwitchAction.ON)
 
         extract = Tools.extract_packet(
             packet=packet,
