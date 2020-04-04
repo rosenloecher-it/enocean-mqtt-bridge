@@ -65,7 +65,7 @@ class HandlePosAttr(Enum):
         return '{}'.format(self.name)
 
 
-class EltakoFFG7BDevice(BaseDevice):
+class FFG7BDevice(BaseDevice):
     """Specialized class to forward notfications of Eltako FFG7B-rw (Eltako TF-FGB)
     windows/door handles. Output is a json dict with values of `HandleValues`.
     Additionally there is a `SINCE` field (JSON) which indicates the last change time.

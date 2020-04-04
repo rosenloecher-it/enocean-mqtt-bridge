@@ -5,13 +5,13 @@ import unittest
 from tzlocal import get_localzone
 
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.ffg7b_device import HandleValue, EltakoFFG7BDevice, ConfDeviceExKey, StorageKey
+from src.device.ffg7b_device import HandleValue, FFG7BDevice, ConfDeviceExKey, StorageKey
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 from test.device.test_base_device import PACKET_WIN_TILTED
 
 
-class _MockDevice(EltakoFFG7BDevice):
+class _MockDevice(FFG7BDevice):
 
     def __init__(self):
         self.now = None
