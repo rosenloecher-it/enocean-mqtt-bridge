@@ -1,5 +1,8 @@
+import json
+import logging
 import time
 from enum import Enum
+from typing import Optional
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet, RadioPacket
@@ -16,6 +19,35 @@ class SwitchAction(Enum):
     ON = "on"  # press
     OFF = "off"  # press
     RELEASE = "release"
+
+
+class StateValue(Enum):
+    ERROR = "ERROR"
+    OFF = "OFF"
+    ON = "ON"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return '{}'.format(self.name)
+
+    @classmethod
+    def is_success(cls, state):
+        return state in [cls.OFF, cls.ON]
+
+
+class Fud61OutAttr(Enum):
+    RSSI = "RSSI"
+    TIMESTAMP = "TIMESTAMP"
+    STATE = "STATE"
+    DIM = "DIM"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return '{}'.format(self.name)
 
 
 class Fud61Device(BaseDevice):
@@ -57,18 +89,9 @@ class Fud61Device(BaseDevice):
         self._switch_direction = None
         self._switch_command = None
 
-        self._storage = Storage()
-
     def set_config(self, config):
         super().set_config(config)
 
-        storage_file = Config.post_process_str(self._config, ConfDeviceKey.STORAGE_FILE, None)
-        self._storage.set_file(storage_file)
-
-        try:
-            self._storage.load()
-        except StorageException as ex:
-            self._logger.exception(ex)
 
     def proceed_enocean(self, message: EnoceanMessage):
 
@@ -85,24 +108,52 @@ class Fud61Device(BaseDevice):
         data = self._extract_message(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
-        # try:
-        #     rssi = data.get(PropName.RSSI.value)
-        #     value = self.extract_handle_state(data.get("WIN"))
-        # except DeviceException as ex:
-        #     self._logger.exception(ex)
-        #     value = HandleValue.ERROR
-        #
-        # if value == HandleValue.ERROR and self._logger.isEnabledFor(logging.DEBUG):
-        #     # write ascii representation to reproduce in tests
-        #     self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tool.pickle(packet))
-        #
-        # if self._write_since:
-        #     since = self._determine_and_store_since(value)
-        # else:
-        #     since = None
-        #
-        # message = self._create_message(value, since, rssi)
-        # self._publish(message)
+        # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}
+
+        rssi = packet.dBm  # if hasattr(packet, "dBm") else None
+        switch_state = self.extract_switch_state(data.get("SW"))
+        dim_state = self.extract_dim_state(value=data.get("EDIM"), range=data.get("EDIMR"))
+
+        if (switch_state == StateValue.ERROR or dim_state is None) and \
+                self._logger.isEnabledFor(logging.DEBUG):
+            # write ascii representation to reproduce in tests
+            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet())
+
+        message = self._create_message(switch_state, dim_state, rssi)
+        self._publish(message)
+
+    def _create_message(self, switch_state: StateValue, dim_state: Optional[int], rssi: Optional[int] = None):
+        data = {
+            Fud61OutAttr.TIMESTAMP.value: self._now().isoformat(),
+            Fud61OutAttr.STATE.value: switch_state.value
+        }
+        if rssi is not None:
+            data[Fud61OutAttr.RSSI.value] = rssi
+        if dim_state is not None:
+            data[Fud61OutAttr.DIM.value] = dim_state
+
+        json_text = json.dumps(data)
+        return json_text
+
+    @classmethod
+    def extract_switch_state(cls, value):
+        if value == 1:
+            return StateValue.ON
+        elif value == 0:
+            return StateValue.OFF
+        else:
+            return StateValue.ERROR
+
+    @classmethod
+    def extract_dim_state(cls, value, range):
+        if value is None:
+            return None
+        if range == 0:
+            return value
+        elif range == 1:
+            return int(value / 256 + 0.5)
+        else:
+            return None
 
     def set_enocean(self, enocean):
         super().set_enocean(enocean)
@@ -151,14 +202,6 @@ class Fud61Device(BaseDevice):
 
     def _send_switch(self):
         key = "last_action"
-
-        last_action = self._storage.get(key, False)
-        curr_action = not last_action
-        self._storage.set(key, curr_action)
-        try:
-            self._storage.save()
-        except StorageException as ex:
-            self._logger.exception(ex)
 
         # curr_action = True
 

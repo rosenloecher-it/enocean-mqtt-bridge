@@ -1,6 +1,9 @@
+import datetime
+import json
 import unittest
 
 from src.device.fud61_device import Fud61Device, SwitchAction
+from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
 PACKET_STATUS_ON_100 = """
@@ -48,14 +51,19 @@ AABkQm1xGUrH////WAYAAABzZW5kZXJxGl1xGyhLBUsaSy5LfGVYBQAAAGxlYXJucRyJdWIu
 class _MockDevice(Fud61Device):
 
     def __init__(self):
+        self.now = None
+
         super().__init__("mock")
 
         self._enocean_id = 0xffffffff
 
-        self._storage.load()
+        self.messages = []
 
-    def proceed_enocean(self, message):
-        raise NotImplementedError()  # not used
+    def _now(self):
+        return self.now
+
+    def _publish(self, message: str):
+        self.messages.append(message)
 
 
 class TestBaseDeviceExtractProps(unittest.TestCase):
@@ -64,21 +72,36 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
         packet = Tools.unpickle(PACKET_STATUS_OFF_0)
         device = _MockDevice()
         data = device._extract_message(packet)
-        print(data)
+        self.assertEqual(data, {'COM': 2, 'EDIM': 0, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 0})
 
     def test_extract_on_33(self):
         packet = Tools.unpickle(PACKET_STATUS_ON_33)
         device = _MockDevice()
         data = device._extract_message(packet)
-        print(data)
+        self.assertEqual(data, {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_extract_on_100(self):
         packet = Tools.unpickle(PACKET_STATUS_ON_100)
         device = _MockDevice()
         data = device._extract_message(packet)
-        print(data)
+        self.assertEqual(data, {'COM': 2, 'EDIM': 100, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
-    def test_created_packet(self):
+    def test_proceed_enocean(self):
+        device = _MockDevice()
+        device.now = datetime.datetime(2020, 1, 1, 2, 2, 3, tzinfo=datetime.timezone.utc)
+        packet = Tools.unpickle(PACKET_STATUS_ON_33)
+        message = EnoceanMessage(payload=packet, enocean_id=device._enocean_id)
+
+        device.proceed_enocean(message)
+
+        self.assertEqual(len(device.messages), 1)
+        result = json.loads(device.messages[0])
+
+        compare = {'TIMESTAMP': '2020-01-01T02:02:03+00:00', 'STATE': 'ON', 'RSSI': -55, 'DIM': 33}
+        self.assertEqual(result, compare)
+
+
+    def test_created_switch_packet(self):
         device = _MockDevice()
         packet = device._create_switch_packet(SwitchAction.ON)
 
