@@ -5,7 +5,8 @@ import sys
 import logging.handlers
 
 from src.config import ConfMainKey, Config
-from src.process import Process
+from src.process.live_worker import LiveWorker
+from src.process.teach_worker import TeachWorker
 
 _logger = logging.getLogger("main")
 
@@ -49,7 +50,7 @@ def init_logging(config):
 
 
 def main():
-    process = None
+    worker = None
 
     try:
         config = {}
@@ -57,13 +58,13 @@ def main():
 
         init_logging(config)
 
-        process = Process(config)
-        process.init_devices()
-        process.connect_mqtt()
-        process.connect_enocean()
-        process.run()
+        if config.get(ConfMainKey.TEACH.value):
+            worker = TeachWorker()
+        else:
+            worker = LiveWorker()
 
-        # 1/0
+        worker.open(config)
+        worker.run()
 
         return 0
 
@@ -78,8 +79,8 @@ def main():
         return 1
 
     finally:
-        if process is not None:
-            process.close()
+        if worker is not None:
+            worker.close()
 
 
 if __name__ == '__main__':

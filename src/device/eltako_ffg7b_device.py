@@ -4,11 +4,15 @@ import logging
 from enum import Enum
 from typing import Optional
 
+from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import Packet
+
 from src.config import Config
 from src.device.base_device import BaseDevice, PropName
 from src.device.device_exception import DeviceException
+from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
-from src.tools import Tool
+from src.tools import Tools
 
 
 class ConfDeviceExKey(Enum):
@@ -71,6 +75,11 @@ class EltakoFFG7BDevice(BaseDevice):
 
     def __init__(self, name):
         super().__init__(name)
+
+        # default config values
+        self._enocean_rorg = 0xf6
+        self._enocean_func = 0x10
+        self._enocean_type = 0x00
 
         self._write_since_no_error = True
         self._write_since = False
@@ -151,10 +160,14 @@ class EltakoFFG7BDevice(BaseDevice):
         else:
             return HandleValue.ERROR
 
-    def proceed_enocean(self, message):
+    def proceed_enocean(self, message: EnoceanMessage):
+
+        packet = message.payload  # type: Packet
+        if packet.packet_type != PACKET.RADIO:
+            return
+
         self._update_enocean_activity()
 
-        packet = message.payload
         data = self._extract_message(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
@@ -167,7 +180,7 @@ class EltakoFFG7BDevice(BaseDevice):
 
         if value == HandleValue.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
-            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tool.pickle(packet))
+            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet(packet))
 
         if self._write_since:
             since = self._determine_and_store_since(value)

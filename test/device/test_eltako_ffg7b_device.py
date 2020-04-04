@@ -7,7 +7,7 @@ from tzlocal import get_localzone
 from src.config import ConfDeviceKey
 from src.device.eltako_ffg7b_device import HandleValue, EltakoFFG7BDevice, ConfDeviceExKey, StorageKey
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tool
+from src.tools import Tools
 from test.device.test_base_device import PACKET_WIN_TILTED
 
 
@@ -114,8 +114,8 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         device = _MockDevice()
         device.set_config({
             ConfDeviceKey.ENOCEAN_ID.value: enocean_id,
-            ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
             ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
+            ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
             ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
             ConfDeviceKey.MQTT_CHANNEL.value: "channel",
 
@@ -125,7 +125,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         time_1 = datetime.datetime.now(tz=get_localzone())
 
         message = EnoceanMessage(
-            payload=Tool.unpickle(PACKET_WIN_TILTED),
+            payload=Tools.unpickle(PACKET_WIN_TILTED),
             enocean_id=enocean_id
         )
         device.now = time_1

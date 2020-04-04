@@ -1,6 +1,10 @@
 import json
 
+from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import Packet
+
 from src.device.base_device import BaseDevice
+from src.enocean_connector import EnoceanMessage
 
 
 class GenericDevice(BaseDevice):
@@ -15,7 +19,12 @@ class GenericDevice(BaseDevice):
     def __init__(self, name):
         super().__init__(name)
 
-    def proceed_enocean(self, message):
+    def proceed_enocean(self, message: EnoceanMessage):
+
+        packet = message.payload  # type: Packet
+        if packet.packet_type != PACKET.RADIO:
+            return
+
         self._update_enocean_activity()
 
         try:

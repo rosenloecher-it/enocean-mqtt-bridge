@@ -1,13 +1,12 @@
 import unittest
 from datetime import datetime, timedelta
 
-import os
+from enocean.protocol.constants import PACKET
 from tzlocal import get_localzone
 
 from src.config import ConfDeviceKey
 from src.device.base_device import BaseDevice
-from src.device.device_exception import DeviceException
-from src.tools import Tool
+from src.tools import Tools
 from test.mock_mqtt_publisher import MockMqttPublisher
 
 PACKET_WIN_CLOSE = """
@@ -59,52 +58,25 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
         self.device._enocean_type = 0x00
 
     def test_close(self):
-        packet = Tool.unpickle(PACKET_WIN_CLOSE)
+        packet = Tools.unpickle(PACKET_WIN_CLOSE)
 
         comp = {'RSSI': -74, 'WIN': 3, 'T21': 1, 'NU': 0}
-        data = self.device._extract_message(packet, store_extra_data=False)
-        self.assertEqual(data, comp)
-
-        comp = {'RSSI': -74, 'WIN': 3, 'WIN_EXT': 'Moved from vertical to down', 'T21': 1, 'NU': 0}
-        data = self.device._extract_message(packet, store_extra_data=True)
+        data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
 
     def test_tilted(self):
-        packet = Tool.unpickle(PACKET_WIN_TILTED)
+        packet = Tools.unpickle(PACKET_WIN_TILTED)
 
         comp = {'RSSI': -58, 'WIN': 1, 'T21': 1, 'NU': 0}
-        data = self.device._extract_message(packet, store_extra_data=False)
-        self.assertEqual(data, comp)
-
-        comp = {'RSSI': -58, 'WIN': 1, 'WIN_EXT': 'Moved from vertical to up', 'T21': 1, 'NU': 0}
-        data = self.device._extract_message(packet, store_extra_data=True)
+        data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
 
     def test_open(self):
-        packet = Tool.unpickle(PACKET_WIN_OPEN)
+        packet = Tools.unpickle(PACKET_WIN_OPEN)
 
         comp = {'RSSI': -64, 'WIN': 2, 'T21': 1, 'NU': 0}
-        data = self.device._extract_message(packet, store_extra_data=False)
+        data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
-
-        comp = {'RSSI': -64, 'WIN': 2, 'WIN_EXT': 'Moved from down to vertical', 'T21': 1, 'NU': 0}
-        data = self.device._extract_message(packet, store_extra_data=True)
-        self.assertEqual(data, comp)
-
-    def test_invalid(self):
-        packet = os.urandom(64)  # random binary data
-        with self.assertRaises(DeviceException) as context:
-            self.device._extract_message(packet, store_extra_data=True)
-        self.assertTrue('dBm' in str(context.exception))
-
-        with self.assertRaises(DeviceException) as context:
-            self.device._extract_message({}, store_extra_data=True)
-
-        with self.assertRaises(DeviceException) as context:
-            self.device._extract_message("xxx", store_extra_data=True)
-
-        with self.assertRaises(DeviceException) as context:
-            self.device._extract_message(1234, store_extra_data=True)
 
 
 class _TestTimeoutDevice(BaseDevice):
@@ -181,3 +153,8 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         self.device.now += timedelta(seconds=self.TIMEOUT + 2)
         self.device.check_and_send_offline()
         self.assertEqual(len(self.mqtt_publisher.messages), 0)
+
+    def test_packet_type_text(self):
+        self.assertEqual(BaseDevice.packet_type_text(PACKET.RADIO), "RADIO")
+        self.assertEqual(BaseDevice.packet_type_text(int(PACKET.RADIO)), "RADIO")
+        self.assertEqual(BaseDevice.packet_type_text(None), "None")

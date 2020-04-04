@@ -54,7 +54,8 @@ devices:
     write_since:          True
     storage_file:         ./__work__/storage-winhandle-office.yaml
 
-    # enocean lib settings: see https://github.com/kipe/enocean
+    # see EnOcean Equipment Profiles (EEP) or https://github.com/kipe/enocean
+    # here F6-10-00 windows handle
     enocean_rorg:         0xf6
     enocean_func:         0x10
     enocean_type:         0x00

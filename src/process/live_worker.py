@@ -1,50 +1,45 @@
 import logging
-import signal
+import time
 from typing import List
 
 import paho.mqtt.client as mqtt
-import time
 
-from src.config import ConfDeviceKey, ConfMainKey, ConfSectionKey
+from src.config import ConfMainKey, ConfSectionKey
 from src.constant import Constant
 from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
-from src.enocean_connector import EnoceanConnector
 from src.mqtt_publisher import MqttPublisher
+from src.process.worker import Worker
 
 _logger = logging.getLogger("process")
 
 
-class Process:
+class LiveWorker(Worker):
 
-    def __init__(self, config):
+    def __init__(self):
+        super().__init__()
 
-        self._config = config
         self._enocean_ids = {}  # type: dict[int, List[BaseDevice]]
         self._mqtt_channels = {}  # type: dict[str, BaseDevice]
 
         self._mqtt_publisher = MqttPublisher()
 
         self._mqtt = None
-        self._enocean = None
-        self._shutdown = False
 
-        signal.signal(signal.SIGINT, self._shutdown_gracefully)
-        signal.signal(signal.SIGTERM, self._shutdown_gracefully)
+    def run(self):
+        self._init_devices()
+        self._connect_mqtt()
+        self._connect_enocean()
 
-        _logger.debug("config: %s", self._config)
+        # TODO better
+        for id, devices in self._enocean_ids.items():
+            for device in devices:
+                device.set_enocean(self._enocean)
 
-    def __del__(self):
-        self.close()
-
-    def _shutdown_gracefully(self, sig, frame):
-        _logger.info("shutdown signaled (%s)", sig)
-        self._shutdown = True
+        self._loop()
 
     def close(self):
-        if self._enocean is not None:  # and self._enocean.is_alive():
-            self._enocean.close()
-            self._enocean = None
+        super().close()
 
         if self._mqtt is not None:
             for channel, device in self._mqtt_channels.items():
@@ -63,7 +58,7 @@ class Process:
             self._mqtt = None
             _logger.debug("mqtt closed.")
 
-    def run(self):
+    def _loop(self):
         time_step = 0.05
         time_wait_for_refresh = 0
         time_check_offline = 0
@@ -92,15 +87,6 @@ class Process:
         finally:
             self.close()
 
-    def connect_enocean(self):
-        key = ConfMainKey.ENOCEAN_PORT.value
-        port = self._config.get(key)
-        if not port:
-            raise RuntimeError("no '{}' configured!".format(key))
-        self._enocean = EnoceanConnector(port)
-        self._enocean.on_receive = self._on_enocean_receive
-        self._enocean.open()
-
     def _check_and_send_offline(self):
         for device in self._mqtt_channels.values():
             device.check_and_send_offline()
@@ -109,14 +95,20 @@ class Process:
         """
         :param src.enocean_interface.EnoceanMessage message:
         """
-        devices = self._enocean_ids.get(message.enocean_id)
-        if devices:
-            for device in devices:
+        listener = self._enocean_ids.get(message.enocean_id) or []
+
+        if message.enocean_id is not None:
+            none_listener = self._enocean_ids.get(None)
+            if none_listener:
+                listener.extend(none_listener)
+
+        if listener:
+            for device in listener:
                 device.proceed_enocean(message)
         # else:
         #     _logger.debug("enocean receiver not found - cannot proceed message '%s'", message)
 
-    def connect_mqtt(self):
+    def _connect_mqtt(self):
         host = self._config.get(ConfMainKey.MQTT_HOST.value)
         port = self._config.get(ConfMainKey.MQTT_PORT.value)
         protocol = self._config.get(ConfMainKey.MQTT_PROTOCOL.value)
@@ -193,7 +185,7 @@ class Process:
         """MQTT callback is invoked when message was successfully sent to the MQTT server."""
         _logger.debug("published MQTT message %s", str(mid))
 
-    def init_devices(self):
+    def _init_devices(self):
         items = self._config[ConfSectionKey.DEVICES.value]
         for name, config in items.items():
             try:
@@ -202,31 +194,20 @@ class Process:
                 _logger.error(ex)
 
     def _init_device(self, name, config):
-        if not name:
-            raise DeviceException("invalid name => device skipped!")
+        device_instance = self._create_device(name, config)
 
-        device_class_import = config.get(ConfDeviceKey.DEVICE_CLASS.value)
-
-        if device_class_import in [None, "dummy"]:
-            return  # skip
-
-        try:
-            device_class = self._load_class(device_class_import)
-            device_instance = device_class(name)
-            self._check_device_class(device_instance)
-        except Exception as ex:
-            _logger.exception(ex)
-            raise DeviceException("cannot instantiate device: name='{}', class='{}'!".format(device_class_import, name))
-
-        device_instance.set_config(config)
         device_instance.set_mqtt_publisher(self._mqtt_publisher)
 
-        enocean_id = device_instance.enocean_id
-        former_devices = self._enocean_ids.get(enocean_id)
-        if former_devices is not None:
-            former_devices.append(device_instance)
-        else:
-            self._enocean_ids[enocean_id] = [device_instance]
+        enocean_ids = device_instance.enocean_ids
+        if enocean_ids is None:
+            # interprete as listen to all (LogDevice)!
+            enocean_ids = [None]
+        for enocean_id in enocean_ids:
+            former_devices = self._enocean_ids.get(enocean_id)
+            if former_devices is not None:
+                former_devices.append(device_instance)
+            else:
+                self._enocean_ids[enocean_id] = [device_instance]
 
         channel = device_instance.mqtt_channel
         if channel:
@@ -238,20 +219,3 @@ class Process:
                     name
                 ))
             self._mqtt_channels[channel] = device_instance
-
-    @classmethod
-    def _load_class(cls, path: str) -> BaseDevice.__class__:
-        delimiter = path.rfind(".")
-        classname = path[delimiter + 1:len(path)]
-        mod = __import__(path[0:delimiter], globals(), locals(), [classname])
-        return getattr(mod, classname)
-
-    @classmethod
-    def _check_device_class(cls, device):
-        if not isinstance(device, BaseDevice):
-            if device:
-                class_info = device.__class__.__module__ + '.' + device.__class__.__name__
-            else:
-                class_info = 'None'
-            class_target = BaseDevice.__module__ + '.' + BaseDevice.__name__
-            raise TypeError("{} is not of type {}!".format(class_info, class_target))

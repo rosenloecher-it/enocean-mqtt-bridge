@@ -27,6 +27,7 @@ class ConfMainKey(Enum):
     LOG_MAX_COUNT = "log_max_count"
     LOG_PRINT = "log_print"
     SYSTEMD = "systemd"
+    TEACH = "teach"
 
     ENOCEAN_PORT = "enocean_port"
 
@@ -64,6 +65,8 @@ class ConfDeviceKey(Enum):
     ENOCEAN_RORG = "enocean_rorg"
     ENOCEAN_FUNC = "enocean_func"
     ENOCEAN_TYPE = "enocean_type"
+    ENOCEAN_DIRECTION = "enocean_direction"
+    ENOCEAN_COMMAND = "enocean_command"
 
     def __str__(self):
         return self.__repr__()
@@ -146,6 +149,7 @@ class Config:
 
         handle_cli(ConfMainKey.CONF_FILE, Constant.DEFAULT_CONFFILE)
         handle_cli(ConfMainKey.SYSTEMD)
+        handle_cli(ConfMainKey.TEACH)
 
         handle_cli(ConfMainKey.LOG_LEVEL)
         handle_cli(ConfMainKey.LOG_FILE)
@@ -187,12 +191,29 @@ class Config:
             help="systemd/journald integration (skip timestamp + prints to console)"
         )
         parser.add_argument(
+            "-t", "--" + ConfMainKey.TEACH.value,
+            help="teach in mode for 1 device (named after config key)"
+        )
+        parser.add_argument(
             "-v", "--version",
             action="version",
             version="{} v{}".format(Constant.APP_NAME, Constant.APP_VERSION)
         )
 
         return parser
+
+    @classmethod
+    def post_process(cls, config, key_enum, default=None):
+        key = key_enum.value
+        value_in = config.get(key)
+
+        if type(value_in) != str:
+            if value_in is None:
+                config[key] = default
+            else:
+                config[key] = str(value_in)
+
+        return config[key]
 
     @classmethod
     def post_process_str(cls, config, key_enum, default=None):

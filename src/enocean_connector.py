@@ -3,7 +3,6 @@ import queue
 from collections import namedtuple
 
 from enocean.communicators import SerialCommunicator
-from enocean.protocol.constants import PACKET, RETURN_CODE
 
 _logger = logging.getLogger("enocean")
 
@@ -17,18 +16,24 @@ class EnoceanConnector:
         self._port = port
         self._enocean = None
         self._enocean_sender = None
-        self.on_receive = None
+        self.on_receive = None  # type: callable(EnoceanMessage)
 
     def open(self):
         self._enocean = SerialCommunicator(self._port)
         self._enocean.start()
+        _logger.debug("open")
 
     def close(self):
         if self._enocean is not None:  # and self._enocean.is_alive():
             self._enocean.stop()
             self._enocean = None
 
-    def assure_connection(self):  # TODO force option?
+    def is_alive(self):
+        if not self._enocean:
+            return False
+        return self._enocean.is_alive()
+
+    def assure_connection(self):  # force option?
         if self._enocean is None:
             self.open()
         else:
@@ -51,21 +56,28 @@ class EnoceanConnector:
                 # get next packet
                 packet = self._enocean.receive.get(block=block)
 
-                # check packet type
-                if packet.packet_type == PACKET.RADIO:
-                    self._process_radio_packet(packet)
-                elif packet.packet_type == PACKET.RESPONSE:
-                    response_code = RETURN_CODE(packet.data[0])
-                    _logger.debug("got response packet: {}".format(response_code.name))
+                if hasattr(packet, "sender_int"):
+                    try:
+                        message = EnoceanMessage(
+                            payload=packet,
+                            enocean_id=packet.sender_int
+                        )
+                        self.on_receive(message)
+                    except Exception as ex:
+                        _logger.exception(ex)
                 else:
-                    _logger.debug("got non-RF packet: {}".format(packet))
-                    continue
+                    _logger.warning("packet without sender_int?!\n%s", packet)
+
+                continue
+
             except queue.Empty:
                 break
 
-    def _process_radio_packet(self, packet):
-        message = EnoceanMessage(
-            payload=packet,
-            enocean_id=packet.sender_int
-        )
-        self.on_receive(message)
+    @property
+    def base_id(self):
+        return None if self._enocean is None else self._enocean.base_id
+
+    def send(self, packet):
+        if self._enocean is not None:
+            self._enocean.send(packet)
+            pass
