@@ -2,7 +2,8 @@ import abc
 import logging
 import signal
 
-from src.config import ConfMainKey, ConfDeviceKey
+from src.config import ConfMainKey
+from src.device.conf_device_key import ConfDeviceKey
 from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector

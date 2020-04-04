@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from enocean.protocol.constants import PACKET
 from tzlocal import get_localzone
 
-from src.config import ConfDeviceKey
+from src.device.conf_device_key import ConfDeviceKey
 from src.device.base_device import BaseDevice
 from src.tools import Tools
 from test.mock_mqtt_publisher import MockMqttPublisher

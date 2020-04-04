@@ -8,7 +8,8 @@ from threading import Timer
 from enocean.protocol.constants import PACKET
 from tzlocal import get_localzone
 
-from src.config import ConfDeviceKey, Config
+from src.config import Config
+from src.device.conf_device_key import ConfDeviceKey
 from src.constant import Constant
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
