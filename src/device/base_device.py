@@ -41,7 +41,7 @@ class BaseDevice(abc.ABC):
         self._enocean_direction = None
         self._enocean_command = None
 
-        self._mqtt_channel = None
+        self._mqtt_channel_state = None
         self._mqtt_last_will = None
         self._mqtt_qos = None
         self._mqtt_retain = None
@@ -60,7 +60,7 @@ class BaseDevice(abc.ABC):
 
     @property
     def mqtt_channel(self):
-        return self._mqtt_channel
+        return self._mqtt_channel_state
 
     def set_mqtt_publisher(self, mqtt_publisher):
         """
@@ -91,7 +91,7 @@ class BaseDevice(abc.ABC):
         self._enocean_direction = config_int(self._enocean_direction, ConfDeviceKey.ENOCEAN_DIRECTION)
         self._enocean_command = config_int(self._enocean_command, ConfDeviceKey.ENOCEAN_COMMAND)
 
-        self._mqtt_channel = self._config.get(ConfDeviceKey.MQTT_CHANNEL.value)
+        self._mqtt_channel_state = self._config.get(ConfDeviceKey.MQTT_CHANNEL_STATE.value)
         self._check_mqtt_settings()
 
         self._mqtt_last_will = Config.post_process_str(self._config, ConfDeviceKey.MQTT_LAST_WILL, None)
@@ -107,8 +107,8 @@ class BaseDevice(abc.ABC):
             raise DeviceException(message)
 
     def _check_mqtt_settings(self):
-        if not self._mqtt_channel:
-            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.MQTT_CHANNEL.value, self._name)
+        if not self._mqtt_channel_state:
+            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.MQTT_CHANNEL_STATE.value, self._name)
             self._logger.error(message)
             raise DeviceException(message)
 
@@ -193,12 +193,12 @@ class BaseDevice(abc.ABC):
     def _publish(self, message: str):
         try:
             self._mqtt_publisher.publish(
-                channel=self._mqtt_channel,
+                channel=self._mqtt_channel_state,
                 message=message,
                 qos=self._mqtt_qos,
                 retain=self._mqtt_retain
             )
-            self._logger.info("mqtt publish: {0}={1}".format(self._mqtt_channel, message))
+            self._logger.info("mqtt publish: {0}={1}".format(self._mqtt_channel_state, message))
         except TypeError as ex:
             raise DeviceException(ex)
 
@@ -206,12 +206,12 @@ class BaseDevice(abc.ABC):
         if self._mqtt_last_will:
             try:
                 self._mqtt_publisher.will_set(
-                    channel=self._mqtt_channel,
+                    channel=self._mqtt_channel_state,
                     message=self._mqtt_last_will,
                     qos=self._mqtt_qos,
                     retain=self._mqtt_retain
                 )
-                self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel, self._mqtt_last_will))
+                self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel_state, self._mqtt_last_will))
             except TypeError as ex:
                 raise DeviceException(ex)
 

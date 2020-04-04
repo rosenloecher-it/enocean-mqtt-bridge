@@ -39,10 +39,10 @@ device-default: &device-default
 
 devices:
 
-  # define (unique) device name via section
+  # define (unique) device name
   winhandle-office:
     enocean_id:           0x0123456a
-    mqtt_channel:         "smarthome/enocean/winhandle-office"
+    mqtt_channel_state:   "smarthome/enocean/winhandle-office"
     # mqtt_qos:           1  # == default (integer)
 
     # secific to "Eltako FFG7B-rw" devices; creates JSON
@@ -62,7 +62,3 @@ devices:
 
     # copy default settings here. see YAML features!
     <<: *device-default
-
-  dummy:
-    # devices without `device_class` (== "~") gets skipped!
-    device_class:         ~

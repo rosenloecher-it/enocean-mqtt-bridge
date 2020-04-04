@@ -109,7 +109,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
             ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
             ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
             ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
-            ConfDeviceKey.MQTT_CHANNEL.value: "dummy",
+            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "dummy",
             ConfDeviceKey.MQTT_LAST_WILL.value: self.last_will,
             ConfDeviceKey.MQTT_TIME_OFFLINE.value: self.TIMEOUT,
         })

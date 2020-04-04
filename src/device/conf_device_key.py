@@ -6,7 +6,8 @@ class ConfDeviceKey(Enum):
 
     DEVICE_CLASS = "device_class"
     ENOCEAN_ID = "enocean_id"
-    MQTT_CHANNEL = "mqtt_channel"
+    MQTT_CHANNEL_STATE = "mqtt_channel_state"
+    MQTT_CHANNEL_CMD = "mqtt_channel_cmd"
     MQTT_LAST_WILL = "mqtt_last_will"
     MQTT_QUALITY = "mqtt_quality"
     MQTT_RETAIN = "mqtt_retain"

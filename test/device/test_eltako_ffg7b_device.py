@@ -40,7 +40,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             ConfDeviceKey.ENOCEAN_FUNC.value: 123,
             ConfDeviceKey.ENOCEAN_RORG.value: 123,
             ConfDeviceKey.ENOCEAN_TYPE.value: 123,
-            ConfDeviceKey.MQTT_CHANNEL.value: "channel",
+            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "channel",
 
             ConfDeviceExKey.WRITE_SINCE.value: True
         })
@@ -117,7 +117,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
             ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
             ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
-            ConfDeviceKey.MQTT_CHANNEL.value: "channel",
+            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "channel",
 
             ConfDeviceExKey.WRITE_SINCE.value: True
         })
