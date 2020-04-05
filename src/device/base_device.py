@@ -58,9 +58,13 @@ class BaseDevice(abc.ABC):
     def enocean_ids(self):
         return [self._enocean_id]
 
-    @property
-    def mqtt_channel(self):
+    def get_mqtt_last_will_channel(self):
+        """signal ensor state, outbound channel"""
         return self._mqtt_channel_state
+
+    def get_mqtt_channel_subscriptions(self):
+        """signal ensor state, outbound channel"""
+        return []
 
     def set_mqtt_publisher(self, mqtt_publisher):
         """
@@ -153,11 +157,17 @@ class BaseDevice(abc.ABC):
             t.start()
 
     @abc.abstractmethod
-    def proceed_enocean(self, message: EnoceanMessage):
+    def process_enocean_message(self, message: EnoceanMessage):
         """
         :param src.enocean_interface.EnoceanMessage message:
         """
         raise NotImplementedError()
+
+    def process_mqtt_message(self, message):
+        """
+
+        :param src.enocean_interface.EnoceanMessage message:
+        """
 
     def _update_enocean_activity(self):
         self._enocean_activity = self._now()
@@ -208,7 +218,7 @@ class BaseDevice(abc.ABC):
     def get_teach_message(self):
         return None
 
-    def send_teach_message(self):
+    def send_teach_telegram(self, cli_arg):
         # NotImplementedError matchs better, but let PyCharm complain about not implemented functions.
         raise RuntimeError("No teaching implemented!")
 

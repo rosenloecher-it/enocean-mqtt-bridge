@@ -27,7 +27,6 @@ class TeachWorker(Worker):
         device_config = items[name]
 
         self._device = self._create_device(name, device_config)
-        # TODO check device for functions and raise error
 
         self._device.set_enocean(self._enocean)
 
@@ -37,15 +36,16 @@ class TeachWorker(Worker):
         # print('Press and hold the teach-in button on the plug now, '
         #       'till it starts turning itself off and on (about 10 seconds or so...)')
 
-        print("\n\n")
+        print("\n")
         extra_info = self._device.get_teach_message()
         if extra_info:
             print(extra_info)
             print("\n")
 
-        input("\n\nActivate teach-in mode on your device, then press (quickly) enter.\n")
+        input("\nActivate teach-in mode on your device, then press (quickly) enter.\n")
 
-        self._device.send_teach_message()
+        teach_arg = self._config.get(ConfMainKey.TEACH_XTRA.value)
+        self._device.send_teach_telegram(teach_arg)  # supposed to raise ex if not supported
 
         while not self._shutdown:
             if not self._enocean.is_alive():

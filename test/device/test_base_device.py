@@ -44,7 +44,7 @@ PACKET_WIN_OPEN = """
 
 
 class _TestExtractPropsDevice(BaseDevice):
-    def proceed_enocean(self, message):
+    def process_enocean_message(self, message):
         raise NotImplementedError()  # not used
 
 
@@ -85,7 +85,7 @@ class _TestTimeoutDevice(BaseDevice):
         self.now = None
         super().__init__(name)
 
-    def proceed_enocean(self, message):
+    def process_enocean_message(self, message):
         self._update_enocean_activity()
 
     def _now(self):
@@ -120,7 +120,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         now = datetime.now(tz=get_localzone())
         self.device.now = now
 
-        self.device.proceed_enocean("")
+        self.device.process_enocean_message("")
         self.assertEqual(self.device._enocean_activity, now)
 
         now = now + timedelta(seconds=self.TIMEOUT - 2)
@@ -138,7 +138,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         self.device._mqtt_last_will = None
 
         self.device.now = datetime.now(tz=get_localzone())
-        self.device.proceed_enocean("")
+        self.device.process_enocean_message("")
 
         self.device.now += timedelta(seconds=self.TIMEOUT + 2)
         self.device.check_and_send_offline()
@@ -148,7 +148,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         self.device._mqtt_time_offline = None
 
         self.device.now = datetime.now(tz=get_localzone())
-        self.device.proceed_enocean("")
+        self.device.process_enocean_message("")
 
         self.device.now += timedelta(seconds=self.TIMEOUT + 2)
         self.device.check_and_send_offline()

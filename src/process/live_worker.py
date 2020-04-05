@@ -20,7 +20,8 @@ class LiveWorker(Worker):
         super().__init__()
 
         self._enocean_ids = {}  # type: dict[int, List[BaseDevice]]
-        self._mqtt_channels = {}  # type: dict[str, BaseDevice]
+        self._mqtt_last_will_channels = {}  # type: dict[str, BaseDevice]
+        self._mqtt_channels_subscriptions = {}  # type: dict[str, set[BaseDevice]]
 
         self._mqtt_publisher = MqttPublisher()
 
@@ -28,13 +29,9 @@ class LiveWorker(Worker):
 
     def run(self):
         self._init_devices()
+        self._collect_mqtt_subscriptions()
         self._connect_mqtt()
         self._connect_enocean()
-
-        # TODO better
-        for id, devices in self._enocean_ids.items():
-            for device in devices:
-                device.set_enocean(self._enocean)
 
         self._loop()
 
@@ -42,14 +39,15 @@ class LiveWorker(Worker):
         super().close()
 
         if self._mqtt is not None:
-            for channel, device in self._mqtt_channels.items():
+            for channel, device in self._mqtt_last_will_channels.items():
                 try:
                     device.sent_last_will_disconnect()
                 except DeviceException as ex:
                     _logger.error(ex)
 
-            self._mqtt_channels = {}
-            self._mqtt_channels = {}
+            self._enocean_ids = {}
+            self._mqtt_last_will_channels = {}
+            self._mqtt_channels_subscriptions = {}
 
             self._mqtt_publisher.close()
             self._mqtt.loop_stop()
@@ -88,7 +86,7 @@ class LiveWorker(Worker):
             self.close()
 
     def _check_and_send_offline(self):
-        for device in self._mqtt_channels.values():
+        for device in self._mqtt_last_will_channels.values():
             device.check_and_send_offline()
 
     def _on_enocean_receive(self, message):
@@ -104,7 +102,7 @@ class LiveWorker(Worker):
 
         if listener:
             for device in listener:
-                device.proceed_enocean(message)
+                device.process_enocean_message(message)
         # else:
         #     _logger.debug("enocean receiver not found - cannot proceed message '%s'", message)
 
@@ -145,7 +143,7 @@ class LiveWorker(Worker):
 
         self._mqtt_publisher.set_mqtt(self._mqtt)
 
-        for channel, device in self._mqtt_channels.items():
+        for channel, device in self._mqtt_last_will_channels.items():
             try:
                 device.set_last_will()
             except DeviceException as ex:
@@ -158,15 +156,17 @@ class LiveWorker(Worker):
 
         self._mqtt_publisher.open()
 
-    @classmethod
     def _on_mqtt_connect(self, mqtt_client, userdata, flags, rc):
         """MQTT callback is called when client connects to MQTT server."""
         if rc == 0:
             _logger.info("successfully connected to MQTT: flags=%s, rc=%s", flags, rc)
+            try:
+                self._subscribe_mqtt()
+            except Exception as ex:
+                _logger.exception(ex)
         else:
             _logger.error("connect to MQTT failed: flags=%s, rc=%s", flags, rc)
 
-    @classmethod
     def _on_mqtt_disconnect(self, mqtt_client, userdata, rc):
         """MQTT callback for when the client disconnects from the MQTT server."""
         if rc == 0:
@@ -174,13 +174,18 @@ class LiveWorker(Worker):
         else:
             _logger.error("Unexpectedly disconnected from MQTT broker: rc=%s", rc)
 
-    @classmethod
-    def _on_mqtt_message(self, mqtt_client, userdata, msg):
+    def _on_mqtt_message(self, mqtt_client, userdata, message):
         """MQTT callback when a message is received from MQTT server"""
-        _logger.info("on_mqtt_message:\n  userdata=%s\n  msg=%s", userdata, msg)
-        # TODO
+        try:
+            _logger.debug('on_mqtt_message: topic="%s" payload="%s"', message.topic, message.payload)
 
-    @classmethod
+            devices = self._mqtt_channels_subscriptions.get(message.topic)
+            for device in devices:
+                device.process_mqtt_message(message)
+        except Exception as ex:
+            _logger.exception(ex)
+
+    # @classmethod
     def _on_mqtt_publish(self, mqtt_client, userdata, mid):
         """MQTT callback is invoked when message was successfully sent to the MQTT server."""
         _logger.debug("published MQTT message %s", str(mid))
@@ -209,13 +214,41 @@ class LiveWorker(Worker):
             else:
                 self._enocean_ids[enocean_id] = [device_instance]
 
-        channel = device_instance.mqtt_channel
+        channel = device_instance.get_mqtt_last_will_channel()
         if channel:
-            # LogDevice does not send
-            former_device = self._mqtt_channels.get(channel)
-            if former_device is not None:
-                raise DeviceException("double assignment of mqtt channel '{}' to devices '{}' and '{}'!".format(
-                    former_device.name,
-                    name
-                ))
-            self._mqtt_channels[channel] = device_instance
+            # former last wills could be overwritten, no matter
+            self._mqtt_last_will_channels[channel] = device_instance
+
+    def _connect_enocean(self):
+        super()._connect_enocean()
+
+        for id, devices in self._enocean_ids.items():
+            for device in devices:
+                device.set_enocean(self._enocean)
+
+    def _collect_mqtt_subscriptions(self):
+        self._mqtt_channels_subscriptions = {}
+
+        for id, devices in self._enocean_ids.items():
+            for device in devices:
+                channels = device.get_mqtt_channel_subscriptions()
+                if channels:
+                    for channel in channels:
+                        if channel is None:
+                            continue
+                        devices = self._mqtt_channels_subscriptions.get(channel)
+                        if devices is None:
+                            devices = set()
+                            self._mqtt_channels_subscriptions[channel] = devices
+                        devices.add(device)
+
+    def _subscribe_mqtt(self):
+        subs_qos = 1  # qos for subscriptions, not used, but neccessary
+        subscriptions = [(s, subs_qos) for s in self._mqtt_channels_subscriptions]
+        if subscriptions:
+            result, dummy = self._mqtt.subscribe(subscriptions)
+            if result != mqtt.MQTT_ERR_SUCCESS:
+                text = "could not subscripte to mqtt #{} ({})".format(result, subscriptions)
+                raise RuntimeError(text)
+
+            _logger.info("subscripte to MQTT channels")

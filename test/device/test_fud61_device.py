@@ -92,14 +92,13 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
         packet = Tools.unpickle(PACKET_STATUS_ON_33)
         message = EnoceanMessage(payload=packet, enocean_id=device._enocean_id)
 
-        device.proceed_enocean(message)
+        device.process_enocean_message(message)
 
         self.assertEqual(len(device.messages), 1)
         result = json.loads(device.messages[0])
 
         compare = {'TIMESTAMP': '2020-01-01T02:02:03+00:00', 'STATE': 'ON', 'RSSI': -55, 'DIM': 33}
         self.assertEqual(result, compare)
-
 
     def test_created_switch_packet(self):
         device = _MockDevice()

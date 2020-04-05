@@ -19,7 +19,7 @@ class GenericDevice(BaseDevice):
     def __init__(self, name):
         super().__init__(name)
 
-    def proceed_enocean(self, message: EnoceanMessage):
+    def process_enocean_message(self, message: EnoceanMessage):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:

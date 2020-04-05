@@ -8,7 +8,7 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet
 
 from src.config import Config
-from src.device.base_device import BaseDevice, PropName
+from src.device.base_device import BaseDevice
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
@@ -149,7 +149,7 @@ class FFG7BDevice(BaseDevice):
         else:
             return HandleValue.ERROR
 
-    def proceed_enocean(self, message: EnoceanMessage):
+    def process_enocean_message(self, message: EnoceanMessage):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:

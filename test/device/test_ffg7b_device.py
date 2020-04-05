@@ -129,7 +129,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             enocean_id=enocean_id
         )
         device.now = time_1
-        device.proceed_enocean(message)
+        device.process_enocean_message(message)
 
         sent_data = json.loads(device.sent_message)
         self.assertEqual(sent_data, {

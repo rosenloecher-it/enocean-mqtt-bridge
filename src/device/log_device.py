@@ -48,7 +48,7 @@ class LogDevice(BaseDevice):
 
         self._dump_packet = Config.post_process_bool(self._config, ConfDeviceKey.DUMP_PACKETS, False)
 
-    def proceed_enocean(self, message):
+    def process_enocean_message(self, message):
         packet = message.payload
         if packet.sender_int in self._enocean_ids_skip:
             return

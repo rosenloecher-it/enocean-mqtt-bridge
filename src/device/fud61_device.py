@@ -7,11 +7,10 @@ from typing import Optional
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet, RadioPacket
 
-from src.config import Config
+from src.config import ConfMainKey
 from src.device.base_device import BaseDevice
 from src.device.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
-from src.storage import Storage, StorageException
 from src.tools import Tools
 
 
@@ -89,11 +88,18 @@ class Fud61Device(BaseDevice):
         self._switch_direction = None
         self._switch_command = None
 
+        self._mqtt_channel_cmd = None
+
     def set_config(self, config):
         super().set_config(config)
 
+        self._mqtt_channel_cmd = self._config.get(ConfDeviceKey.MQTT_CHANNEL_CMD.value)
 
-    def proceed_enocean(self, message: EnoceanMessage):
+    def get_mqtt_channel_subscriptions(self):
+        """signal ensor state, outbound channel"""
+        return [self._mqtt_channel_cmd]
+
+    def process_enocean_message(self, message: EnoceanMessage):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:
@@ -155,10 +161,6 @@ class Fud61Device(BaseDevice):
         else:
             return None
 
-    def set_enocean(self, enocean):
-        super().set_enocean(enocean)
-        self._send_switch()
-
     def _create_switch_packet(self, action):
         # simulate rocker switch
 
@@ -169,9 +171,9 @@ class Fud61Device(BaseDevice):
         elif action == SwitchAction.RELEASE:
             props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
         else:
-            RuntimeError()
+            raise RuntimeError()
 
-        # could also b e 0xffffffff
+        # could also be 0xffffffff
         destination = Tools.int_to_byte_list(self._enocean_id, 4)
 
         packet = RadioPacket.create(
@@ -185,10 +187,21 @@ class Fud61Device(BaseDevice):
         return packet
 
     def get_teach_message(self):
-        return "A rocker switch is simulated for switching! Set teach target to EC1 == direction switch!"
+        return \
+            "A rocker switch is simulated for switching!\n" \
+            "- Set teach target to EC1 == direction switch!\n" \
+            "- Run teaching 2 times with '--{}', values ['{}', '{}']." \
+                .format(ConfMainKey.TEACH_XTRA.value, SwitchAction.ON.value, SwitchAction.OFF.value)
 
-    def send_teach_message(self):
-        self._simulate_button_press(SwitchAction.ON)
+    def send_teach_telegram(self, cli_arg):
+        action = SwitchAction.ON
+        if cli_arg:
+            try:
+                action = self.extract_switch_action(cli_arg)
+            except ValueError:
+                raise ValueError("could not interprete teach argument ({})!".format(cli_arg))
+
+        self._simulate_button_press(action)
 
     def _simulate_button_press(self, action: SwitchAction):
 
@@ -200,11 +213,34 @@ class Fud61Device(BaseDevice):
         packet = self._create_switch_packet(SwitchAction.RELEASE)
         self._send_enocean_packet(packet)
 
-    def _send_switch(self):
-        key = "last_action"
+    def process_mqtt_message(self, message):
+        """
 
-        # curr_action = True
+        :param src.enocean_interface.EnoceanMessage message:
+        """
+        self._logger.debug('process_mqtt_message: "%s"', message.payload)
 
-        button_action = SwitchAction.ON if curr_action else SwitchAction.OFF
-        self._logger.info("switch {}".format(button_action.value))
-        self._simulate_button_press(button_action)
+        payload = message.payload
+        if isinstance(payload, bytes):
+            payload = payload.decode("utf-8")
+
+        try:
+            switch_action = self.extract_switch_action(payload)
+            self._logger.debug("switch to {}".format(switch_action.value))
+            self._simulate_button_press(switch_action)
+        except ValueError:
+            self._logger.error("cannot switch, message: {}".format(payload))
+
+    @classmethod
+    def extract_switch_action(cls, text: str, recusive=True):
+        if text:
+            comp = str(text).upper().strip()
+            if comp in ["ON", "1", "100"]:
+                return SwitchAction.ON
+            elif comp in ["OFF", "0"]:
+                return SwitchAction.OFF
+            elif recusive and comp[0] == "{":  # {"STATE": "off"}
+                data = json.loads(text)
+                return cls.extract_switch_action(data.get(Fud61OutAttr.STATE.value, recusive=False))
+
+        raise ValueError()
