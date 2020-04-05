@@ -28,6 +28,7 @@ class ConfMainKey(Enum):
     LOG_PRINT = "log_print"
     SYSTEMD = "systemd"
     TEACH = "teach"
+    TEACH_XTRA = "teach_xtra"
 
     ENOCEAN_PORT = "enocean_port"
 
@@ -125,6 +126,7 @@ class Config:
         handle_cli(ConfMainKey.CONF_FILE, Constant.DEFAULT_CONFFILE)
         handle_cli(ConfMainKey.SYSTEMD)
         handle_cli(ConfMainKey.TEACH)
+        handle_cli(ConfMainKey.TEACH_XTRA)
 
         handle_cli(ConfMainKey.LOG_LEVEL)
         handle_cli(ConfMainKey.LOG_FILE)
@@ -168,6 +170,11 @@ class Config:
         parser.add_argument(
             "-t", "--" + ConfMainKey.TEACH.value,
             help="teach in mode for 1 device (named after config key)"
+        )
+        parser.add_argument(
+            "-x", "--" + ConfMainKey.TEACH_XTRA.value,
+            default=None,
+            help="e(x)tra argument for teach (depends on device implementation)"
         )
         parser.add_argument(
             "-v", "--version",
