@@ -251,4 +251,4 @@ class LiveWorker(Worker):
                 text = "could not subscripte to mqtt #{} ({})".format(result, subscriptions)
                 raise RuntimeError(text)
 
-            _logger.info("subscripte to MQTT channels")
+            _logger.info("subscripted to MQTT channels")
