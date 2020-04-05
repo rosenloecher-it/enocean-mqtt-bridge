@@ -136,5 +136,5 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             'TIMESTAMP': time_1.isoformat(),
             'SINCE': time_1.isoformat(),
             'RSSI': -58,
-            'VALUE': 'TILTED'
+            'STATE': 'TILTED'
         })

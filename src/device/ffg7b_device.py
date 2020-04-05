@@ -45,7 +45,7 @@ class HandlePosAttr(Enum):
     RSSI = "RSSI"
     SINCE = "SINCE"
     TIMESTAMP = "TIMESTAMP"
-    VALUE = "VALUE"
+    STATE = "STATE"
 
     def __str__(self):
         return self.__repr__()
@@ -128,7 +128,7 @@ class FFG7BDevice(BaseDevice):
 
         data = {
             HandlePosAttr.TIMESTAMP.value: now.isoformat(),
-            HandlePosAttr.VALUE.value: value.value
+            HandlePosAttr.STATE.value: value.value
         }
         if rssi is not None:
             data[HandlePosAttr.RSSI.value] = rssi
