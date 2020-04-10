@@ -1,14 +1,14 @@
 import abc
+import logging
 import signal
 
 from src.config import ConfMainKey
-from src.device.base_device import BaseDevice
 from src.device.conf_device_key import ConfDeviceKey
+from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector
-from src.logging_helper import LoggingHelper
 
-_logger = LoggingHelper.get_logger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class Worker(abc.ABC):

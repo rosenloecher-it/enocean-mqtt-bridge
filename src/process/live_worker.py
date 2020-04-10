@@ -1,3 +1,4 @@
+import logging
 import time
 from typing import List
 
@@ -7,11 +8,10 @@ from src.config import ConfMainKey, ConfSectionKey
 from src.constant import Constant
 from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
-from src.logging_helper import LoggingHelper
 from src.mqtt_publisher import MqttPublisher
 from src.process.worker import Worker
 
-_logger = LoggingHelper.get_logger("process")
+_logger = logging.getLogger("process")
 
 
 class LiveWorker(Worker):

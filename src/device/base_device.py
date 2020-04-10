@@ -1,5 +1,6 @@
 import abc
 import copy
+import logging
 from datetime import datetime
 from enum import Enum
 from threading import Timer
@@ -12,7 +13,6 @@ from src.device.conf_device_key import ConfDeviceKey
 from src.constant import Constant
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
-from src.logging_helper import LoggingHelper
 from src.tools import Tools
 
 
@@ -29,7 +29,7 @@ class BaseDevice(abc.ABC):
             raise RuntimeError("No valid name!")
 
         self._name = name
-        self._logger = LoggingHelper.get_logger(self._name)
+        self._logger = logging.getLogger(self._name)
         self._config = None
         self._mqtt_publisher = None
         self._enocean = None

@@ -1,12 +1,12 @@
+import logging
 import time
 
 from enocean.protocol.packet import UTETeachInPacket
 
 from src.config import ConfSectionKey, ConfMainKey
-from src.logging_helper import LoggingHelper
 from src.process.worker import Worker
 
-_logger = LoggingHelper.get_logger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class TeachWorker(Worker):

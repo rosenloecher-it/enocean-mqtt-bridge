@@ -1,11 +1,10 @@
+import logging
 import queue
 from collections import namedtuple
 
 from enocean.communicators import SerialCommunicator
 
-from src.logging_helper import LoggingHelper
-
-_logger = LoggingHelper.get_logger("enocean")
+_logger = logging.getLogger("enocean")
 
 
 EnoceanMessage = namedtuple("EnoceanMessage", ["payload", "enocean_id"])
