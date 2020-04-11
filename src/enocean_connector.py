@@ -69,8 +69,8 @@ class EnoceanConnector:
                         self.on_receive(message)
                     except Exception as ex:
                         _logger.exception(ex)
-                else:
-                    _logger.debug("packet without sender_int?!\n%s", packet)
+                # else:
+                #     _logger.debug("packet without sender_int?!\n%s", packet)
 
                 continue
 

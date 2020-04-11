@@ -185,35 +185,29 @@ class BaseDevice(abc.ABC):
             self._publish(self._mqtt_last_will)
             self._logger.warning("last will sent: missing refresh")
 
-    def sent_last_will_disconnect(self):
+    def shutdown(self):
         if self._mqtt_last_will:
             self._publish(self._mqtt_last_will)
             self._logger.debug("last will sent: disconnecting")
 
     def _publish(self, message: str):
-        try:
-            self._mqtt_publisher.publish(
-                channel=self._mqtt_channel_state,
-                message=message,
-                qos=self._mqtt_qos,
-                retain=self._mqtt_retain
-            )
-            self._logger.info("mqtt publish: {0}={1}".format(self._mqtt_channel_state, message))
-        except TypeError as ex:
-            raise DeviceException(ex)
+        self._mqtt_publisher.publish(
+            channel=self._mqtt_channel_state,
+            message=message,
+            qos=self._mqtt_qos,
+            retain=self._mqtt_retain
+        )
+        self._logger.info("mqtt publish: {0}={1}".format(self._mqtt_channel_state, message))
 
     def set_last_will(self):
         if self._mqtt_last_will:
-            try:
-                self._mqtt_publisher.will_set(
-                    channel=self._mqtt_channel_state,
-                    message=self._mqtt_last_will,
-                    qos=self._mqtt_qos,
-                    retain=self._mqtt_retain
-                )
-                self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel_state, self._mqtt_last_will))
-            except TypeError as ex:
-                raise DeviceException(ex)
+            self._mqtt_publisher.store_last_will(
+                channel=self._mqtt_channel_state,
+                message=self._mqtt_last_will,
+                qos=self._mqtt_qos,
+                retain=self._mqtt_retain
+            )
+            self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel_state, self._mqtt_last_will))
 
     def get_teach_message(self):
         return None

@@ -100,7 +100,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         self.last_will = datetime.now().isoformat()
 
         self.mqtt_publisher = MockMqttPublisher()
-        self.mqtt_publisher.open()
+        self.mqtt_publisher.open(None)
 
         self.device = _TestTimeoutDevice("test")
 

@@ -4,10 +4,10 @@ from typing import List
 
 import paho.mqtt.client as mqtt
 
-from src.config import ConfMainKey, ConfSectionKey
-from src.constant import Constant
+from src.config import ConfSectionKey
 from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
+from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher
 from src.runner.runner import Runner
 
@@ -25,12 +25,16 @@ class ServiceRunner(Runner):
 
         self._mqtt_publisher = MqttPublisher()
 
-        self._mqtt = None
+        self._mqtt_connector = MqttConnector(self._mqtt_publisher)
+        self._mqtt_connector.on_connect = self._on_mqtt_connect
+        self._mqtt_connector.on_message = self._on_mqtt_message
 
     def run(self):
         self._init_devices()
         self._collect_mqtt_subscriptions()
-        self._connect_mqtt()
+
+        self._mqtt_connector.open(self._config)
+
         self._connect_enocean()
 
         self._loop()
@@ -38,10 +42,10 @@ class ServiceRunner(Runner):
     def close(self):
         super().close()
 
-        if self._mqtt is not None:
+        if self._mqtt_connector is not None:
             for channel, device in self._mqtt_last_will_channels.items():
                 try:
-                    device.sent_last_will_disconnect()
+                    device.shutdown()
                 except DeviceException as ex:
                     _logger.error(ex)
 
@@ -49,11 +53,8 @@ class ServiceRunner(Runner):
             self._mqtt_last_will_channels = {}
             self._mqtt_channels_subscriptions = {}
 
-            self._mqtt_publisher.close()
-            self._mqtt.loop_stop()
-            self._mqtt.disconnect()
-            self._mqtt.loop_forever()  # will block until disconnect complete
-            self._mqtt = None
+            self._mqtt_connector.close()
+            self._mqtt_connector = None
             _logger.debug("mqtt closed.")
 
     def _loop(self):
@@ -63,9 +64,6 @@ class ServiceRunner(Runner):
 
         try:
             while not self._shutdown:
-
-                # TODO check for mqtt connection loss
-
                 if time_wait_for_refresh >= 30:
                     time_wait_for_refresh = 0
                     self._enocean.assure_connection()
@@ -106,89 +104,21 @@ class ServiceRunner(Runner):
         # else:
         #     _logger.debug("enocean receiver not found - cannot proceed message '%s'", message)
 
-    def _connect_mqtt(self):
-        host = self._config.get(ConfMainKey.MQTT_HOST.value)
-        port = self._config.get(ConfMainKey.MQTT_PORT.value)
-        protocol = self._config.get(ConfMainKey.MQTT_PROTOCOL.value)
-        keepalive = self._config.get(ConfMainKey.MQTT_KEEPALIVE.value)
-        client_id = self._config.get(ConfMainKey.MQTT_CLIENT_ID.value)
-        ssl_ca_certs = self._config.get(ConfMainKey.MQTT_SSL_CA_CERTS.value)
-        ssl_certfile = self._config.get(ConfMainKey.MQTT_SSL_CERTFILE.value)
-        ssl_keyfile = self._config.get(ConfMainKey.MQTT_SSL_KEYFILE.value)
-        ssl_insecure = self._config.get(ConfMainKey.MQTT_SSL_INSECURE.value)
-        is_ssl = ssl_ca_certs or ssl_certfile or ssl_keyfile
-        user_name = self._config.get(ConfMainKey.MQTT_USER_NAME.value)
-        user_pwd = self._config.get(ConfMainKey.MQTT_USER_PWD.value)
-
-        if not port:
-            port = Constant.DEFAULT_MQTT_PORT_SSL if is_ssl else Constant.DEFAULT_MQTT_PORT
-
-        if not host or not client_id:
-            raise RuntimeError("mandatory mqtt configuration not found ({}, {})'!".format(
-                ConfMainKey.MQTT_HOST.value, ConfMainKey.MQTT_CLIENT_ID.value
-            ))
-
-        self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol)
-
-        if is_ssl:
-            self._mqtt.tls_set(ca_certs=ssl_ca_certs, certfile=ssl_certfile, keyfile=ssl_keyfile)
-            if ssl_insecure:
-                _logger.info("disabling SSL certificate verification")
-                self._mqtt.tls_insecure_set(True)
-
-        self._mqtt.on_connect = self._on_mqtt_connect
-        self._mqtt.on_disconnect = self._on_mqtt_disconnect
-        self._mqtt.on_message = self._on_mqtt_message
-        self._mqtt.on_publish = self._on_mqtt_publish
-
-        self._mqtt_publisher.set_mqtt(self._mqtt)
-
-        for channel, device in self._mqtt_last_will_channels.items():
-            try:
-                device.set_last_will()
-            except DeviceException as ex:
-                _logger.error(ex)
-
-        if user_name or user_pwd:
-            self._mqtt.username_pw_set(user_name, user_pwd)
-        self._mqtt.connect_async(host, port=port, keepalive=keepalive)
-        self._mqtt.loop_start()
-
-        self._mqtt_publisher.open()
-
-    def _on_mqtt_connect(self, mqtt_client, userdata, flags, rc):
-        """MQTT callback is called when client connects to MQTT server."""
+    def _on_mqtt_connect(self, rc):
         if rc == 0:
-            _logger.info("successfully connected to MQTT: flags=%s, rc=%s", flags, rc)
             try:
-                self._subscribe_mqtt()
+                channels = [c for c in self._mqtt_channels_subscriptions]
+                self._mqtt_connector.subscribe(channels)
             except Exception as ex:
                 _logger.exception(ex)
-        else:
-            _logger.error("connect to MQTT failed: flags=%s, rc=%s", flags, rc)
 
-    def _on_mqtt_disconnect(self, mqtt_client, userdata, rc):
-        """MQTT callback for when the client disconnects from the MQTT server."""
-        if rc == 0:
-            _logger.info("disconnected from MQTT: rc=%s", rc)
-        else:
-            _logger.error("Unexpectedly disconnected from MQTT broker: rc=%s", rc)
-
-    def _on_mqtt_message(self, mqtt_client, userdata, message):
-        """MQTT callback when a message is received from MQTT server"""
+    def _on_mqtt_message(self, message):
         try:
-            _logger.debug('on_mqtt_message: topic="%s" payload="%s"', message.topic, message.payload)
-
             devices = self._mqtt_channels_subscriptions.get(message.topic)
             for device in devices:
                 device.process_mqtt_message(message)
         except Exception as ex:
             _logger.exception(ex)
-
-    # @classmethod
-    def _on_mqtt_publish(self, mqtt_client, userdata, mid):
-        """MQTT callback is invoked when message was successfully sent to the MQTT server."""
-        _logger.debug("published MQTT message %s", str(mid))
 
     def _init_devices(self):
         items = self._config[ConfSectionKey.DEVICES.value]
@@ -246,7 +176,7 @@ class ServiceRunner(Runner):
         subs_qos = 1  # qos for subscriptions, not used, but neccessary
         subscriptions = [(s, subs_qos) for s in self._mqtt_channels_subscriptions]
         if subscriptions:
-            result, dummy = self._mqtt.subscribe(subscriptions)
+            result, dummy = self._mqtt_connector.subscribe(subscriptions)
             if result != mqtt.MQTT_ERR_SUCCESS:
                 text = "could not subscripte to mqtt #{} ({})".format(result, subscriptions)
                 raise RuntimeError(text)
