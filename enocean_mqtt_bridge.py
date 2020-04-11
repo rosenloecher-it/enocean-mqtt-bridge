@@ -5,8 +5,8 @@ import sys
 import logging.handlers
 
 from src.config import ConfMainKey, Config
-from src.process.live_worker import LiveWorker
-from src.process.teach_worker import TeachWorker
+from src.runner.service_runner import ServiceRunner
+from src.runner.teach_runner import TeachRunner
 
 _logger = logging.getLogger("main")
 
@@ -50,7 +50,7 @@ def init_logging(config):
 
 
 def main():
-    worker = None
+    runner = None
 
     try:
         config = {}
@@ -59,28 +59,28 @@ def main():
         init_logging(config)
 
         if config.get(ConfMainKey.TEACH.value):
-            worker = TeachWorker()
+            runner = TeachRunner()
         else:
-            worker = LiveWorker()
+            runner = ServiceRunner()
 
-        worker.open(config)
-        worker.run()
+        runner.open(config)
+        runner.run()
 
         return 0
 
     except KeyboardInterrupt:
-        # if process is not None:
-        #     process.close()
+        # if runner is not None:
+        #     runner.close()
         return 0
 
     except Exception as ex:
         _logger.exception(ex)
-        # no process.close() to signal abnomal termination!
+        # no runner.close() to signal abnomal termination!
         return 1
 
     finally:
-        if worker is not None:
-            worker.close()
+        if runner is not None:
+            runner.close()
 
 
 if __name__ == '__main__':

@@ -9,12 +9,12 @@ from src.constant import Constant
 from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
 from src.mqtt_publisher import MqttPublisher
-from src.process.worker import Worker
+from src.runner.runner import Runner
 
-_logger = logging.getLogger("process")
+_logger = logging.getLogger("runner")
 
 
-class LiveWorker(Worker):
+class ServiceRunner(Runner):
 
     def __init__(self):
         super().__init__()

@@ -11,7 +11,7 @@ from src.enocean_connector import EnoceanConnector
 _logger = logging.getLogger(__name__)
 
 
-class Worker(abc.ABC):
+class Runner(abc.ABC):
 
     def __init__(self):
         self._config = None

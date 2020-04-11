@@ -4,12 +4,12 @@ import time
 from enocean.protocol.packet import UTETeachInPacket
 
 from src.config import ConfSectionKey, ConfMainKey
-from src.process.worker import Worker
+from src.runner.runner import Runner
 
 _logger = logging.getLogger(__name__)
 
 
-class TeachWorker(Worker):
+class TeachRunner(Runner):
 
     def __init__(self):
         super().__init__()
