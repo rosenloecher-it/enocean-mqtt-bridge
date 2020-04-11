@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from enocean.communicators import SerialCommunicator
 
-_logger = logging.getLogger("enocean")
+_logger = logging.getLogger(__name__)
 
 
 # disable verbose enocen loggers

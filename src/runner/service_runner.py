@@ -11,7 +11,7 @@ from src.device.device_exception import DeviceException
 from src.mqtt_publisher import MqttPublisher
 from src.runner.runner import Runner
 
-_logger = logging.getLogger("runner")
+_logger = logging.getLogger(__name__)
 
 
 class ServiceRunner(Runner):

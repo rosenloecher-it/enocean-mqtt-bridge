@@ -8,7 +8,7 @@ from src.config import ConfMainKey, Config
 from src.runner.service_runner import ServiceRunner
 from src.runner.teach_runner import TeachRunner
 
-_logger = logging.getLogger("main")
+_logger = logging.getLogger(__name__)
 
 
 def init_logging(config):
