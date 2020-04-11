@@ -185,7 +185,10 @@ class BaseDevice(abc.ABC):
             self._publish(self._mqtt_last_will)
             self._logger.warning("last will sent: missing refresh")
 
-    def shutdown(self):
+    def open_mqtt(self):
+        pass
+
+    def close_mqtt(self):
         if self._mqtt_last_will:
             self._publish(self._mqtt_last_will)
             self._logger.debug("last will sent: disconnecting")

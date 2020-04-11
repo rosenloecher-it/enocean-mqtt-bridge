@@ -24,6 +24,7 @@ class ConfDeviceKey(Enum):
     STORAGE_FILE = "storage_file"
     WRITE_SINCE_SEPARATE_ERROR = "write_since_separate_error"
     WRITE_SINCE = "write_since"
+    RESTORE_LAST_MAX_DIFF = "restore_last_max_diff"
 
     # mainly LogDevice
     DUMP_PACKETS = "dump_packets"

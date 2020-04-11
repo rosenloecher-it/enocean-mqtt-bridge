@@ -45,7 +45,7 @@ class ServiceRunner(Runner):
         if self._mqtt_connector is not None:
             for channel, device in self._mqtt_last_will_channels.items():
                 try:
-                    device.shutdown()
+                    device.close_mqtt()
                 except DeviceException as ex:
                     _logger.error(ex)
 
@@ -109,6 +109,11 @@ class ServiceRunner(Runner):
             try:
                 channels = [c for c in self._mqtt_channels_subscriptions]
                 self._mqtt_connector.subscribe(channels)
+
+                for id, devices in self._enocean_ids.items():
+                    for device in devices:
+                        device.open_mqtt()
+
             except Exception as ex:
                 _logger.exception(ex)
 

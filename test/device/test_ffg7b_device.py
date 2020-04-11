@@ -50,7 +50,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         time_since = device._determine_and_store_since(HandleValue.TILTED)
         self.assertEqual(time_since, time_1)
         time_stored = device._storage.get(StorageKey.TIME_SUCCESS.value)
-        value_stored = device._storage.get(StorageKey.VALUE_SUCESS.value)
+        value_stored = device._storage.get(StorageKey.VALUE_SUCCESS.value)
         self.assertEqual(time_stored, time_1)
         self.assertEqual(value_stored, HandleValue.TILTED.value)
 
@@ -59,7 +59,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         time_since = device._determine_and_store_since(HandleValue.TILTED)
         self.assertEqual(time_since, time_1)
         time_stored = device._storage.get(StorageKey.TIME_SUCCESS.value)
-        value_stored = device._storage.get(StorageKey.VALUE_SUCESS.value)
+        value_stored = device._storage.get(StorageKey.VALUE_SUCCESS.value)
         self.assertEqual(time_stored, time_1)
         self.assertEqual(value_stored, HandleValue.TILTED.value)
 
@@ -68,7 +68,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         time_since = device._determine_and_store_since(HandleValue.OPEN)
         self.assertEqual(time_since, time_3)
         time_stored = device._storage.get(StorageKey.TIME_SUCCESS.value)
-        value_stored = device._storage.get(StorageKey.VALUE_SUCESS.value)
+        value_stored = device._storage.get(StorageKey.VALUE_SUCCESS.value)
         self.assertEqual(time_stored, time_3)
         self.assertEqual(value_stored, HandleValue.OPEN.value)
 
@@ -95,7 +95,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         time_since = device._determine_and_store_since(HandleValue.OPEN)
         self.assertEqual(time_since, time_3)
         time_stored = device._storage.get(StorageKey.TIME_SUCCESS.value)
-        value_stored = device._storage.get(StorageKey.VALUE_SUCESS.value)
+        value_stored = device._storage.get(StorageKey.VALUE_SUCCESS.value)
         self.assertEqual(time_stored, time_3)
         self.assertEqual(value_stored, HandleValue.OPEN.value)
 

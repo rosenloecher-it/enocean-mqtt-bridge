@@ -49,10 +49,10 @@ class MqttConnector:
                 _logger.info("disabling SSL certificate verification")
                 self._mqtt.tls_insecure_set(True)
 
-        self._mqtt.on_connect = self._on_mqtt_connect
-        self._mqtt.on_disconnect = self._on_mqtt_disconnect
-        self._mqtt.on_message = self._on_mqtt_message
-        self._mqtt.on_publish = self._on_mqtt_publish
+        self._mqtt.on_connect = self._on_connect
+        self._mqtt.on_disconnect = self._on_disconnect
+        self._mqtt.on_message = self._on_message
+        self._mqtt.on_publish = self._on_publish
 
         self.publish_stored_last_wills()
 
@@ -104,7 +104,7 @@ class MqttConnector:
 
             _logger.info("subscripted to MQTT channels")
 
-    def _on_mqtt_connect(self, mqtt_client, userdata, flags, rc):
+    def _on_connect(self, mqtt_client, userdata, flags, rc):
         """MQTT callback is called when client connects to MQTT server."""
         if rc == 0:
             self._is_connected = True
@@ -113,10 +113,10 @@ class MqttConnector:
         else:
             _logger.error("connect to MQTT failed: flags=%s, rc=%s", flags, rc)
 
-        if self.on_mqtt_connect:
-            self.on_mqtt_connect(rc)
+        if self.on_connect:
+            self.on_connect(rc)
 
-    def _on_mqtt_disconnect(self, mqtt_client, userdata, rc):
+    def _on_disconnect(self, mqtt_client, userdata, rc):
         """MQTT callback for when the client disconnects from the MQTT server."""
         self._is_connected = False
         if rc == 0:
@@ -124,13 +124,13 @@ class MqttConnector:
         else:
             _logger.error("Unexpectedly disconnected from MQTT broker: rc=%s", rc)
 
-        if self.on_mqtt_disconnect:
-            self.on_mqtt_disconnect(rc)
+        if self.on_disconnect:
+            self.on_disconnect(rc)
 
-    def _on_mqtt_message(self, mqtt_client, userdata, message):
+    def _on_message(self, mqtt_client, userdata, message):
         """MQTT callback when a message is received from MQTT server"""
         try:
-            _logger.debug('on_mqtt_message: topic="%s" payload="%s"', message.topic, message.payload)
+            _logger.debug('_on_message: topic="%s" payload="%s"', message.topic, message.payload)
 
             devices = self._mqtt_channels_subscriptions.get(message.topic)
             for device in devices:
@@ -138,10 +138,10 @@ class MqttConnector:
         except Exception as ex:
             _logger.exception(ex)
 
-        if self.on_mqtt_message:
-            self.on_mqtt_message(message)
+        if self.on_message:
+            self.on_message(message)
 
     @classmethod
-    def _on_mqtt_publish(self, mqtt_client, userdata, mid):
+    def _on_publish(self, mqtt_client, userdata, mid):
         """MQTT callback is invoked when message was successfully sent to the MQTT server."""
         _logger.debug("published MQTT message %s", str(mid))

@@ -17,10 +17,11 @@ from src.tools import Tools
 
 
 class StorageKey(Enum):
-    VALUE_SUCESS = "VALUE_SUCCESS"
+    VALUE_SUCCESS = "VALUE_SUCCESS"
     TIME_SUCCESS = "TIME_SUCCESS"
     VALUE_ERROR = "VALUE_ERROR"
     TIME_ERROR = "TIME_ERROR"
+    TIME_LAST_OBSERVATION = "TIME_LAST_OBSERVATION"
 
 
 class HandleValue(Enum):
@@ -39,6 +40,14 @@ class HandleValue(Enum):
     @classmethod
     def is_success(cls, state):
         return state in [cls.CLOSED, cls.OPEN, cls.TILTED]
+
+    @classmethod
+    def parse(cls, text: str):
+        for e in cls:
+            if text == e.value:
+                return e
+
+        return None
 
 
 class HandlePosAttr(Enum):
@@ -81,20 +90,21 @@ class FFG7BDevice(BaseDevice):
         self._write_since = Config.post_process_bool(self._config, ConfDeviceKey.WRITE_SINCE, False)
         self._write_since_no_error = Config.post_process_bool(self._config,
                                                               ConfDeviceKey.WRITE_SINCE_SEPARATE_ERROR, True)
+        self._restore_last_max_diff = Config.post_process_int(self._config,
+                                                              ConfDeviceKey.RESTORE_LAST_MAX_DIFF, 15)
 
         storage_file = Config.post_process_str(self._config, ConfDeviceKey.STORAGE_FILE, None)
         self._storage.set_file(storage_file)
 
-        if self._write_since:
-            try:
-                self._storage.load()
-            except StorageException as ex:
-                self._logger.exception(ex)
+        try:
+            self._storage.load()
+        except StorageException as ex:
+            self._logger.exception(ex)
 
     def _determine_and_store_since(self, value_enum: HandleValue):
         success_value = HandleValue.is_success(value_enum)
         if not self._write_since_no_error or success_value:
-            key_state = StorageKey.VALUE_SUCESS.value
+            key_state = StorageKey.VALUE_SUCCESS.value
             key_time = StorageKey.TIME_SUCCESS.value
         else:
             key_state = StorageKey.VALUE_ERROR.value
@@ -122,12 +132,14 @@ class FFG7BDevice(BaseDevice):
 
         return time_since
 
-    def _create_message(self, value: HandleValue, since: Optional[datetime.datetime], rssi: Optional[int] = None):
+    def _create_message(self, value: HandleValue, since: Optional[datetime.datetime],
+                        rssi: Optional[int] = None, timestamp: Optional[datetime.datetime] = None):
 
-        now = self._now()
+        if not timestamp:
+            timestamp = self._now()
 
         data = {
-            HandlePosAttr.TIMESTAMP.value: now.isoformat(),
+            HandlePosAttr.TIMESTAMP.value: timestamp.isoformat(),
             HandlePosAttr.STATE.value: value.value
         }
         if rssi is not None:
@@ -177,5 +189,43 @@ class FFG7BDevice(BaseDevice):
         else:
             since = None
 
-        message = self._create_message(value, since, rssi)
+        message = self._create_message(value, since, rssi=rssi)
         self._publish(message)
+
+    def _restore_last_state(self):
+        """restore old STATE when in time"""
+        last_observation = self._storage.get(StorageKey.TIME_LAST_OBSERVATION.value)
+        if not last_observation:
+            return
+        diff_seconds = (self._now() - last_observation).total_seconds()
+        if diff_seconds > self._restore_last_max_diff:
+            return
+        if self._storage.get(StorageKey.TIME_ERROR.value) is not None:
+            return
+
+        last_value = self._storage.get(StorageKey.VALUE_SUCCESS.value)
+        last_since = self._storage.get(StorageKey.TIME_SUCCESS.value)
+        if not last_value or not last_since:
+            return
+
+        last_handle_value = HandleValue.parse(last_value)
+        if not HandleValue.is_success(last_handle_value):
+            return
+
+        self._logger.info("old state '%s' (%s) restored.", last_handle_value, last_observation)
+        message = self._create_message(last_handle_value, last_since, timestamp=last_observation)
+        self._publish(message)
+
+    def open_mqtt(self):
+        super().open_mqtt()
+
+        self._restore_last_state()
+
+    def close_mqtt(self):
+        super().close_mqtt()
+
+        self._storage.set(StorageKey.TIME_LAST_OBSERVATION.value, self._now())
+        try:
+            self._storage.save()
+        except StorageException as ex:
+            self._logger.exception(ex)
