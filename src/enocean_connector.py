@@ -7,6 +7,10 @@ from enocean.communicators import SerialCommunicator
 _logger = logging.getLogger("enocean")
 
 
+# disable verbose enocen loggers
+logging.getLogger("enocean.communicators.SerialCommunicator").setLevel(logging.WARNING)
+
+
 EnoceanMessage = namedtuple("EnoceanMessage", ["payload", "enocean_id"])
 
 
