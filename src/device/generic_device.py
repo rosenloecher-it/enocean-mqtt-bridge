@@ -33,4 +33,4 @@ class GenericDevice(BaseDevice):
         except Exception as ex:
             message = str(ex)
 
-        self._publish(message)
+        self._publish_mqtt(message)

@@ -75,7 +75,7 @@ class LogDevice(BaseDevice):
     def _check_mqtt_settings(self):
         pass
 
-    def _publish(self, message: str):
+    def _publish_mqtt(self, message: str):
         pass
 
     def set_last_will(self):

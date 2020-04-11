@@ -190,7 +190,7 @@ class FFG7BDevice(BaseDevice):
             since = None
 
         message = self._create_message(value, since, rssi=rssi)
-        self._publish(message)
+        self._publish_mqtt(message)
 
     def _restore_last_state(self):
         """restore old STATE when in time"""
@@ -214,7 +214,7 @@ class FFG7BDevice(BaseDevice):
 
         self._logger.info("old state '%s' (%s) restored.", last_handle_value, last_observation)
         message = self._create_message(last_handle_value, last_since, timestamp=last_observation)
-        self._publish(message)
+        self._publish_mqtt(message)
 
     def open_mqtt(self):
         super().open_mqtt()

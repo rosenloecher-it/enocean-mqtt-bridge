@@ -182,7 +182,7 @@ class BaseDevice(abc.ABC):
 
     def sent_last_will_no_refresh(self):
         if self._mqtt_last_will:
-            self._publish(self._mqtt_last_will)
+            self._publish_mqtt(self._mqtt_last_will)
             self._logger.warning("last will sent: missing refresh")
 
     def open_mqtt(self):
@@ -190,10 +190,10 @@ class BaseDevice(abc.ABC):
 
     def close_mqtt(self):
         if self._mqtt_last_will:
-            self._publish(self._mqtt_last_will)
+            self._publish_mqtt(self._mqtt_last_will)
             self._logger.debug("last will sent: disconnecting")
 
-    def _publish(self, message: str):
+    def _publish_mqtt(self, message: str):
         self._mqtt_publisher.publish(
             channel=self._mqtt_channel_state,
             message=message,

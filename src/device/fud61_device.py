@@ -126,7 +126,7 @@ class Fud61Device(BaseDevice):
             self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet())
 
         message = self._create_message(switch_state, dim_state, rssi)
-        self._publish(message)
+        self._publish_mqtt(message)
 
     def _create_message(self, switch_state: StateValue, dim_state: Optional[int], rssi: Optional[int] = None):
         data = {
@@ -232,7 +232,7 @@ class Fud61Device(BaseDevice):
             self._logger.error("cannot switch, message: {}".format(payload))
 
     @classmethod
-    def extract_switch_action(cls, text: str, recusive=True):
+    def extract_switch_action(cls, text: str, recusive=True) -> SwitchAction:
         if text:
             comp = str(text).upper().strip()
             if comp in ["ON", "1", "100"]:
@@ -241,6 +241,7 @@ class Fud61Device(BaseDevice):
                 return SwitchAction.OFF
             elif recusive and comp[0] == "{":  # {"STATE": "off"}
                 data = json.loads(text)
-                return cls.extract_switch_action(data.get(Fud61OutAttr.STATE.value, recusive=False))
+                value = data.get(Fud61OutAttr.STATE.value)
+                return cls.extract_switch_action(value, recusive=False)
 
         raise ValueError()
