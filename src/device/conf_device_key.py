@@ -10,9 +10,8 @@ class ConfDeviceKey(Enum):
     MQTT_CHANNEL_STATE = "mqtt_channel_state"
     MQTT_CHANNEL_CMD = "mqtt_channel_cmd"
     MQTT_LAST_WILL = "mqtt_last_will"
-    MQTT_QUALITY = "mqtt_quality"
+    MQTT_QOS = "mqtt_quality"
     MQTT_RETAIN = "mqtt_retain"
-    MQTT_TIME_OFFLINE = "mqtt_time_offline"
 
     ENOCEAN_RORG = "enocean_rorg"
     ENOCEAN_FUNC = "enocean_func"
@@ -25,6 +24,7 @@ class ConfDeviceKey(Enum):
     WRITE_SINCE_SEPARATE_ERROR = "write_since_separate_error"
     WRITE_SINCE = "write_since"
     RESTORE_LAST_MAX_DIFF = "restore_last_max_diff"
+    TIME_OFFLINE_MSG = "mqtt_time_offline"
 
     # mainly LogDevice
     DUMP_PACKETS = "dump_packets"

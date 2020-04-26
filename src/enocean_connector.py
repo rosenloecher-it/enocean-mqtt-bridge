@@ -4,6 +4,8 @@ from collections import namedtuple
 
 from enocean.communicators import SerialCommunicator
 
+from src.enocean_packet_factory import EnoceanPacketFactory
+
 _logger = logging.getLogger(__name__)
 
 
@@ -54,6 +56,8 @@ class EnoceanConnector:
             # Request transmitter ID, if needed
             if self._enocean_sender is None:
                 self._enocean_sender = self._enocean.base_id
+                if self._enocean_sender:
+                    EnoceanPacketFactory.set_sender_id(self._enocean_sender)
 
             # loop to empty the queue...
             try:

@@ -2,10 +2,10 @@ import logging
 import time
 from typing import List
 
-import paho.mqtt.client as mqtt
-
 from src.config import ConfSectionKey
+from src.device.base_cyclic import BaseCyclic
 from src.device.base_device import BaseDevice
+from src.device.base_mqtt import BaseMqtt
 from src.device.device_exception import DeviceException
 from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher
@@ -22,6 +22,8 @@ class ServiceRunner(Runner):
         self._enocean_ids = {}  # type: dict[int, List[BaseDevice]]
         self._mqtt_last_will_channels = {}  # type: dict[str, BaseDevice]
         self._mqtt_channels_subscriptions = {}  # type: dict[str, set[BaseDevice]]
+
+        self._devices_check_cyclic = set()
 
         self._mqtt_publisher = MqttPublisher()
 
@@ -52,6 +54,7 @@ class ServiceRunner(Runner):
             self._enocean_ids = {}
             self._mqtt_last_will_channels = {}
             self._mqtt_channels_subscriptions = {}
+            self._devices_check_cyclic = set()
 
             self._mqtt_connector.close()
             self._mqtt_connector = None
@@ -66,12 +69,13 @@ class ServiceRunner(Runner):
             while not self._shutdown:
                 if time_wait_for_refresh >= 30:
                     time_wait_for_refresh = 0
-                    self._enocean.assure_connection()
+                    self._enocean_connector.assure_connection()
 
-                self._enocean.handle_messages()
+                self._enocean_connector.handle_messages()
 
                 if time_check_offline >= 5:
-                    self._check_and_send_offline()
+                    time_check_offline = 0
+                    self._check_cyclic_tasks()
 
                 time.sleep(time_step)
                 time_wait_for_refresh += time_step
@@ -83,9 +87,9 @@ class ServiceRunner(Runner):
         finally:
             self.close()
 
-    def _check_and_send_offline(self):
-        for device in self._mqtt_last_will_channels.values():
-            device.check_and_send_offline()
+    def _check_cyclic_tasks(self):
+        for device in self._devices_check_cyclic:
+            device.check_cyclic_tasks()
 
     def _on_enocean_receive(self, message):
         """
@@ -136,8 +140,6 @@ class ServiceRunner(Runner):
     def _init_device(self, name, config):
         device_instance = self._create_device(name, config)
 
-        device_instance.set_mqtt_publisher(self._mqtt_publisher)
-
         enocean_ids = device_instance.enocean_ids
         if enocean_ids is None:
             # interprete as listen to all (LogDevice)!
@@ -149,41 +151,36 @@ class ServiceRunner(Runner):
             else:
                 self._enocean_ids[enocean_id] = [device_instance]
 
-        channel = device_instance.get_mqtt_last_will_channel()
-        if channel:
-            # former last wills could be overwritten, no matter
-            self._mqtt_last_will_channels[channel] = device_instance
+        if isinstance(device_instance, BaseCyclic):
+            self._devices_check_cyclic.add(device_instance)
+
+        if isinstance(device_instance, BaseMqtt):
+            device_instance.set_mqtt_publisher(self._mqtt_publisher)
+            channel = device_instance.get_mqtt_last_will_channel()
+            if channel:
+                # former last wills could be overwritten, no matter
+                self._mqtt_last_will_channels[channel] = device_instance
 
     def _connect_enocean(self):
         super()._connect_enocean()
 
         for id, devices in self._enocean_ids.items():
             for device in devices:
-                device.set_enocean(self._enocean)
+                device.set_enocean_connector(self._enocean_connector)
 
     def _collect_mqtt_subscriptions(self):
         self._mqtt_channels_subscriptions = {}
 
         for id, devices in self._enocean_ids.items():
             for device in devices:
-                channels = device.get_mqtt_channel_subscriptions()
-                if channels:
-                    for channel in channels:
-                        if channel is None:
-                            continue
-                        devices = self._mqtt_channels_subscriptions.get(channel)
-                        if devices is None:
-                            devices = set()
-                            self._mqtt_channels_subscriptions[channel] = devices
-                        devices.add(device)
-
-    def _subscribe_mqtt(self):
-        subs_qos = 1  # qos for subscriptions, not used, but neccessary
-        subscriptions = [(s, subs_qos) for s in self._mqtt_channels_subscriptions]
-        if subscriptions:
-            result, dummy = self._mqtt_connector.subscribe(subscriptions)
-            if result != mqtt.MQTT_ERR_SUCCESS:
-                text = "could not subscripte to mqtt #{} ({})".format(result, subscriptions)
-                raise RuntimeError(text)
-
-            _logger.info("subscripted to MQTT channels")
+                if isinstance(device, BaseMqtt):
+                    channels = device.get_mqtt_channel_subscriptions()
+                    if channels:
+                        for channel in channels:
+                            if channel is None:
+                                continue
+                            devices = self._mqtt_channels_subscriptions.get(channel)
+                            if devices is None:
+                                devices = set()
+                                self._mqtt_channels_subscriptions[channel] = devices
+                            devices.add(device)

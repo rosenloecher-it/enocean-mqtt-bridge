@@ -3,9 +3,11 @@ import json
 import unittest
 from collections import namedtuple
 
-from src.device.fud61_device import Fud61Device, SwitchAction
+from src.device.fud61_actor import Fud61Actor
+from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
+from test.setup_test import SetupTest
 
 PACKET_STATUS_ON_100 = """
 gANjZW5vY2Vhbi5wcm90b2NvbC5wYWNrZXQKUmFkaW9QYWNrZXQKcQApgXEBfXECKFgLAAAAcGFj
@@ -49,7 +51,7 @@ AABkQm1xGUrH////WAYAAABzZW5kZXJxGl1xGyhLBUsaSy5LfGVYBQAAAGxlYXJucRyJdWIu
 # 'STR': 0, 'STR_EXT': 'No', 'SW': 0, 'SW_EXT': 'Off'}
 
 
-class _MockDevice(Fud61Device):
+class _MockDevice(Fud61Actor):
 
     def __init__(self):
         self.now = None
@@ -71,7 +73,10 @@ class _MockDevice(Fud61Device):
         self.packets.append(packet)
 
 
-class TestBaseDeviceExtractProps(unittest.TestCase):
+class TestFud61Actor(unittest.TestCase):
+
+    def setUp(self):
+        SetupTest.set_dummy_sender_id()
 
     def test_extract_off_0(self):
         packet = Tools.unpickle(PACKET_STATUS_OFF_0)
@@ -105,36 +110,6 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
         compare = {'TIMESTAMP': '2020-01-01T02:02:03+00:00', 'STATE': 'ON', 'RSSI': -55, 'DIM': 33}
         self.assertEqual(result, compare)
 
-    def test_created_switch_packet(self):
-        device = _MockDevice()
-        packet = device._create_switch_packet(SwitchAction.ON)
-
-        extract = Tools.extract_packet(
-            packet=packet,
-            rorg_func=device._switch_func,
-            rorg_type=device._switch_type,
-            direction=device._switch_direction,
-            command=device._switch_command
-        )
-
-        self.assertEqual(extract, {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1})
-
-    def test_extract_switch_action(self):
-        self.assertEqual(Fud61Device.extract_switch_action(" On "), SwitchAction.ON)
-        self.assertEqual(Fud61Device.extract_switch_action(" 1 "), SwitchAction.ON)
-        self.assertEqual(Fud61Device.extract_switch_action('{"STATE": " on "}'), SwitchAction.ON)
-
-        self.assertEqual(Fud61Device.extract_switch_action(" oFF "), SwitchAction.OFF)
-        self.assertEqual(Fud61Device.extract_switch_action(" 0 "), SwitchAction.OFF)
-        self.assertEqual(Fud61Device.extract_switch_action('{"STATE": " ofF "}'), SwitchAction.OFF)
-
-        with self.assertRaises(ValueError):
-            Fud61Device.extract_switch_action("onnnnn")
-        with self.assertRaises(ValueError):
-            Fud61Device.extract_switch_action("")
-        with self.assertRaises(ValueError):
-            Fud61Device.extract_switch_action(None)
-
     def test_simulate(self):
         device = _MockDevice()
 
@@ -149,18 +124,18 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
 
         extract = Tools.extract_packet(
             packet=device.packets[0],
-            rorg_func=device._switch_func,
-            rorg_type=device._switch_type,
-            direction=device._switch_direction,
-            command=device._switch_command
+            rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
+            rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,
+            direction=RockerSwitch.DEFAULT_ENOCEAN_DIRECTION,
+            command=RockerSwitch.DEFAULT_ENOCEAN_COMMAND,
         )
         self.assertEqual(extract["NU"], 1)
 
         extract = Tools.extract_packet(
             packet=device.packets[1],
-            rorg_func=device._switch_func,
-            rorg_type=device._switch_type,
-            direction=device._switch_direction,
-            command=device._switch_command
+            rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
+            rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,
+            direction=RockerSwitch.DEFAULT_ENOCEAN_DIRECTION,
+            command=RockerSwitch.DEFAULT_ENOCEAN_COMMAND,
         )
         self.assertEqual(extract["NU"], 0)

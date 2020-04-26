@@ -1,55 +1,16 @@
-import json
 import logging
 import time
-from enum import Enum
-from typing import Optional
 
 from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import Packet, RadioPacket
+from enocean.protocol.packet import Packet
 
 from src.config import ConfMainKey
-from src.device.base_device import BaseDevice
-from src.device.conf_device_key import ConfDeviceKey
+from src.device.eltako_on_off_actor import EltakoOnOffActor, SwitchAction, StateValue
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
 
-class SwitchAction(Enum):
-    ON = "on"  # press
-    OFF = "off"  # press
-    RELEASE = "release"
-
-
-class StateValue(Enum):
-    ERROR = "ERROR"
-    OFF = "OFF"
-    ON = "ON"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
-
-    @classmethod
-    def is_success(cls, state):
-        return state in [cls.OFF, cls.ON]
-
-
-class Fud61OutAttr(Enum):
-    RSSI = "RSSI"
-    TIMESTAMP = "TIMESTAMP"
-    STATE = "STATE"
-    DIM = "DIM"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
-
-
-class Fud61Device(BaseDevice):
+class Fud61Actor(EltakoOnOffActor):
     """
 
     RORG 0xA5 - FUNC 0x38 - TYPE 0x08 - Gateway
@@ -69,47 +30,31 @@ class Fud61Device(BaseDevice):
                                             1 - On
 
     see also: https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
-
     """
+
+    DEFAULT_ENOCEAN_RORG = 0xa5
+    DEFAULT_ENOCEAN_FUNC = 0x38
+    DEFAULT_ENOCEAN_TYPE = 0x08
+    DEFAULT_ENOCEAN_COMMAND = 0x02
 
     def __init__(self, name):
         super().__init__(name)
 
         # default config values
-        self._enocean_rorg = 0xa5
-        self._enocean_func = 0x38
-        self._enocean_type = 0x08
-        self._enocean_command = 0x02
-
-        # simulate rocker switch
-        self._switch_rorg = 0xf6
-        self._switch_func = 0x02
-        self._switch_type = 0x02
-        self._switch_direction = None
-        self._switch_command = None
-
-        self._mqtt_channel_cmd = None
-
-    def set_config(self, config):
-        super().set_config(config)
-
-        self._mqtt_channel_cmd = self._config.get(ConfDeviceKey.MQTT_CHANNEL_CMD.value)
-
-    def get_mqtt_channel_subscriptions(self):
-        """signal ensor state, outbound channel"""
-        return [self._mqtt_channel_cmd]
+        self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
+        self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
+        self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
+        self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
     def process_enocean_message(self, message: EnoceanMessage):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:
-            self._logger.debug("skipped packet with packet_type=%s", self.packet_type_text(packet.rorg))
+            self._logger.debug("skipped packet with packet_type=%s", Tools.packet_type_text(packet.rorg))
             return
         if packet.rorg != self._enocean_rorg:
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
-
-        self._update_enocean_activity()
 
         data = self._extract_message(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
@@ -128,28 +73,6 @@ class Fud61Device(BaseDevice):
         message = self._create_message(switch_state, dim_state, rssi)
         self._publish_mqtt(message)
 
-    def _create_message(self, switch_state: StateValue, dim_state: Optional[int], rssi: Optional[int] = None):
-        data = {
-            Fud61OutAttr.TIMESTAMP.value: self._now().isoformat(),
-            Fud61OutAttr.STATE.value: switch_state.value
-        }
-        if rssi is not None:
-            data[Fud61OutAttr.RSSI.value] = rssi
-        if dim_state is not None:
-            data[Fud61OutAttr.DIM.value] = dim_state
-
-        json_text = json.dumps(data)
-        return json_text
-
-    @classmethod
-    def extract_switch_state(cls, value):
-        if value == 1:
-            return StateValue.ON
-        elif value == 0:
-            return StateValue.OFF
-        else:
-            return StateValue.ERROR
-
     @classmethod
     def extract_dim_state(cls, value, range):
         if value is None:
@@ -161,32 +84,7 @@ class Fud61Device(BaseDevice):
         else:
             return None
 
-    def _create_switch_packet(self, action):
-        # simulate rocker switch
-
-        if action == SwitchAction.ON:
-            props = {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        elif action == SwitchAction.OFF:
-            props = {'R1': 0, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        elif action == SwitchAction.RELEASE:
-            props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-        else:
-            raise RuntimeError()
-
-        # could also be 0xffffffff
-        destination = Tools.int_to_byte_list(self._enocean_id, 4)
-
-        packet = RadioPacket.create(
-            rorg=self._switch_rorg,
-            rorg_func=self._switch_func,
-            rorg_type=self._switch_type,
-            destination=destination,
-            learn=False,
-            **props
-        )
-        return packet
-
-    def get_teach_message(self):
+    def get_teach_print_message(self):
         return \
             "A rocker switch is simulated for switching!\n" \
             "- Set teach target to EC1 == direction switch!\n" \
@@ -230,18 +128,3 @@ class Fud61Device(BaseDevice):
             self._simulate_button_press(switch_action)
         except ValueError:
             self._logger.error("cannot switch, message: {}".format(payload))
-
-    @classmethod
-    def extract_switch_action(cls, text: str, recusive=True) -> SwitchAction:
-        if text:
-            comp = str(text).upper().strip()
-            if comp in ["ON", "1", "100"]:
-                return SwitchAction.ON
-            elif comp in ["OFF", "0"]:
-                return SwitchAction.OFF
-            elif recusive and comp[0] == "{":  # {"STATE": "off"}
-                data = json.loads(text)
-                value = data.get(Fud61OutAttr.STATE.value)
-                return cls.extract_switch_action(value, recusive=False)
-
-        raise ValueError()

@@ -25,8 +25,6 @@ class GenericDevice(BaseDevice):
         if packet.packet_type != PACKET.RADIO:
             return
 
-        self._update_enocean_activity()
-
         try:
             data = self._extract_message(message.payload)
             message = json.dumps(data)

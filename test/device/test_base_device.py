@@ -1,13 +1,7 @@
 import unittest
-from datetime import datetime, timedelta
 
-from enocean.protocol.constants import PACKET
-from tzlocal import get_localzone
-
-from src.device.conf_device_key import ConfDeviceKey
 from src.device.base_device import BaseDevice
 from src.tools import Tools
-from test.mock_mqtt_publisher import MockMqttPublisher
 
 PACKET_WIN_CLOSE = """
     gANjZW5vY2Vhbi5wcm90b2NvbC5wYWNrZXQKUmFkaW9QYWNrZXQKcQApgXEBfXECKFgLAAAAcGFj
@@ -77,84 +71,3 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
         comp = {'WIN': 2, 'T21': 1, 'NU': 0}
         data = self.device._extract_message(packet)
         self.assertEqual(data, comp)
-
-
-class _TestTimeoutDevice(BaseDevice):
-
-    def __init__(self, name):
-        self.now = None
-        super().__init__(name)
-
-    def process_enocean_message(self, message):
-        self._update_enocean_activity()
-
-    def _now(self):
-        return self.now
-
-
-class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
-
-    TIMEOUT = 1200  # 40 min
-
-    def setUp(self):
-        self.last_will = datetime.now().isoformat()
-
-        self.mqtt_publisher = MockMqttPublisher()
-        self.mqtt_publisher.open(None)
-
-        self.device = _TestTimeoutDevice("test")
-
-        self.device.set_config({
-            ConfDeviceKey.ENOCEAN_ID.value: 0x0587854a,
-            ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
-            ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
-            ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
-            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "dummy",
-            ConfDeviceKey.MQTT_LAST_WILL.value: self.last_will,
-            ConfDeviceKey.MQTT_TIME_OFFLINE.value: self.TIMEOUT,
-        })
-
-        self.device.set_mqtt_publisher(self.mqtt_publisher)
-
-    def test_positive(self):
-        now = datetime.now(tz=get_localzone())
-        self.device.now = now
-
-        self.device.process_enocean_message("")
-        self.assertEqual(self.device._enocean_activity, now)
-
-        now = now + timedelta(seconds=self.TIMEOUT - 2)
-        self.device.now = now
-        self.device.check_and_send_offline()
-        self.assertEqual(len(self.mqtt_publisher.messages), 0)
-
-        now = now + timedelta(seconds=self.TIMEOUT)
-        self.device.now = now
-        self.device.check_and_send_offline()
-        self.assertEqual(len(self.mqtt_publisher.messages), 1)
-        self.assertEqual(self.mqtt_publisher.messages[0], self.last_will)
-
-    def test_negative_without_last_will(self):
-        self.device._mqtt_last_will = None
-
-        self.device.now = datetime.now(tz=get_localzone())
-        self.device.process_enocean_message("")
-
-        self.device.now += timedelta(seconds=self.TIMEOUT + 2)
-        self.device.check_and_send_offline()
-        self.assertEqual(len(self.mqtt_publisher.messages), 0)
-
-    def test_negative_without_timeout(self):
-        self.device._mqtt_time_offline = None
-
-        self.device.now = datetime.now(tz=get_localzone())
-        self.device.process_enocean_message("")
-
-        self.device.now += timedelta(seconds=self.TIMEOUT + 2)
-        self.device.check_and_send_offline()
-        self.assertEqual(len(self.mqtt_publisher.messages), 0)
-
-    def test_packet_type_text(self):
-        self.assertEqual(BaseDevice.packet_type_text(PACKET.RADIO), "RADIO")
-        self.assertEqual(BaseDevice.packet_type_text(int(PACKET.RADIO)), "RADIO")
-        self.assertEqual(BaseDevice.packet_type_text(None), "None")

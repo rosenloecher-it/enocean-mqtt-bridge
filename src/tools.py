@@ -81,3 +81,13 @@ class Tools:
             prop = packet.parsed[prop_name]
             data[prop_name] = prop['raw_value']
         return data
+
+    @classmethod
+    def packet_type_text(cls, packet_type):
+        if type(packet_type) == int:
+            for e in PACKET:
+                if packet_type == e:
+                    return e.name
+        elif type(packet_type) == PACKET:
+            return packet_type.name
+        return str(packet_type)

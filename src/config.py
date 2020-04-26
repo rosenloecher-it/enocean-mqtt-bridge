@@ -65,19 +65,6 @@ class Config:
         instance = Config(config)
         instance._parse_cli()
         instance._load_conf_file()
-        instance._post_process()
-
-    def _post_process(self):
-        self.post_process_loglevel(self._config)
-
-        self.post_process_int(self._config, ConfMainKey.LOG_MAX_BYTES, Constant.DEFAULT_LOG_MAX_BYTES)
-        self.post_process_int(self._config, ConfMainKey.LOG_MAX_COUNT, Constant.DEFAULT_LOG_MAX_COUNT)
-
-        self.post_process_int(self._config, ConfMainKey.MQTT_KEEPALIVE, Constant.DEFAULT_MQTT_KEEPALIVE)
-        self.post_process_int(self._config, ConfMainKey.MQTT_PORT, None)
-        self.post_process_int(self._config, ConfMainKey.MQTT_PROTOCOL, Constant.DEFAULT_MQTT_PROTOCOL)
-
-        self.post_process_bool(self._config, ConfMainKey.MQTT_SSL_INSECURE, False)
 
     def _load_conf_file(self):
         conf_file = self._config[ConfMainKey.CONF_FILE.value]
@@ -185,81 +172,77 @@ class Config:
         return parser
 
     @classmethod
-    def post_process(cls, config, key_enum, default=None):
+    def get(cls, config, key_enum, default=None):
         key = key_enum.value
-        value_in = config.get(key)
-
-        if type(value_in) != str:
-            if value_in is None:
-                config[key] = default
-            else:
-                config[key] = str(value_in)
-
-        return config[key]
+        return config.get(key, default)
 
     @classmethod
-    def post_process_str(cls, config, key_enum, default=None):
+    def get_str(cls, config, key_enum, default=None):
         key = key_enum.value
-        value_in = config.get(key)
+        value = config.get(key, default)
 
-        if type(value_in) != str:
-            if value_in is None:
-                config[key] = default
-            else:
-                config[key] = str(value_in)
+        if value != default and not isinstance(value, str):
+            raise ValueError(f"expected type 'str' for '{key}'!")
 
-        return config[key]
+        return value
 
     @classmethod
-    def post_process_bool(cls, config, key_enum, default):
+    def get_bool(cls, config, key_enum, default=None):
         key = key_enum.value
-        value_in = config.get(key)
+        value = config.get(key)
 
-        if type(value_in) != bool:
-            if value_in is None:
-                config[key] = default
+        if not isinstance(value, bool):
+            if value is None:
+                value = default
             else:
-                temp = str(value_in).lower().strip()
-                config[key] = temp in ["true", "1", "on", "active"]
+                temp = str(value).lower().strip()
+                if temp in ["true", "1", "on", "active"]:
+                    value = True
+                elif temp in ["false", "0", "off", "inactive"]:
+                    value = False
 
-        return config[key]
+        if value != default and not isinstance(value, bool):
+            raise ValueError(f"expected type 'bool' for '{key}'!")
+
+        return value
 
     @classmethod
-    def post_process_int(cls, config, key_enum, default):
+    def get_int(cls, config, key_enum, default=None):
         key = key_enum.value
-        value_in = config.get(key)
+        value = config.get(key)
 
-        if type(value_in) != int:
-            if value_in is None:
-                config[key] = default
+        if not isinstance(value, int):
+            if value is None:
+                value = default
             else:
                 try:
-                    config[key] = int(value_in, 0)  # auto convert hex
+                    value = int(value, 0)  # auto convert hex
                 except ValueError:
-                    print("cannot parse {} ({}) as int!".format(key, value_in))
+                    print("cannot parse {} ({}) as int!".format(key, value))
 
-        return config[key]
+        if value != default and not isinstance(value, int):
+            raise ValueError(f"expected type 'int' for '{key}'!")
+
+        return value
 
     @classmethod
-    def post_process_loglevel(cls, config):
-        key = ConfMainKey.LOG_LEVEL.value
-        value_in = config.get(key)
+    def get_loglevel(cls, config, key_enum, default=logging.INFO):
+        key = key_enum.value
+        value = config.get(key)
 
-        if not isinstance(value_in, type(logging.INFO)):
-            input = str(value_in).lower().strip() if value_in is not None else value_in
+        if not isinstance(value, type(logging.INFO)):
+            input = str(value).lower().strip() if value is not None else value
             if input == "debug":
-                value_out = logging.DEBUG
+                value = logging.DEBUG
             elif input == "info":
-                value_out = logging.INFO
+                value = logging.INFO
             elif input == "warning":
-                value_out = logging.WARNING
+                value = logging.WARNING
             elif input == "error":
-                value_out = logging.ERROR
+                value = logging.ERROR
             else:
                 if input is not None:
                     print("cannot parse {} ({})!".format(key, input))
-                value_out = Constant.DEFAULT_LOGLEVEL
+                value = default
 
-            config[key] = value_out
-
-        return config[key]
+        return value

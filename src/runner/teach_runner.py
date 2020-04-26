@@ -28,7 +28,7 @@ class TeachRunner(Runner):
 
         self._device = self._create_device(name, device_config)
 
-        self._device.set_enocean(self._enocean)
+        self._device.set_enocean_connector(self._enocean_connector)
 
     def _loop(self):
         time_step = 0.05
@@ -37,7 +37,7 @@ class TeachRunner(Runner):
         #       'till it starts turning itself off and on (about 10 seconds or so...)')
 
         print("\n")
-        extra_info = self._device.get_teach_message()
+        extra_info = self._device.get_teach_print_message()
         if extra_info:
             print(extra_info)
             print("\n")
@@ -48,10 +48,10 @@ class TeachRunner(Runner):
         self._device.send_teach_telegram(teach_arg)  # supposed to raise ex if not supported
 
         while not self._shutdown:
-            if not self._enocean.is_alive():
+            if not self._enocean_connector.is_alive():
                 raise RuntimeError("enocean is not alive!")
 
-            self._enocean.handle_messages()
+            self._enocean_connector.handle_messages()
 
             time.sleep(time_step)
 

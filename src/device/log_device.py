@@ -42,20 +42,18 @@ class LogDevice(BaseDevice):
             self._enocean_ids.add(None)  # listen to all!
         else:
             add_id_not_none(self._enocean_ids, self._enocean_id)
-            add_id_not_none(self._enocean_ids, self._config.get(ConfDeviceKey.ENOCEAN_IDS.value))
+            add_id_not_none(self._enocean_ids, config.get(ConfDeviceKey.ENOCEAN_IDS.value))
 
-        add_id_not_none(self._enocean_ids_skip, self._config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))
+        add_id_not_none(self._enocean_ids_skip, config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))
 
-        self._dump_packet = Config.post_process_bool(self._config, ConfDeviceKey.DUMP_PACKETS, False)
+        self._dump_packet = Config.get_bool(config, ConfDeviceKey.DUMP_PACKETS, False)
 
     def process_enocean_message(self, message):
         packet = message.payload
         if packet.sender_int in self._enocean_ids_skip:
             return
 
-        self._update_enocean_activity()
-
-        packet_type = self.packet_type_text(packet.packet_type)
+        packet_type = Tools.packet_type_text(packet.packet_type)
 
         self._logger.info("proceed_enocean - packet(%s): %s", packet_type, packet)
 
@@ -68,15 +66,6 @@ class LogDevice(BaseDevice):
                 self._logger.info("proceed_enocean - extracted: %s", data)
             except DeviceException as ex:
                 self._logger.exception("proceed_enocean - could not extract:\n%s", ex)
-
-    def _check_enocean_settings(self):
-        pass
-
-    def _check_mqtt_settings(self):
-        pass
-
-    def _publish_mqtt(self, message: str):
-        pass
 
     def set_last_will(self):
         pass

@@ -2,8 +2,16 @@ import os
 
 import pathlib
 
+from src.enocean_packet_factory import EnoceanPacketFactory
+
 
 class SetupTest:
+
+    DUMMY_ENOCEAN_SENDER_ID = 0x11223344
+
+    @classmethod
+    def set_dummy_sender_id(cls, sender_id=DUMMY_ENOCEAN_SENDER_ID):
+        EnoceanPacketFactory.set_sender_id(sender_id)
 
     @classmethod
     def get_work_dir(cls):

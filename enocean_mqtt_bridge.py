@@ -5,6 +5,7 @@ import sys
 import logging.handlers
 
 from src.config import ConfMainKey, Config
+from src.constant import Constant
 from src.runner.service_runner import ServiceRunner
 from src.runner.teach_runner import TeachRunner
 
@@ -17,14 +18,14 @@ def init_logging(config):
     format_with_ts = '%(asctime)s [%(levelname)8s] %(name)s: %(message)s'
     format_no_ts = '[%(levelname)8s] %(name)s: %(message)s'
 
-    log_file = config[ConfMainKey.LOG_FILE.value]
-    log_level = config[ConfMainKey.LOG_LEVEL.value]
-    print_console = config[ConfMainKey.LOG_PRINT.value]
-    runs_as_systemd = config[ConfMainKey.SYSTEMD.value]
+    log_file = Config.get_str(config, ConfMainKey.LOG_FILE, Constant.DEFAULT_CONFFILE)
+    log_level = Config.get_loglevel(config, ConfMainKey.LOG_LEVEL, Constant.DEFAULT_LOGLEVEL)
+    print_console = Config.get_bool(config, ConfMainKey.LOG_PRINT, False)
+    runs_as_systemd = Config.get_bool(config, ConfMainKey.SYSTEMD, False)
 
     if log_file:
-        max_bytes = config[ConfMainKey.LOG_MAX_BYTES.value]
-        max_count = config[ConfMainKey.LOG_MAX_COUNT.value]
+        max_bytes = Config.get_int(config, ConfMainKey.LOG_MAX_BYTES, Constant.DEFAULT_LOG_MAX_BYTES)
+        max_count = Config.get_int(config, ConfMainKey.LOG_MAX_COUNT, Constant.DEFAULT_LOG_MAX_COUNT)
         handler = logging.handlers.RotatingFileHandler(
             log_file,
             maxBytes=int(max_bytes),

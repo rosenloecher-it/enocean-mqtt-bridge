@@ -15,13 +15,13 @@ class Runner(abc.ABC):
 
     def __init__(self):
         self._config = None
-        self._enocean = None
+        self._enocean_connector = None
         self._shutdown = False
 
         signal.signal(signal.SIGINT, self._shutdown_gracefully)
         signal.signal(signal.SIGTERM, self._shutdown_gracefully)
 
-    def _shutdown_gracefully(self, sig, frame):
+    def _shutdown_gracefully(self, sig, _frame):
         _logger.info("shutdown signaled (%s)", sig)
         self._shutdown = True
 
@@ -33,9 +33,9 @@ class Runner(abc.ABC):
         _logger.debug("config: %s", self._config)
 
     def close(self):
-        if self._enocean is not None:  # and self._enocean.is_alive():
-            self._enocean.close()
-            self._enocean = None
+        if self._enocean_connector is not None:  # and self._enocean.is_alive():
+            self._enocean_connector.close()
+            self._enocean_connector = None
 
     @abc.abstractmethod
     def run(self):
@@ -46,9 +46,9 @@ class Runner(abc.ABC):
         port = self._config.get(key)
         if not port:
             raise RuntimeError("no '{}' configured!".format(key))
-        self._enocean = EnoceanConnector(port)
-        self._enocean.on_receive = self._on_enocean_receive
-        self._enocean.open()
+        self._enocean_connector = EnoceanConnector(port)
+        self._enocean_connector.on_receive = self._on_enocean_receive
+        self._enocean_connector.open()
 
     def _create_device(self, name, config):
         if not name:

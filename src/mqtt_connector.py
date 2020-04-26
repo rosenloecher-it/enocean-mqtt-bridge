@@ -2,7 +2,7 @@ import logging
 
 import paho.mqtt.client as mqtt
 
-from src.config import ConfMainKey
+from src.config import ConfMainKey, Config
 from src.constant import Constant
 
 _logger = logging.getLogger(__name__)
@@ -20,18 +20,18 @@ class MqttConnector:
         self.on_mqtt_disconnect = None
 
     def open(self, config):
-        host = config.get(ConfMainKey.MQTT_HOST.value)
-        port = config.get(ConfMainKey.MQTT_PORT.value)
-        protocol = config.get(ConfMainKey.MQTT_PROTOCOL.value)
-        keepalive = config.get(ConfMainKey.MQTT_KEEPALIVE.value)
-        client_id = config.get(ConfMainKey.MQTT_CLIENT_ID.value)
-        ssl_ca_certs = config.get(ConfMainKey.MQTT_SSL_CA_CERTS.value)
-        ssl_certfile = config.get(ConfMainKey.MQTT_SSL_CERTFILE.value)
-        ssl_keyfile = config.get(ConfMainKey.MQTT_SSL_KEYFILE.value)
-        ssl_insecure = config.get(ConfMainKey.MQTT_SSL_INSECURE.value)
+        host = Config.get_str(config, ConfMainKey.MQTT_HOST)
+        port = Config.get_int(config, ConfMainKey.MQTT_PORT)
+        protocol = Config.get_int(config, ConfMainKey.MQTT_PROTOCOL, Constant.DEFAULT_MQTT_PROTOCOL)
+        keepalive = Config.get_int(config, ConfMainKey.MQTT_KEEPALIVE, Constant.DEFAULT_MQTT_KEEPALIVE)
+        client_id = Config.get_str(config, ConfMainKey.MQTT_CLIENT_ID)
+        ssl_ca_certs = Config.get_str(config, ConfMainKey.MQTT_SSL_CA_CERTS)
+        ssl_certfile = Config.get_str(config, ConfMainKey.MQTT_SSL_CERTFILE)
+        ssl_keyfile = Config.get_str(config, ConfMainKey.MQTT_SSL_KEYFILE)
+        ssl_insecure = Config.get_bool(config, ConfMainKey.MQTT_SSL_INSECURE, False)
         is_ssl = ssl_ca_certs or ssl_certfile or ssl_keyfile
-        user_name = config.get(ConfMainKey.MQTT_USER_NAME.value)
-        user_pwd = config.get(ConfMainKey.MQTT_USER_PWD.value)
+        user_name = Config.get_str(config, ConfMainKey.MQTT_USER_NAME)
+        user_pwd = Config.get_str(config, ConfMainKey.MQTT_USER_PWD)
 
         if not port:
             port = Constant.DEFAULT_MQTT_PORT_SSL if is_ssl else Constant.DEFAULT_MQTT_PORT
@@ -132,14 +132,13 @@ class MqttConnector:
         try:
             _logger.debug('_on_message: topic="%s" payload="%s"', message.topic, message.payload)
 
-            devices = self._mqtt_channels_subscriptions.get(message.topic)
-            for device in devices:
-                device.process_mqtt_message(message)
+            if self.on_message:
+                self.on_message(message)
+
         except Exception as ex:
             _logger.exception(ex)
 
-        if self.on_message:
-            self.on_message(message)
+
 
     @classmethod
     def _on_publish(self, mqtt_client, userdata, mid):
