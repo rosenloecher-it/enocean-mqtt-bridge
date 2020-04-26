@@ -97,11 +97,15 @@ class Fud61Actor(EltakoOnOffActor):
             return None
 
     def get_teach_print_message(self):
+        xtra = ConfMainKey.TEACH_XTRA.value
+        on = SwitchAction.ON.value
+        off = SwitchAction.OFF.value
+
         return \
-            "A rocker switch is simulated for switching!\n" \
+            "FUD61: A rocker switch is simulated for switching!\n" \
             "- Set teach target to EC1 == direction switch!\n" \
-            "- Run teaching 2 times with '--{}', values ['{}', '{}']." \
-                .format(ConfMainKey.TEACH_XTRA.value, SwitchAction.ON.value, SwitchAction.OFF.value)
+            f"- Run teaching 2 times with '--{xtra}', values ['{on}', '{off}'].\n" \
+            "- Activate confirmations telegrams (extra step)!"
 
     def send_teach_telegram(self, cli_arg):
         action = SwitchAction.ON

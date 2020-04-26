@@ -21,7 +21,7 @@ class EnoceanConnector:
     def __init__(self, port):
         self._port = port
         self._enocean = None
-        self._enocean_sender = None
+        self._cached_base_id = None
         self.on_receive = None  # type: callable(EnoceanMessage)
 
     def open(self):
@@ -53,12 +53,6 @@ class EnoceanConnector:
         while self._enocean.is_alive() and loop < 50:
             loop += 1
 
-            # Request transmitter ID, if needed
-            if self._enocean_sender is None:
-                self._enocean_sender = self._enocean.base_id
-                if self._enocean_sender:
-                    EnoceanPacketFactory.set_sender_id(self._enocean_sender)
-
             # loop to empty the queue...
             try:
                 # get next packet
@@ -83,7 +77,9 @@ class EnoceanConnector:
 
     @property
     def base_id(self):
-        return None if self._enocean is None else self._enocean.base_id
+        if self._cached_base_id is None and self._enocean is not None:
+            self._cached_base_id = self._enocean.base_id
+        return self._cached_base_id
 
     def send(self, packet):
         if self._enocean is not None:

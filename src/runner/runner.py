@@ -2,11 +2,14 @@ import abc
 import logging
 import signal
 
+import time
+
 from src.config import ConfMainKey
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.base_device import BaseDevice
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector
+from src.enocean_packet_factory import EnoceanPacketFactory
 
 _logger = logging.getLogger(__name__)
 
@@ -49,6 +52,23 @@ class Runner(abc.ABC):
         self._enocean_connector = EnoceanConnector(port)
         self._enocean_connector.on_receive = self._on_enocean_receive
         self._enocean_connector.open()
+
+    def _wait_for_base_id(self):
+        """wait until the base id is ready"""
+        time_step = 0.05
+        time_counter = 0
+
+        while not self._shutdown:
+            # wait for getting the adapter id
+            time.sleep(time_step)
+            time_counter += time_step
+            if time_counter > 30:
+                raise RuntimeError("Couldn't get my own Enocean ID!?")
+            base_id = self._enocean_connector.base_id
+            if base_id:
+                # got a base id
+                EnoceanPacketFactory.set_sender_id(base_id)
+                break
 
     def _create_device(self, name, config):
         if not name:

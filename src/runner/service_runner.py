@@ -65,6 +65,8 @@ class ServiceRunner(Runner):
         time_wait_for_refresh = 0
         time_check_offline = 0
 
+        self._wait_for_base_id()
+
         try:
             while not self._shutdown:
                 if time_wait_for_refresh >= 30:

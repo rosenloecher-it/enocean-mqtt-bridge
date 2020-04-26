@@ -77,9 +77,9 @@ class Fsr61Actor(EltakoOnOffActor):
 
     def get_teach_print_message(self):
         return \
-            "A rocker switch is simulated for switching!\n" \
+            "FSR61: A rocker switch is simulated for switching!\n" \
             "- Set teach target to '40' == direction switch!" \
-            "- Activate confirmations telegrams!"
+            "- Activate confirmations telegrams (extra step)!"
 
     def send_teach_telegram(self, cli_arg):
         action = SwitchAction.ON

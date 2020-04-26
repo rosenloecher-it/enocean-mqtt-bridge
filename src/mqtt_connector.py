@@ -138,8 +138,6 @@ class MqttConnector:
         except Exception as ex:
             _logger.exception(ex)
 
-
-
     @classmethod
     def _on_publish(self, mqtt_client, userdata, mid):
         """MQTT callback is invoked when message was successfully sent to the MQTT server."""

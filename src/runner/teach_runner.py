@@ -33,19 +33,19 @@ class TeachRunner(Runner):
     def _loop(self):
         time_step = 0.05
 
-        # print('Press and hold the teach-in button on the plug now, '
-        #       'till it starts turning itself off and on (about 10 seconds or so...)')
+        self._wait_for_base_id()
 
-        print("\n")
-        extra_info = self._device.get_teach_print_message()
-        if extra_info:
-            print(extra_info)
+        if not self._shutdown:
             print("\n")
+            extra_info = self._device.get_teach_print_message()
+            if extra_info:
+                print(extra_info)
+                print("\n")
 
-        input("\nActivate teach-in mode on your device, then press (quickly) enter.\n")
+            input("\nActivate teach-in mode on your device, then press (quickly) enter.\n")
 
-        teach_arg = self._config.get(ConfMainKey.TEACH_XTRA.value)
-        self._device.send_teach_telegram(teach_arg)  # supposed to raise ex if not supported
+            teach_arg = self._config.get(ConfMainKey.TEACH_XTRA.value)
+            self._device.send_teach_telegram(teach_arg)  # supposed to raise ex if not supported
 
         while not self._shutdown:
             if not self._enocean_connector.is_alive():
