@@ -63,7 +63,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
             return
 
         try:
-            data = self._extract_message(message.payload)
+            data = self._extract_packet(message.payload)
             self._logger.debug('process_mqtt_message: "%s"', data)
 
             # message = json.dumps(data)

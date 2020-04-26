@@ -35,6 +35,8 @@ class Fud61Actor(EltakoOnOffActor):
     DEFAULT_ENOCEAN_RORG = 0xa5
     DEFAULT_ENOCEAN_FUNC = 0x38
     DEFAULT_ENOCEAN_TYPE = 0x08
+
+    DEFAULT_ENOCEAN_DIRECTION = None
     DEFAULT_ENOCEAN_COMMAND = 0x02
 
     def __init__(self, name):
@@ -44,6 +46,7 @@ class Fud61Actor(EltakoOnOffActor):
         self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
         self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
         self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
+        self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
         self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
     def process_enocean_message(self, message: EnoceanMessage):
@@ -56,7 +59,7 @@ class Fud61Actor(EltakoOnOffActor):
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        data = self._extract_message(packet)
+        data = self._extract_packet(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}
@@ -72,6 +75,15 @@ class Fud61Actor(EltakoOnOffActor):
 
         message = self._create_message(switch_state, dim_state, rssi)
         self._publish_mqtt(message)
+
+    @classmethod
+    def extract_switch_state(cls, value):
+        if value == 1:
+            return StateValue.ON
+        elif value == 0:
+            return StateValue.OFF
+        else:
+            return StateValue.ERROR
 
     @classmethod
     def extract_dim_state(cls, value, range):

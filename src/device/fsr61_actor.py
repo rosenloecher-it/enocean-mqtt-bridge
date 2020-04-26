@@ -11,35 +11,32 @@ from src.tools import Tools
 
 class Fsr61Actor(EltakoOnOffActor):
     """
+    Eltako FSR61-230V
 
-    RORG 0xA5 - FUNC 0x38 - TYPE 0x08 - Gateway
-    (https://github.com/kipe/enocean/blob/master/SUPPORTED_PROFILES.md)
+    The confirmation telegrams my device is sending does not match the specification.
+    Expected EEP: A5-12-01
 
-    shortcut 	description 	            values
-    COM 	    Command ID 	                0-13 - Command ID
-    EDIM 	    Dimming value               absolute [0...255]
-                                            relative [0...100])
-    RMP 	    Ramping time in seconds     0 = no ramping,
-                                            1...255 = seconds to 100%
-    EDIMR 	    Dimming Range 	            0 - Absolute value
-                                            1 - Relative value
-    STR 	    Store final value 	enum 	0 - No
-                                            1 - Yes
-    SW 	        Switching command 	        0 - Off
-                                            1 - On
+    But I got a rocker switch telegram (F6-02-02) !? So far it works.
 
-    see also: https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
-
+    See: https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
     """
+
+    DEFAULT_ENOCEAN_RORG = 0xf6
+    DEFAULT_ENOCEAN_FUNC = 0x02  # 0x12
+    DEFAULT_ENOCEAN_TYPE = 0x02  # 0x01
+
+    DEFAULT_ENOCEAN_DIRECTION = None
+    DEFAULT_ENOCEAN_COMMAND = None  # 0x01
 
     def __init__(self, name):
         super().__init__(name)
 
         # default config values
-        self._enocean_rorg = 0xa5
-        self._enocean_func = 0x12
-        self._enocean_type = 0x01
-        self._enocean_command = 0x01
+        self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
+        self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
+        self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
+        self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
+        self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
     def process_enocean_message(self, message: EnoceanMessage):
 
@@ -51,31 +48,32 @@ class Fsr61Actor(EltakoOnOffActor):
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        data = self._extract_message(packet)
+        data = self._extract_packet(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
-        # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}
-
         rssi = packet.dBm  # if hasattr(packet, "dBm") else None
-        switch_state = self.extract_switch_state(data.get("SW"))
+        switch_state = self.extract_switch_state(data)
 
         if switch_state == StateValue.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
-            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet())
+            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet(packet))
 
         message = self._create_message(switch_state, None, rssi)
         self._publish_mqtt(message)
 
     @classmethod
-    def extract_dim_state(cls, value, range):
-        if value is None:
-            return None
-        if range == 0:
-            return value
-        elif range == 1:
-            return int(value / 256 + 0.5)
+    def extract_switch_state(cls, data):
+        # ON  {'R1': 3, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
+        # OFF {'R1': 2, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
+
+        value = data.get("R1")
+
+        if value == 3:
+            return StateValue.ON
+        elif value == 2:
+            return StateValue.OFF
         else:
-            return None
+            return StateValue.ERROR
 
     def get_teach_print_message(self):
         return \

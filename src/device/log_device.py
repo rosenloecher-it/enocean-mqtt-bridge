@@ -24,7 +24,7 @@ class LogDevice(BaseDevice):
         pass
 
     def set_config(self, config):
-        super().set_config(config)
+        # don't call base function
 
         def add_id_not_none(target, input):
             if input is None:
@@ -62,7 +62,7 @@ class LogDevice(BaseDevice):
 
         if None not in [self._enocean_func, self._enocean_rorg, self._enocean_type]:
             try:
-                data = self._extract_message(packet)
+                data = self._extract_packet(packet)
                 self._logger.info("proceed_enocean - extracted: %s", data)
             except DeviceException as ex:
                 self._logger.exception("proceed_enocean - could not extract:\n%s", ex)

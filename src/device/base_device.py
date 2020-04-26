@@ -78,7 +78,7 @@ class BaseDevice(abc.ABC):
             self._logger.error(message)
             raise DeviceException(message)
 
-    def _extract_message(self, packet):
+    def _extract_packet(self, packet):
         """
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}

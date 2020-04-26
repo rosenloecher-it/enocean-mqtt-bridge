@@ -26,7 +26,7 @@ class GenericDevice(BaseDevice):
             return
 
         try:
-            data = self._extract_message(message.payload)
+            data = self._extract_packet(message.payload)
             message = json.dumps(data)
         except Exception as ex:
             message = str(ex)

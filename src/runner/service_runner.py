@@ -116,7 +116,8 @@ class ServiceRunner(Runner):
 
                 for id, devices in self._enocean_ids.items():
                     for device in devices:
-                        device.open_mqtt()
+                        if isinstance(device, BaseMqtt):
+                            device.open_mqtt()
 
             except Exception as ex:
                 _logger.exception(ex)

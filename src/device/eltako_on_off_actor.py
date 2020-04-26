@@ -68,15 +68,6 @@ class EltakoOnOffActor(BaseDevice, BaseMqtt):
         """signal ensor state, outbound channel"""
         return [self._mqtt_channel_cmd]
 
-    @classmethod
-    def extract_switch_state(cls, value):
-        if value == 1:
-            return StateValue.ON
-        elif value == 0:
-            return StateValue.OFF
-        else:
-            return StateValue.ERROR
-
     def _create_message(self, switch_state: StateValue, dim_state: Optional[int], rssi: Optional[int] = None):
         data = {
             OutputAttributes.TIMESTAMP.value: self._now().isoformat(),

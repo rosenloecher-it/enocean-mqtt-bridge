@@ -77,6 +77,9 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
     DEFAULT_ENOCEAN_FUNC = 0x10
     DEFAULT_ENOCEAN_TYPE = 0x00
 
+    DEFAULT_ENOCEAN_DIRECTION = None
+    DEFAULT_ENOCEAN_COMMAND = None
+
     DEFAULT_TIME_OFFLINE_MSG = 3600
 
     def __init__(self, name):
@@ -88,6 +91,8 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
         self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
         self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
+        self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
+        self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
         self._write_since_no_error = True
         self._write_since = False
@@ -196,7 +201,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
 
         self._enocean_activity = self._now()
 
-        data = self._extract_message(packet)
+        data = self._extract_packet(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         rssi = packet.dBm  # if hasattr(packet, "dBm") else None
