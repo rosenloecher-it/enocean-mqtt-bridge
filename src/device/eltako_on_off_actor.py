@@ -95,7 +95,7 @@ class EltakoOnOffActor(BaseDevice, BaseMqtt):
         else:
             raise RuntimeError()
 
-        return RockerSwitch.simu_packet(action, button)
+        return RockerSwitch.simu_packet(action, button, dest_id=self._enocean_id)
 
     @classmethod
     def extract_switch_action(cls, text: str, recusive=True) -> SwitchAction:
