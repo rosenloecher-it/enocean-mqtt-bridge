@@ -1,20 +1,22 @@
+import json
 from enum import IntEnum
 from typing import Optional, Dict
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket, Packet
 
+from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
+from src.device.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
 from src.enocean_packet_factory import EnoceanPacketFactory
-from src.tools import Tools
 
 
 class RockerAction(IntEnum):
     RELEASE = 0
-    PRESS_SINGLE = 1
-    PRESS_DOUBLE = 2
+    PRESS_SHORT = 1
+    PRESS_LONG = 2
 
 
 class RockerButton(IntEnum):
@@ -22,14 +24,12 @@ class RockerButton(IntEnum):
     button ids to location: <above>
         [1] [3]
         [0] [2]
-    work together as direction switvch:
-        - 0 + 1
-        - 2 + 3
+    work together as direction switch: 0 with 1; 2 with 3
     """
-    ROCK11 = 1  # usually ON
-    ROCK12 = 0  # usually OFF
-    ROCK21 = 3  # usually ON
-    ROCK22 = 2  # usually OFF
+    ROCK0 = 0  # usually OFF (left side)
+    ROCK1 = 1  # usually ON (left side)
+    ROCK2 = 2  # usually OFF (right side)
+    ROCK3 = 3  # usually ON (right side)
 
 
 class RockerSwitch(BaseDevice, BaseMqtt):
@@ -52,9 +52,18 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
         self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
+        self._mqtt_button_channels = []
+
     def set_config(self, config):
         BaseDevice.set_config(self, config)
         BaseMqtt.set_config(self, config)
+
+        keys = [
+            ConfDeviceKey.MQTT_CHANNEL_BUTTON_0, ConfDeviceKey.MQTT_CHANNEL_BUTTON_1,
+            ConfDeviceKey.MQTT_CHANNEL_BUTTON_2, ConfDeviceKey.MQTT_CHANNEL_BUTTON_3
+        ]
+        for key in keys:
+            self._mqtt_button_channels.append(Config.get_str(config, key))
 
     def process_enocean_message(self, message: EnoceanMessage):
 
@@ -66,7 +75,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
             data = self._extract_packet(message.payload)
             self._logger.debug('process_mqtt_message: "%s"', data)
 
-            # message = json.dumps(data)
+            message = json.dumps(data)
         except Exception as ex:
             self._logger.exception(ex)
 
@@ -89,7 +98,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         else:
             if button is None:
                 raise ValueError("no RockerSwitchButton defined!")
-            r2 = 2 if action == RockerAction.PRESS_DOUBLE else 0
+            r2 = 2 if action == RockerAction.PRESS_LONG else 0
             props = {'R1': button.value, 'EB': 1, 'R2': r2, 'SA': 0, 'T21': 1, 'NU': 1}
 
         return props
@@ -97,7 +106,8 @@ class RockerSwitch(BaseDevice, BaseMqtt):
     @classmethod
     def simu_packet(cls, action: RockerAction, button: Optional[RockerButton],
                     rorg: Optional[int] = None, func: Optional[int] = None, type: Optional[int] = None,
-                    dest_id: Optional[int] = None) -> RadioPacket:
+                    destination: Optional[int] = None, sender: Optional[int] = None,
+                    learn=False) -> RadioPacket:
         """
         :param bool press: True == press, False == release button
         :param int button: range 0 - 3 for the 4 single buttons; may None in case of release
@@ -113,27 +123,13 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         func = func or cls.DEFAULT_ENOCEAN_FUNC
         type = type or cls.DEFAULT_ENOCEAN_TYPE
 
-        dest_id = dest_id or 0xffffffff
-        dest_bytes = Tools.int_to_byte_list(dest_id, 4)
-
-        # if action == SwitchAction.ON:
-        #     props = {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        # elif action == SwitchAction.OFF:
-        #     props = {'R1': 0, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        # elif action == SwitchAction.RELEASE:
-        #     props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-        # else:
-        #     raise RuntimeError()
-        #
-        # # could also be 0xffffffff
-        # destination = Tools.int_to_byte_list(self._enocean_id, 4)
-        #
         packet = EnoceanPacketFactory.create_radio_packet(
             rorg=rorg,
             rorg_func=func,
             rorg_type=type,
-            destination=dest_bytes,
-            learn=False,
+            destination=destination,
+            sender=sender,
+            learn=learn,
             **props
         )
 

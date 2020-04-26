@@ -4,6 +4,8 @@ import signal
 
 import time
 
+import enocean
+
 from src.config import ConfMainKey
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.base_device import BaseDevice
@@ -68,6 +70,9 @@ class Runner(abc.ABC):
             if base_id:
                 # got a base id
                 EnoceanPacketFactory.set_sender_id(base_id)
+                if type(base_id) == list:
+                    base_id = enocean.utils.combine_hex(base_id)
+                _logger.info("base_id=%s", hex(base_id))
                 break
 
     def _create_device(self, name, config):

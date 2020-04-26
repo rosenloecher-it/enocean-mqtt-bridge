@@ -17,7 +17,7 @@ class LogDevice(BaseDevice):
         self._dump_packet = False
 
     @property
-    def enocean_ids(self):
+    def enocean_targets(self):
         return self._enocean_ids
 
     def _check_mqtt_channel(self):
@@ -38,10 +38,10 @@ class LogDevice(BaseDevice):
         self._enocean_ids = set()
         self._enocean_ids_skip = set()
 
-        if self._enocean_id is None:
+        if self._enocean_target is None:
             self._enocean_ids.add(None)  # listen to all!
         else:
-            add_id_not_none(self._enocean_ids, self._enocean_id)
+            add_id_not_none(self._enocean_ids, self._enocean_target)
             add_id_not_none(self._enocean_ids, config.get(ConfDeviceKey.ENOCEAN_IDS.value))
 
         add_id_not_none(self._enocean_ids_skip, config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))

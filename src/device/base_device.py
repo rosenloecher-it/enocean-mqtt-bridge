@@ -31,8 +31,10 @@ class BaseDevice(abc.ABC):
         self._logger_by_name = logging.getLogger(self._name)
         self._enocean_connector = None
 
+        self._enocean_target = None
+        self._enocean_sender = None  # to distinguish between different actors
+
         self._enocean_func = None
-        self._enocean_id = None
         self._enocean_rorg = None
         self._enocean_type = None
         self._enocean_direction = None
@@ -47,16 +49,15 @@ class BaseDevice(abc.ABC):
         return self._name
 
     @property
-    def enocean_ids(self):
-        return [self._enocean_id]
+    def enocean_targets(self):
+        return [self._enocean_target]
 
     def set_enocean_connector(self, enocean):
         self._enocean_connector = enocean
 
     def set_config(self, config):
-
-        key = ConfDeviceKey.ENOCEAN_ID
-        self._enocean_id = Config.get_int(config, key, None)
+        self._enocean_target = Config.get_int(config, ConfDeviceKey.ENOCEAN_TARGET, None)
+        self._enocean_sender = Config.get_int(config, ConfDeviceKey.ENOCEAN_SENDER, None)
 
         def config_int(current_value, key, default_value=None):
             if current_value is not None:
@@ -73,8 +74,8 @@ class BaseDevice(abc.ABC):
         self._enocean_command = config_int(self._enocean_command, ConfDeviceKey.ENOCEAN_COMMAND)
 
         # check setting
-        if not self._enocean_id:
-            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_ID.enum, self._name)
+        if not self._enocean_target:
+            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.enum, self._name)
             self._logger.error(message)
             raise DeviceException(message)
 

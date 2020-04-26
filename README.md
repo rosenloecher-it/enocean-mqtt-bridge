@@ -171,6 +171,7 @@ sudo systemctl enable enocean-mqtt-bridge.service
 - Inspiration, but did not fully meet my needs: [https://github.com/embyt/enocean-mqtt](https://github.com/embyt/enocean-mqtt)
 - Based on: [https://github.com/kipe/enocean](https://github.com/kipe/enocean)
 
+- Node-RED Docu for Enocean profiles_ [https://enocean-js.github.io/enocean-js/?eep=f6-02-02](https://enocean-js.github.io/enocean-js/?eep=f6-02-02)
 
 ## Maintainer & License
 

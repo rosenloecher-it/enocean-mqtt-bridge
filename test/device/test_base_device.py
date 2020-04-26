@@ -47,7 +47,7 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
     def setUp(self):
         self.device = _TestExtractPropsDevice("test")
         self.device._enocean_func = 0x10
-        self.device._enocean_id = 0x0587854a
+        self.device._enocean_target = 0x0587854a
         self.device._enocean_rorg = 0xf6
         self.device._enocean_type = 0x00
 

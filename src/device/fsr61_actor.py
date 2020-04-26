@@ -78,7 +78,7 @@ class Fsr61Actor(EltakoOnOffActor):
     def get_teach_print_message(self):
         return \
             "FSR61: A rocker switch is simulated for switching!\n" \
-            "- Set teach target to '40' == direction switch!" \
+            "- Set teach target to '40' == direction switch!\n" \
             "- Activate confirmations telegrams (extra step)!"
 
     def send_teach_telegram(self, cli_arg):
@@ -89,12 +89,12 @@ class Fsr61Actor(EltakoOnOffActor):
             except ValueError:
                 raise ValueError("could not interprete teach argument ({})!".format(cli_arg))
 
-        self._simulate_button_press(action)
+        self._simulate_button_press(action, learn=True)
 
-    def _simulate_button_press(self, action: SwitchAction):
+    def _simulate_button_press(self, action: SwitchAction, learn=False):
 
         if action != SwitchAction.RELEASE:
-            packet = self._create_switch_packet(action)
+            packet = self._create_switch_packet(action, learn=learn)
             self._send_enocean_packet(packet)
             time.sleep(0.05)
 

@@ -49,17 +49,17 @@ class TestRockerSwitch(unittest.TestCase):
 
     def test_extract_press(self):
         loop_data = [
-            (PACKET_0_PRESS, RockerButton.ROCK12),
-            (PACKET_1_PRESS, RockerButton.ROCK11),
-            (PACKET_2_PRESS, RockerButton.ROCK22),
-            (PACKET_3_PRESS, RockerButton.ROCK21),
+            (PACKET_0_PRESS, RockerButton.ROCK0),
+            (PACKET_1_PRESS, RockerButton.ROCK1),
+            (PACKET_2_PRESS, RockerButton.ROCK2),
+            (PACKET_3_PRESS, RockerButton.ROCK3),
         ]
 
         for i in range(0, 3):
             packet = Tools.unpickle_packet(loop_data[i][0])
             device = _MockDevice()
             extracted = device._extract_packet(packet)
-            expected = _MockDevice.simu_packet_props(RockerAction.PRESS_SINGLE, loop_data[i][1])
+            expected = _MockDevice.simu_packet_props(RockerAction.PRESS_SHORT, loop_data[i][1])
             self.assertEqual(extracted, expected)
 
     def test_extract_release(self):

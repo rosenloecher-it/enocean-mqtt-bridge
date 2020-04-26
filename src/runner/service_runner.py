@@ -143,7 +143,7 @@ class ServiceRunner(Runner):
     def _init_device(self, name, config):
         device_instance = self._create_device(name, config)
 
-        enocean_ids = device_instance.enocean_ids
+        enocean_ids = device_instance.enocean_targets
         if enocean_ids is None:
             # interprete as listen to all (LogDevice)!
             enocean_ids = [None]

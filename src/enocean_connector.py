@@ -4,7 +4,6 @@ from collections import namedtuple
 
 from enocean.communicators import SerialCommunicator
 
-from src.enocean_packet_factory import EnoceanPacketFactory
 
 _logger = logging.getLogger(__name__)
 

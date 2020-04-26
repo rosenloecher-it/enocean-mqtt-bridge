@@ -40,7 +40,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
 
         device = _MockDevice()
         device.set_config({
-            ConfDeviceKey.ENOCEAN_ID.value: 123,
+            ConfDeviceKey.ENOCEAN_TARGET.value: 123,
             ConfDeviceKey.ENOCEAN_FUNC.value: 123,
             ConfDeviceKey.ENOCEAN_RORG.value: 123,
             ConfDeviceKey.ENOCEAN_TYPE.value: 123,
@@ -117,7 +117,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
 
         device = _MockDevice()
         device.set_config({
-            ConfDeviceKey.ENOCEAN_ID.value: enocean_id,
+            ConfDeviceKey.ENOCEAN_TARGET.value: enocean_id,
             ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
             ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
             ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
@@ -173,7 +173,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         self.device = _TestTimeoutDevice("test")
 
         self.device.set_config({
-            ConfDeviceKey.ENOCEAN_ID.value: 0x0587854a,
+            ConfDeviceKey.ENOCEAN_TARGET.value: 0x0587854a,
             ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
             ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
             ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
