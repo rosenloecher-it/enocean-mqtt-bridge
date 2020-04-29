@@ -24,7 +24,7 @@ class _MockDevice(FFG7BSensor):
     def _now(self):
         return self.now
 
-    def _publish_mqtt(self, message):
+    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
         self.sent_message = message
 
 

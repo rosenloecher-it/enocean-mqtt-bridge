@@ -1,5 +1,6 @@
 import json
-from enum import IntEnum
+from collections import namedtuple
+from enum import IntEnum, Enum
 from typing import Optional, Dict
 
 from enocean.protocol.constants import PACKET
@@ -13,10 +14,11 @@ from src.enocean_connector import EnoceanMessage
 from src.enocean_packet_factory import EnoceanPacketFactory
 
 
-class RockerAction(IntEnum):
-    RELEASE = 0
-    PRESS_SHORT = 1
-    PRESS_LONG = 2
+class RockerAction(Enum):
+    RELEASE = "RELEASE"
+    PRESS_SHORT = "SHORT"  # presset
+    PRESS_LONG = "LONG"  # pressed
+    ERROR = "ERROR"
 
 
 class RockerButton(IntEnum):
@@ -30,6 +32,21 @@ class RockerButton(IntEnum):
     ROCK1 = 1  # usually ON (left side)
     ROCK2 = 2  # usually OFF (right side)
     ROCK3 = 3  # usually ON (right side)
+
+
+class _OutputAttributes(Enum):
+    TIMESTAMP = "TIMESTAMP"
+    STATE = "STATE"
+    BUTTON = "BUTTON"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self) -> str:
+        return '{}'.format(self.name)
+
+
+_MessageData = namedtuple("_MessageData", ["channel", "button", "action"])
 
 
 class RockerSwitch(BaseDevice, BaseMqtt):
@@ -52,18 +69,26 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
         self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
-        self._mqtt_button_channels = []
+        self._mqtt_channels = []
+        self._mqtt_channels_long = []
 
     def set_config(self, config):
         BaseDevice.set_config(self, config)
         BaseMqtt.set_config(self, config)
 
         keys = [
-            ConfDeviceKey.MQTT_CHANNEL_BUTTON_0, ConfDeviceKey.MQTT_CHANNEL_BUTTON_1,
-            ConfDeviceKey.MQTT_CHANNEL_BUTTON_2, ConfDeviceKey.MQTT_CHANNEL_BUTTON_3
+            ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_0, ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_1,
+            ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_2, ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_3
         ]
         for key in keys:
-            self._mqtt_button_channels.append(Config.get_str(config, key))
+            self._mqtt_channels_long.append(Config.get_str(config, key))
+
+        keys = [
+            ConfDeviceKey.MQTT_CHANNEL_BTN_0, ConfDeviceKey.MQTT_CHANNEL_BTN_1,
+            ConfDeviceKey.MQTT_CHANNEL_BTN_2, ConfDeviceKey.MQTT_CHANNEL_BTN_3
+        ]
+        for key in keys:
+            self._mqtt_channels.append(Config.get_str(config, key))
 
     def process_enocean_message(self, message: EnoceanMessage):
 
@@ -71,18 +96,44 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         if packet.packet_type != PACKET.RADIO:
             return
 
+        packet_data = self._extract_packet(message.payload)
+        self._logger.debug('process_mqtt_message: "%s"', packet_data)
+        message_data = self._prepare_message_data(packet_data)
+        if message_data.channel:
+            mqtt_message = self._create_mqtt_message(message_data)
+            self._publish_mqtt(mqtt_message, message_data.channel)
+
+    def _prepare_message_data(self, data) -> _MessageData:
+        # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
+        # "{'R1': 1, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
+        # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
+        # "{'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}"
+
         try:
-            data = self._extract_packet(message.payload)
-            self._logger.debug('process_mqtt_message: "%s"', data)
+            if data["SA"] == 1:
+                index = data["R2"]
+                channel = self._mqtt_channels_long[index] or self._mqtt_channels[index] or self._mqtt_channel_state
+                return _MessageData(channel=channel, button=index, action=RockerAction.PRESS_LONG)
+            elif data["EB"] == 1:
+                index = data["R1"]
+                channel = self._mqtt_channels[index] or self._mqtt_channel_state
+                return _MessageData(channel=channel, button=index, action=RockerAction.PRESS_SHORT)
+            else:
+                return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerAction.ERROR)
 
-            message = json.dumps(data)
-        except Exception as ex:
-            self._logger.exception(ex)
+        except AttributeError as ex:  # TODO handle index errors
+            self._logger.error("cannot evaluate data: %s (%s)", data, ex)
+            return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerAction.ERROR)
 
-        # self._publish_mqtt(message)
+    def _create_mqtt_message(self, message_data: _MessageData):
+        data = {
+            _OutputAttributes.STATE.value: message_data.action.value,
+            _OutputAttributes.BUTTON.value: message_data.button,  # type: int
+            _OutputAttributes.TIMESTAMP.value: self._now().isoformat()
+        }
 
-    def _check_mqtt_settings(self):
-        pass
+        json_text = json.dumps(data)
+        return json_text
 
     @classmethod
     def simu_packet_props(cls,
@@ -93,13 +144,17 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         :param button: may None in case of release
         :return:
         """
-        if action == RockerAction.RELEASE:
-            props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-        else:
+        if action in [RockerAction.PRESS_SHORT, RockerAction.PRESS_LONG]:
             if button is None:
                 raise ValueError("no RockerSwitchButton defined!")
-            r2 = 2 if action == RockerAction.PRESS_LONG else 0
-            props = {'R1': button.value, 'EB': 1, 'R2': r2, 'SA': 0, 'T21': 1, 'NU': 1}
+            if action == RockerAction.PRESS_LONG:
+                props = {'R1': 0, 'EB': 0, 'R2': button.value, 'SA': 1, 'T21': 1, 'NU': 1}
+            else:  # short
+                props = {'R1': button.value, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
+        elif action == RockerAction.RELEASE:
+            props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
+        else:
+            raise ValueError()
 
         return props
 

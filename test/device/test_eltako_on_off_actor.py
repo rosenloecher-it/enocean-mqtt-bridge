@@ -24,7 +24,7 @@ class _MockDevice(EltakoOnOffActor):
     def _send_enocean_packet(self, packet, delay=0):
         self.packets.append(packet)
 
-    def _publish_mqtt(self, message: str):
+    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
         self.messages.append(message)
 
     def process_mqtt_message(self, message):

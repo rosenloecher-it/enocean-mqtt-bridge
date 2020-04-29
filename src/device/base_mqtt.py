@@ -72,9 +72,9 @@ class BaseMqtt(abc.ABC):
             self._publish_mqtt(self._mqtt_last_will)
             self._logger.debug("last will sent: disconnecting")
 
-    def _publish_mqtt(self, message: str):
+    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
         self._mqtt_publisher.publish(
-            channel=self._mqtt_channel_state,
+            channel=mqtt_channel and self._mqtt_channel_state,
             message=message,
             qos=self._mqtt_qos,
             retain=self._mqtt_retain

@@ -21,10 +21,15 @@ class ConfDeviceKey(Enum):
     MQTT_QOS = "mqtt_quality"
     MQTT_RETAIN = "mqtt_retain"
 
-    MQTT_CHANNEL_BUTTON_0 = "mqtt_channel_button0"
-    MQTT_CHANNEL_BUTTON_1 = "mqtt_channel_button1"
-    MQTT_CHANNEL_BUTTON_2 = "mqtt_channel_button2"
-    MQTT_CHANNEL_BUTTON_3 = "mqtt_channel_button3"
+    MQTT_CHANNEL_BTN_0 = "mqtt_channel_0"
+    MQTT_CHANNEL_BTN_1 = "mqtt_channel_1"
+    MQTT_CHANNEL_BTN_2 = "mqtt_channel_2"
+    MQTT_CHANNEL_BTN_3 = "mqtt_channel_3"
+
+    MQTT_CHANNEL_BTN_LONG_0 = "mqtt_channel_long_0"
+    MQTT_CHANNEL_BTN_LONG_1 = "mqtt_channel_long_1"
+    MQTT_CHANNEL_BTN_LONG_2 = "mqtt_channel_long_2"
+    MQTT_CHANNEL_BTN_LONG_3 = "mqtt_channel_long_3"
 
     # mainly FFG7BDevice
     STORAGE_FILE = "storage_file"

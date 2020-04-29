@@ -66,7 +66,7 @@ class _MockDevice(Fud61Actor):
     def _now(self):
         return self.now
 
-    def _publish_mqtt(self, message: str):
+    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
         self.messages.append(message)
 
     def _send_enocean_packet(self, packet, delay=0):
