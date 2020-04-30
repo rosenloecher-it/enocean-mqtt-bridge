@@ -58,6 +58,8 @@ class RockerSwitch(BaseDevice, BaseMqtt):
     DEFAULT_ENOCEAN_DIRECTION = None
     DEFAULT_ENOCEAN_COMMAND = None
 
+    EMPTY_PROPS = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
+
     def __init__(self, name):
         BaseDevice.__init__(self, name)
         BaseMqtt.__init__(self)
@@ -69,26 +71,39 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
         self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
 
-        self._mqtt_channels = []
-        self._mqtt_channels_long = []
+        self._mqtt_channels = {}
+        self._mqtt_channels_long = {}
 
     def set_config(self, config):
         BaseDevice.set_config(self, config)
         BaseMqtt.set_config(self, config)
 
-        keys = [
-            ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_0, ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_1,
-            ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_2, ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_3
+        items = [
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_0, 0),
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_1, 1),
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_2, 2),
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_3, 3),
         ]
-        for key in keys:
-            self._mqtt_channels_long.append(Config.get_str(config, key))
+        for key, index in items:
+            channel = Config.get_str(config, key)
+            if channel:
+                self._mqtt_channels_long[index] = channel
 
-        keys = [
-            ConfDeviceKey.MQTT_CHANNEL_BTN_0, ConfDeviceKey.MQTT_CHANNEL_BTN_1,
-            ConfDeviceKey.MQTT_CHANNEL_BTN_2, ConfDeviceKey.MQTT_CHANNEL_BTN_3
+        items = [
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_0, 0),
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_1, 1),
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_2, 2),
+            (ConfDeviceKey.MQTT_CHANNEL_BTN_3, 3),
+            (ConfDeviceKey.MQTT_CHANNEL_RELEASE, None),
         ]
-        for key in keys:
-            self._mqtt_channels.append(Config.get_str(config, key))
+        for key, index in items:
+            channel = Config.get_str(config, key)
+            if channel:
+                self._mqtt_channels[index] = channel
+
+    @classmethod
+    def is_valid_channel(cls, channel):
+        return channel is not None and channel not in ["~", "-"]
 
     def process_enocean_message(self, message: EnoceanMessage):
 
@@ -99,7 +114,8 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         packet_data = self._extract_packet(message.payload)
         self._logger.debug('process_mqtt_message: "%s"', packet_data)
         message_data = self._prepare_message_data(packet_data)
-        if message_data.channel:
+
+        if self.is_valid_channel(message_data.channel):
             mqtt_message = self._create_mqtt_message(message_data)
             self._publish_mqtt(mqtt_message, message_data.channel)
 
@@ -112,12 +128,16 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         try:
             if data["SA"] == 1:
                 index = data["R2"]
-                channel = self._mqtt_channels_long[index] or self._mqtt_channels[index] or self._mqtt_channel_state
+                channel = self._mqtt_channels_long.get(index) or self._mqtt_channels.get(index) \
+                          or self._mqtt_channel_state
                 return _MessageData(channel=channel, button=index, action=RockerAction.PRESS_LONG)
             elif data["EB"] == 1:
                 index = data["R1"]
-                channel = self._mqtt_channels[index] or self._mqtt_channel_state
+                channel = self._mqtt_channels.get(index) or self._mqtt_channel_state
                 return _MessageData(channel=channel, button=index, action=RockerAction.PRESS_SHORT)
+            elif data == self.EMPTY_PROPS:
+                channel = self._mqtt_channels.get(None) or self._mqtt_channel_state
+                return _MessageData(channel=channel, button=None, action=RockerAction.RELEASE)
             else:
                 return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerAction.ERROR)
 
@@ -152,7 +172,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
             else:  # short
                 props = {'R1': button.value, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
         elif action == RockerAction.RELEASE:
-            props = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
+            props = cls.EMPTY_PROPS
         else:
             raise ValueError()
 

@@ -21,6 +21,9 @@ class ConfDeviceKey(Enum):
     MQTT_QOS = "mqtt_quality"
     MQTT_RETAIN = "mqtt_retain"
 
+    # mainly RockerSwitct
+    MQTT_CHANNEL_RELEASE = "mqtt_channel_release"
+
     MQTT_CHANNEL_BTN_0 = "mqtt_channel_0"
     MQTT_CHANNEL_BTN_1 = "mqtt_channel_1"
     MQTT_CHANNEL_BTN_2 = "mqtt_channel_2"
