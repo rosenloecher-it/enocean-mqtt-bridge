@@ -74,7 +74,7 @@ class BaseMqtt(abc.ABC):
 
     def _publish_mqtt(self, message: str, mqtt_channel: str = None):
         self._mqtt_publisher.publish(
-            channel=mqtt_channel and self._mqtt_channel_state,
+            channel=mqtt_channel or self._mqtt_channel_state,
             message=message,
             qos=self._mqtt_qos,
             retain=self._mqtt_retain
