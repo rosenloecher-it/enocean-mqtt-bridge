@@ -1,4 +1,5 @@
 import logging
+from queue import Queue, Empty
 
 import paho.mqtt.client as mqtt
 
@@ -16,8 +17,10 @@ class MqttConnector:
         self._is_connected = False
 
         # public callbacks
-        self.on_mqtt_connect = None
-        self.on_mqtt_disconnect = None
+        self.on_connect = None
+        self.on_disconnect = None
+
+        self._message_queue = Queue()  # synchronized
 
     def open(self, config):
         host = Config.get_str(config, ConfMainKey.MQTT_HOST)
@@ -71,6 +74,18 @@ class MqttConnector:
             self._mqtt = None
             _logger.debug("mqtt closed.")
 
+    def get_queued_messages(self):
+        messages = []
+
+        while True:
+            try:
+                message = self._message_queue.get(block=False)
+                messages.append(message)
+            except Empty:
+                break
+
+        return messages
+
     def publish(self, channel: str, message: str, qos: int = 0, retain: bool = False):
         if not self._is_connected:
             raise RuntimeError("MQTT is not connected!")
@@ -102,7 +117,7 @@ class MqttConnector:
                 text = "could not subscripte to mqtt #{} ({})".format(result, subscriptions)
                 raise RuntimeError(text)
 
-            _logger.info("subscripted to MQTT channels")
+            _logger.info("subscripted to MQTT channels (%s)", channels)
 
     def _on_connect(self, mqtt_client, userdata, flags, rc):
         """MQTT callback is called when client connects to MQTT server."""
@@ -131,10 +146,8 @@ class MqttConnector:
         """MQTT callback when a message is received from MQTT server"""
         try:
             _logger.debug('_on_message: topic="%s" payload="%s"', message.topic, message.payload)
-
-            if self.on_message:
-                self.on_message(message)
-
+            if message is not None:
+                self._message_queue.put(message)
         except Exception as ex:
             _logger.exception(ex)
 

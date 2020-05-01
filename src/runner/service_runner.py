@@ -1,5 +1,7 @@
 import logging
+import threading
 import time
+from enum import IntEnum
 from typing import List
 
 from src.config import ConfSectionKey
@@ -14,6 +16,13 @@ from src.runner.runner import Runner
 _logger = logging.getLogger(__name__)
 
 
+class _MqttState(IntEnum):
+    UNINITIALED = 0
+    INITIALISING = 1
+    CONNECTED = 2
+    DISCONNECTED = 3
+
+
 class ServiceRunner(Runner):
 
     def __init__(self):
@@ -26,10 +35,10 @@ class ServiceRunner(Runner):
         self._devices_check_cyclic = set()
 
         self._mqtt_publisher = MqttPublisher()
-
         self._mqtt_connector = MqttConnector(self._mqtt_publisher)
         self._mqtt_connector.on_connect = self._on_mqtt_connect
-        self._mqtt_connector.on_message = self._on_mqtt_message
+        self._mqtt_state = _MqttState.UNINITIALED
+        self._mqtt_lock = threading.Lock()
 
     def run(self):
         self._init_devices()
@@ -66,6 +75,7 @@ class ServiceRunner(Runner):
         time_check_offline = 0
 
         self._wait_for_base_id()
+        self._wait_for_mqtt_connection()
 
         try:
             while not self._shutdown:
@@ -74,6 +84,8 @@ class ServiceRunner(Runner):
                     self._enocean_connector.assure_connection()
 
                 self._enocean_connector.handle_messages()
+
+                self._process_mqtt_messages()
 
                 if time_check_offline >= 5:
                     time_check_offline = 0
@@ -88,6 +100,40 @@ class ServiceRunner(Runner):
             _logger.debug("finishing...")
         finally:
             self.close()
+
+    def _wait_for_mqtt_connection(self):
+        """wait for getting mqtt connect callback called"""
+        time_step = 0.05
+        time_counter = 0
+
+        while not self._shutdown:
+            time.sleep(time_step)
+            time_counter += time_step
+            if time_counter > 30:
+                raise RuntimeError("Couldn't connect to MQTT, callback was not called!?")
+
+            with self._mqtt_lock:
+                if self._mqtt_state == _MqttState.INITIALISING:
+                    channels = [c for c in self._mqtt_channels_subscriptions]
+                    self._mqtt_connector.subscribe(channels)
+
+                    for id, devices in self._enocean_ids.items():
+                        for device in devices:
+                            if isinstance(device, BaseMqtt):
+                                device.open_mqtt()
+
+                    self._mqtt_state = _MqttState.CONNECTED
+                    break
+
+    def _process_mqtt_messages(self):
+        messages = self._mqtt_connector.get_queued_messages()
+        for message in messages:
+            try:
+                devices = self._mqtt_channels_subscriptions.get(message.topic)
+                for device in devices:
+                    device.process_mqtt_message(message)
+            except Exception as ex:
+                _logger.exception(ex)
 
     def _check_cyclic_tasks(self):
         for device in self._devices_check_cyclic:
@@ -111,26 +157,13 @@ class ServiceRunner(Runner):
         #     _logger.debug("enocean receiver not found - cannot proceed message '%s'", message)
 
     def _on_mqtt_connect(self, rc):
-        if rc == 0:
-            try:
-                channels = [c for c in self._mqtt_channels_subscriptions]
-                self._mqtt_connector.subscribe(channels)
-
-                for id, devices in self._enocean_ids.items():
-                    for device in devices:
-                        if isinstance(device, BaseMqtt):
-                            device.open_mqtt()
-
-            except Exception as ex:
-                _logger.exception(ex)
-
-    def _on_mqtt_message(self, message):
-        try:
-            devices = self._mqtt_channels_subscriptions.get(message.topic)
-            for device in devices:
-                device.process_mqtt_message(message)
-        except Exception as ex:
-            _logger.exception(ex)
+        """Notify MQTT connection state; callback from MQTT network thread"""
+        with self._mqtt_lock:
+            if rc == 0:
+                if self._mqtt_state == _MqttState.UNINITIALED:
+                    self._mqtt_state = _MqttState.INITIALISING
+            else:
+                self._mqtt_state = _MqttState.DISCONNECTED
 
     def _init_devices(self):
         items = self._config[ConfSectionKey.DEVICES.value]
