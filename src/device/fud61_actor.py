@@ -108,12 +108,6 @@ class Fud61Actor(EltakoOnOffActor):
 
     def send_teach_telegram(self, cli_arg):
         action = SwitchAction.ON
-        if cli_arg:
-            try:
-                action = self.extract_switch_action(cli_arg)
-            except ValueError:
-                raise ValueError("could not interprete teach argument ({})!".format(cli_arg))
-
         self._simulate_button_press(action)
 
     def _simulate_button_press(self, action: SwitchAction):
