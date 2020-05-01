@@ -179,7 +179,9 @@ class Config:
     @classmethod
     def get_str(cls, config, key_enum, default=None):
         key = key_enum.value
-        value = config.get(key, default)
+        value = config.get(key)
+        if value is None:  # value could be inserted by CLI as None so dict.default doesn't work
+            value = default
 
         if value != default and not isinstance(value, str):
             raise ValueError(f"expected type 'str' for '{key}'!")
