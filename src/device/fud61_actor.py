@@ -104,7 +104,6 @@ class Fud61Actor(EltakoOnOffActor):
         return \
             "FUD61: A rocker switch is simulated for switching!\n" \
             "- Set teach target to EC1 == direction switch!\n" \
-            f"- Run teaching 2 times with '--{xtra}', values ['{on}', '{off}'].\n" \
             "- Activate confirmations telegrams (extra step)!"
 
     def send_teach_telegram(self, cli_arg):
