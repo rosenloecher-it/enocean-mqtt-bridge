@@ -18,7 +18,7 @@ def init_logging(config):
     format_with_ts = '%(asctime)s [%(levelname)8s] %(name)s: %(message)s'
     format_no_ts = '[%(levelname)8s] %(name)s: %(message)s'
 
-    log_file = Config.get_str(config, ConfMainKey.LOG_FILE, Constant.DEFAULT_CONFFILE)
+    log_file = Config.get_str(config, ConfMainKey.LOG_FILE)
     log_level = Config.get_loglevel(config, ConfMainKey.LOG_LEVEL, Constant.DEFAULT_LOGLEVEL)
     print_console = Config.get_bool(config, ConfMainKey.LOG_PRINT, False)
     runs_as_systemd = Config.get_bool(config, ConfMainKey.SYSTEMD, False)
