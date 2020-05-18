@@ -2,6 +2,8 @@ import json
 from enum import Enum
 from typing import Optional
 
+import time
+
 from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
@@ -14,6 +16,12 @@ class SwitchAction(Enum):
     ON = "on"  # press
     OFF = "off"  # press
     RELEASE = "release"
+
+
+class ActorCommand(Enum):
+    ON = "on"
+    OFF = "off"
+    UPDATE = "update"  # trigger updated notification
 
 
 class StateValue(Enum):
@@ -53,6 +61,8 @@ class RockerActor(BaseDevice, BaseMqtt):
         BaseMqtt.__init__(self)
 
         self._mqtt_channel_cmd = None
+
+        self._time_between_rocker_commands = 0.05
 
     def set_config(self, config):
         BaseDevice.set_config(self, config)
@@ -105,17 +115,51 @@ class RockerActor(BaseDevice, BaseMqtt):
             learn=learn
         )
 
+    def _execute_actor_command(self, command: ActorCommand, learn=False):
+        destination = 0xffffffff
+
+        if command in [ActorCommand.ON, ActorCommand.OFF]:
+            action = SwitchAction.ON if command == ActorCommand.ON else SwitchAction.OFF
+            packet = self._create_switch_packet(action, destination=destination, learn=learn)
+            self._send_enocean_packet(packet)
+
+            time.sleep(self._time_between_rocker_commands)
+
+            packet = self._create_switch_packet(SwitchAction.RELEASE, destination=destination)
+            self._send_enocean_packet(packet)
+        elif command == ActorCommand.UPDATE:
+            self._logger.info("command 'UPDATE' not supported!")
+
     @classmethod
-    def extract_switch_action(cls, text: str, recusive=True) -> SwitchAction:
+    def extract_actor_command(cls, text: str, recusive=True) -> ActorCommand:
         if text:
             comp = str(text).upper().strip()
             if comp in ["ON", "1", "100"]:
-                return SwitchAction.ON
+                return ActorCommand.ON
             elif comp in ["OFF", "0"]:
-                return SwitchAction.OFF
+                return ActorCommand.OFF
+            elif comp == "UPDATE":
+                return ActorCommand.UPDATE
             elif recusive and comp[0] == "{":  # {"STATE": "off"}
                 data = json.loads(text)
                 value = data.get(OutputAttributes.STATE.value)
-                return cls.extract_switch_action(value, recusive=False)
+                return cls.extract_actor_command(value, recusive=False)
 
         raise ValueError()
+
+    def process_mqtt_message(self, message):
+        """
+        :param src.enocean_interface.EnoceanMessage message:
+        """
+        self._logger.debug('process_mqtt_message: "%s"', message.payload)
+
+        payload = message.payload
+        if isinstance(payload, bytes):
+            payload = payload.decode("utf-8")
+
+        try:
+            command = self.extract_actor_command(payload)
+            self._logger.debug("command '{}'".format(command.value))
+            self._execute_actor_command(command)
+        except ValueError:
+            self._logger.error("cannot execute command! message: {}".format(payload))

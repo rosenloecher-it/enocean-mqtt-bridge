@@ -1,10 +1,9 @@
 import logging
-import time
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet
 
-from src.device.rocker_actor import RockerActor, StateValue, SwitchAction
+from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
@@ -82,39 +81,11 @@ class Fsr61Actor(RockerActor):
             "- Activate confirmations telegrams (extra step)!"
 
     def send_teach_telegram(self, cli_arg):
-        action = SwitchAction.ON
+        command = ActorCommand.ON
         if cli_arg:
             try:
-                action = self.extract_switch_action(cli_arg)
+                command = self.extract_actor_command(cli_arg)
             except ValueError:
                 raise ValueError("could not interprete teach argument ({})!".format(cli_arg))
 
-        self._simulate_button_press(action, learn=True)
-
-    def _simulate_button_press(self, action: SwitchAction, learn=False):
-
-        if action != SwitchAction.RELEASE:
-            packet = self._create_switch_packet(action, learn=learn)
-            self._send_enocean_packet(packet)
-            time.sleep(0.05)
-
-        packet = self._create_switch_packet(SwitchAction.RELEASE)
-        self._send_enocean_packet(packet)
-
-    def process_mqtt_message(self, message):
-        """
-
-        :param src.enocean_interface.EnoceanMessage message:
-        """
-        self._logger.debug('process_mqtt_message: "%s"', message.payload)
-
-        payload = message.payload
-        if isinstance(payload, bytes):
-            payload = payload.decode("utf-8")
-
-        try:
-            switch_action = self.extract_switch_action(payload)
-            self._logger.debug("switch to {}".format(switch_action.value))
-            self._simulate_button_press(switch_action)
-        except ValueError:
-            self._logger.error("cannot switch, message: {}".format(payload))
+        self._execute_actor_command(command, learn=True)

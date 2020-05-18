@@ -1,17 +1,15 @@
 import logging
-import time
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet
 
-from src.device.rocker_actor import RockerActor, SwitchAction, StateValue
+from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
 
 class Fud61Actor(RockerActor):
     """
-
     RORG 0xA5 - FUNC 0x38 - TYPE 0x08 - Gateway
     (https://github.com/kipe/enocean/blob/master/SUPPORTED_PROFILES.md)
 
@@ -102,33 +100,4 @@ class Fud61Actor(RockerActor):
             "- Activate confirmations telegrams (extra step)!"
 
     def send_teach_telegram(self, cli_arg):
-        action = SwitchAction.ON
-        self._simulate_button_press(action)
-
-    def _simulate_button_press(self, action: SwitchAction):
-
-        if action != SwitchAction.RELEASE:
-            packet = self._create_switch_packet(action)
-            self._send_enocean_packet(packet)
-            time.sleep(0.05)
-
-        packet = self._create_switch_packet(SwitchAction.RELEASE)
-        self._send_enocean_packet(packet)
-
-    def process_mqtt_message(self, message):
-        """
-
-        :param src.enocean_interface.EnoceanMessage message:
-        """
-        self._logger.debug('process_mqtt_message: "%s"', message.payload)
-
-        payload = message.payload
-        if isinstance(payload, bytes):
-            payload = payload.decode("utf-8")
-
-        try:
-            switch_action = self.extract_switch_action(payload)
-            self._logger.debug("switch to {}".format(switch_action.value))
-            self._simulate_button_press(switch_action)
-        except ValueError:
-            self._logger.error("cannot switch, message: {}".format(payload))
+        self._execute_actor_command(ActorCommand.ON)

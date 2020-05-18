@@ -1,6 +1,6 @@
 import unittest
 
-from src.device.rocker_actor import SwitchAction, RockerActor
+from src.device.rocker_actor import SwitchAction, RockerActor, ActorCommand
 from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
@@ -37,20 +37,20 @@ class _MockDevice(RockerActor):
 class TestEltakoOnOffActor(unittest.TestCase):
 
     def test_extract_switch_action(self):
-        self.assertEqual(RockerActor.extract_switch_action(" On "), SwitchAction.ON)
-        self.assertEqual(RockerActor.extract_switch_action(" 1 "), SwitchAction.ON)
-        self.assertEqual(RockerActor.extract_switch_action('{"STATE": " on "}'), SwitchAction.ON)
+        self.assertEqual(RockerActor.extract_actor_command(" On "), ActorCommand.ON)
+        self.assertEqual(RockerActor.extract_actor_command(" 1 "), ActorCommand.ON)
+        self.assertEqual(RockerActor.extract_actor_command('{"STATE": " on "}'), ActorCommand.ON)
 
-        self.assertEqual(RockerActor.extract_switch_action(" oFF "), SwitchAction.OFF)
-        self.assertEqual(RockerActor.extract_switch_action(" 0 "), SwitchAction.OFF)
-        self.assertEqual(RockerActor.extract_switch_action('{"STATE": " ofF "}'), SwitchAction.OFF)
+        self.assertEqual(RockerActor.extract_actor_command(" oFF "), ActorCommand.OFF)
+        self.assertEqual(RockerActor.extract_actor_command(" 0 "), ActorCommand.OFF)
+        self.assertEqual(RockerActor.extract_actor_command('{"STATE": " ofF "}'), ActorCommand.OFF)
 
         with self.assertRaises(ValueError):
-            RockerActor.extract_switch_action("onnnnn")
+            RockerActor.extract_actor_command("onnnnn")
         with self.assertRaises(ValueError):
-            RockerActor.extract_switch_action("")
+            RockerActor.extract_actor_command("")
         with self.assertRaises(ValueError):
-            RockerActor.extract_switch_action(None)
+            RockerActor.extract_actor_command(None)
 
     def test_created_switch_packet(self):
         device = _MockDevice()
