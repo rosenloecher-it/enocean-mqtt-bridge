@@ -45,7 +45,8 @@ class OutputAttributes(Enum):
         return '{}'.format(self.name)
 
 
-class EltakoOnOffActor(BaseDevice, BaseMqtt):
+class RockerActor(BaseDevice, BaseMqtt):
+    """Base class for actor based on rocker switches (eep f6-02-02)"""
 
     def __init__(self, name):
         BaseDevice.__init__(self, name)

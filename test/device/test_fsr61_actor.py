@@ -1,6 +1,6 @@
 import unittest
 
-from src.device.eltako_on_off_actor import StateValue
+from src.device.rocker_actor import StateValue
 from src.device.fsr61_actor import Fsr61Actor
 from src.tools import Tools
 from test.setup_test import SetupTest

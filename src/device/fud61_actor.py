@@ -4,13 +4,12 @@ import time
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet
 
-from src.config import ConfMainKey
-from src.device.eltako_on_off_actor import EltakoOnOffActor, SwitchAction, StateValue
+from src.device.rocker_actor import RockerActor, SwitchAction, StateValue
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
 
-class Fud61Actor(EltakoOnOffActor):
+class Fud61Actor(RockerActor):
     """
 
     RORG 0xA5 - FUNC 0x38 - TYPE 0x08 - Gateway

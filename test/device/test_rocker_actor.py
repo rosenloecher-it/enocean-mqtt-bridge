@@ -1,12 +1,12 @@
 import unittest
 
-from src.device.eltako_on_off_actor import SwitchAction, EltakoOnOffActor
+from src.device.rocker_actor import SwitchAction, RockerActor
 from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
 
-class _MockDevice(EltakoOnOffActor):
+class _MockDevice(RockerActor):
 
     def __init__(self):
         self.now = None
@@ -37,20 +37,20 @@ class _MockDevice(EltakoOnOffActor):
 class TestEltakoOnOffActor(unittest.TestCase):
 
     def test_extract_switch_action(self):
-        self.assertEqual(EltakoOnOffActor.extract_switch_action(" On "), SwitchAction.ON)
-        self.assertEqual(EltakoOnOffActor.extract_switch_action(" 1 "), SwitchAction.ON)
-        self.assertEqual(EltakoOnOffActor.extract_switch_action('{"STATE": " on "}'), SwitchAction.ON)
+        self.assertEqual(RockerActor.extract_switch_action(" On "), SwitchAction.ON)
+        self.assertEqual(RockerActor.extract_switch_action(" 1 "), SwitchAction.ON)
+        self.assertEqual(RockerActor.extract_switch_action('{"STATE": " on "}'), SwitchAction.ON)
 
-        self.assertEqual(EltakoOnOffActor.extract_switch_action(" oFF "), SwitchAction.OFF)
-        self.assertEqual(EltakoOnOffActor.extract_switch_action(" 0 "), SwitchAction.OFF)
-        self.assertEqual(EltakoOnOffActor.extract_switch_action('{"STATE": " ofF "}'), SwitchAction.OFF)
+        self.assertEqual(RockerActor.extract_switch_action(" oFF "), SwitchAction.OFF)
+        self.assertEqual(RockerActor.extract_switch_action(" 0 "), SwitchAction.OFF)
+        self.assertEqual(RockerActor.extract_switch_action('{"STATE": " ofF "}'), SwitchAction.OFF)
 
         with self.assertRaises(ValueError):
-            EltakoOnOffActor.extract_switch_action("onnnnn")
+            RockerActor.extract_switch_action("onnnnn")
         with self.assertRaises(ValueError):
-            EltakoOnOffActor.extract_switch_action("")
+            RockerActor.extract_switch_action("")
         with self.assertRaises(ValueError):
-            EltakoOnOffActor.extract_switch_action(None)
+            RockerActor.extract_switch_action(None)
 
     def test_created_switch_packet(self):
         device = _MockDevice()

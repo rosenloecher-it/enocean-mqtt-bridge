@@ -4,12 +4,12 @@ import time
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet
 
-from src.device.eltako_on_off_actor import EltakoOnOffActor, StateValue, SwitchAction
+from src.device.rocker_actor import RockerActor, StateValue, SwitchAction
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
 
 
-class Fsr61Actor(EltakoOnOffActor):
+class Fsr61Actor(RockerActor):
     """
     Eltako FSR61-230V
 
