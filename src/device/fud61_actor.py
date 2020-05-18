@@ -97,10 +97,6 @@ class Fud61Actor(EltakoOnOffActor):
             return None
 
     def get_teach_print_message(self):
-        xtra = ConfMainKey.TEACH_XTRA.value
-        on = SwitchAction.ON.value
-        off = SwitchAction.OFF.value
-
         return \
             "FUD61: A rocker switch is simulated for switching!\n" \
             "- Set teach target to EC1 == direction switch!\n" \

@@ -81,7 +81,7 @@ class EltakoOnOffActor(BaseDevice, BaseMqtt):
         json_text = json.dumps(data)
         return json_text
 
-    def _create_switch_packet(self, action, learn=False):
+    def _create_switch_packet(self, action, learn=False, destination=None):
         # simulate rocker switch
         if action == SwitchAction.ON:
             action = RockerAction.PRESS_SHORT
@@ -95,9 +95,11 @@ class EltakoOnOffActor(BaseDevice, BaseMqtt):
         else:
             raise RuntimeError()
 
+        destination = destination or self._enocean_target or 0xffffffff
+
         return RockerSwitch.simu_packet(
             action, button,
-            destination=self._enocean_target,
+            destination=destination,
             sender=self._enocean_sender,
             learn=learn
         )

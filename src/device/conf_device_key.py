@@ -21,7 +21,7 @@ class ConfDeviceKey(Enum):
     MQTT_QOS = "mqtt_quality"
     MQTT_RETAIN = "mqtt_retain"
 
-    # mainly RockerSwitct
+    # mainly RockerSwitch
     MQTT_CHANNEL_RELEASE = "mqtt_channel_release"
 
     MQTT_CHANNEL_BTN_0 = "mqtt_channel_0"
@@ -33,6 +33,8 @@ class ConfDeviceKey(Enum):
     MQTT_CHANNEL_BTN_LONG_1 = "mqtt_channel_long_1"
     MQTT_CHANNEL_BTN_LONG_2 = "mqtt_channel_long_2"
     MQTT_CHANNEL_BTN_LONG_3 = "mqtt_channel_long_3"
+
+    ACTOR_CHANNEL = "actor_channel"
 
     # mainly FFG7BDevice
     STORAGE_FILE = "storage_file"
