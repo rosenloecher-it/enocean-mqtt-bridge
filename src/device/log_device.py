@@ -60,12 +60,28 @@ class LogDevice(BaseDevice):
         if self._dump_packet and self._logger.isEnabledFor(logging.INFO):
             self._logger.info("proceed_enocean - dump:\n%s", Tools.pickle_packet(packet))
 
+        # self._try_to_extract(packet, 0xf6, 0x02, 0x02)
+
         if None not in [self._enocean_func, self._enocean_rorg, self._enocean_type]:
             try:
                 data = self._extract_packet(packet)
                 self._logger.info("proceed_enocean - extracted: %s", data)
             except DeviceException as ex:
                 self._logger.exception("proceed_enocean - could not extract:\n%s", ex)
+
+    # def _try_to_extract(self, packet, eep_rorg, eep_func, eep_type):
+    #     if eep_rorg == packet.rorg:
+    #         try:
+    #             data = Tools.extract_packet(
+    #                 packet=packet,
+    #                 rorg_func=eep_func,
+    #                 rorg_type=eep_type,
+    #             )
+    #             if data:
+    #                 eep = f"{hex(eep_func)}-{hex(eep_type)}"
+    #                 self._logger.info("extracted (%s): %s", eep, data)
+    #         except Exception as ex:
+    #             self._logger.exception(ex)
 
     def set_last_will(self):
         pass
