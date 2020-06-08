@@ -10,23 +10,31 @@ from src.tools import Tools
 
 class Fud61Actor(RockerActor):
     """
-    RORG 0xA5 - FUNC 0x38 - TYPE 0x08 - Gateway
-    (https://github.com/kipe/enocean/blob/master/SUPPORTED_PROFILES.md)
+    Specialized for: Eltako FUD61NP(N)-230V (dimmer)
 
-    shortcut 	description 	            values
-    COM 	    Command ID 	                0-13 - Command ID
-    EDIM 	    Dimming value               absolute [0...255]
-                                            relative [0...100])
-    RMP 	    Ramping time in seconds     0 = no ramping,
-                                            1...255 = seconds to 100%
-    EDIMR 	    Dimming Range 	            0 - Absolute value
-                                            1 - Relative value
-    STR 	    Store final value 	enum 	0 - No
-                                            1 - Yes
-    SW 	        Switching command 	        0 - Off
-                                            1 - On
+    Unfortunately I was not able to set diectly the dim state. Instead I use rockr switch telegrams to switct ON/OFF.
+    A real dim operation is impractical this way, so only ON/OFF can be switched. At last the dim state get notfied
+    via confirmation telegrams.
 
-    see also: https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
+    EEP: A5-38-08 (RORG 0xA5 - FUNC 0x38 - TYPE 0x08 - Gateway)
+        shortcut 	description 	            values
+        COM 	    Command ID 	                0-13 - Command ID
+        EDIM 	    Dimming value               absolute [0...255]
+                                                relative [0...100])
+        RMP 	    Ramping time in seconds     0 = no ramping,
+                                                1...255 = seconds to 100%
+        EDIMR 	    Dimming Range 	            0 - Absolute value
+                                                1 - Relative value
+        STR 	    Store final value 	enum 	0 - No
+                                                1 - Yes
+        SW 	        Switching command 	        0 - Off
+                                                1 - On
+
+    Don't forget toteach such devices.
+
+    See also:
+    - https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
+    - https://github.com/kipe/enocean/blob/master/SUPPORTED_PROFILES.md
     """
 
     DEFAULT_ENOCEAN_RORG = 0xa5

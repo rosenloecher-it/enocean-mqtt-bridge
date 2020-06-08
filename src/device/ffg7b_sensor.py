@@ -66,11 +66,11 @@ class HandlePosAttr(Enum):
 
 
 class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
-    """Specialized class to forward notfications of Eltako FFG7B-rw (Eltako TF-FGB)
-    windows/door handles. Output is a json dict with values of `HandleValues`.
-    Additionally there is a `SINCE` field (JSON) which indicates the last change time.
+    """Specialized class to forward notfications of Eltako FFG7B-rw (similar to Eltako TF-FGB) windows/door handles.
+    Output is a json dict with values of `HandleValues`. Additionally there is a `SINCE` field (JSON) which indicates
+    the last change time.
 
-    No information is sent to the device!
+    No information is sent back to the device! Not supported by device.
     """
 
     DEFAULT_ENOCEAN_RORG = 0xf6

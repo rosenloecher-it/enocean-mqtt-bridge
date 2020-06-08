@@ -54,7 +54,7 @@ class OutputAttributes(Enum):
 
 
 class RockerActor(BaseDevice, BaseMqtt):
-    """Base class for actor based on rocker switches (eep f6-02-02)"""
+    """Base class for actors based on rocker switches (EEP f6-02-02)"""
 
     def __init__(self, name):
         BaseDevice.__init__(self, name)

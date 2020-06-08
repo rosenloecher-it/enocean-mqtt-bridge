@@ -1,33 +1,41 @@
 # enocean-mqtt-bridge
 
-Forwards Enocean messages from a USB gateway to a MQTT broker. Not implemented is the direction back to the Enocean
-USB gateway (due to missing devices).
+Bridges and translates Enocean messages between a (USB) gateway to a MQTT broker for specific devices.
 
-It's implemented as python script and supposed to run as systemd service (handling restart, logging)
-
-
-### Tested and supported Enocean devices
-
-- windows/door handle Eltako FFG7B-rw (nearly identical to Eltako TF-FGB)
-
-
-### Enocean USB gateway
-
-The script is based on [Enocean(-Lib)](enocean-lib). Check out if there are some limitations. Hopefully all available
-devices will do. (Tested with a DOSMUNG Gateway USB Stick with SMA Port, chipset TCM 310.)
-
-
-### Additional features
-
-- configurable MQTT last will / testament
-  (e.g. an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
-- check sensor state based on repeated messages and send an configurable OFFLINE message if the device is silent
-  for a configurable timeout.
-- supports different message handler (see for samples in [enocean-mqtt-bridge.yaml.sample](./enocean-mqtt-bridge.yaml.sample)):
-    - logging: just write Enocean message to logfile or console
-    - generic: just sends what could be extracted
-    - "Eltako FFG7B-rw"-specific JSON: tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR and last change time
-- Live cycle management (restarts) are supposed to be handled by systemd.
+Features:
+- configurable MQTT last will / testament (for example an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
+- Live cycle management (restarts) are supposed to be handled by systemd (script provided).
+- Helps to establish multiple Enocean gateways in case of limited signal range. (But some Enocean devices offer a repeater function.)
+- Supported/tested Enocean gateways:
+  - DOSMUNG Gateway USB Stick with SMA Port, chipset TCM 310
+- Supported/tested Enocean devices:
+  - Eltako FFG7B-rw (nearly identical to Eltako TF-FGB; windows/door handle sensor)
+    - check sensor state based on repeated messages and send a configurable OFFLINE message if the device is silent for a configurable timeout.
+    - Configuration class: `src.device.ffg7b_sensor.FFG7BSensor`
+    - outputs JSON with time of last state change (SINCE)
+      ```json
+      {
+          "STATUS": "CLOSED",
+          "RSSI": -61,
+          "TIMESTAMP": "2020-03-16T21:09:37.205911+01:00",
+          "SINCE": "2020-03-15T19:09:37.205911+01:00"
+      }
+      ```
+    - Transform states to (STATUS): OPEN, CLOSED, TILTED, OFFLINE, ERROR   
+  - Eltako FSR61-230V (ON/OFF relay switch)
+      - Switch and get notifications about state changes.
+      - Configuration class: `src.device.fsr61_actor.Fsr61Actor`
+  - Eltako FUD61NP(N)-230V (dimmer)
+      - Switch ON/OFF and get notifications about state changes. Delivers dim state in %.
+      - Configuration class: `src.device.fud61_actor.Fud61Actor`
+  - NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch):
+      - Switch and get notifications about state changes.
+      - Configuration class: `src.device.nodon_sin22_actor.NodonSin22Actor`
+  - RockerSwitch (manual wireless radio switch)
+      - Forward manual state changes.
+      - Configuration class: `src.device.rocker_switch.RockerSwitch`
+  - Generic Log-Device to sniff and log incoming Enocean messages
+      - Configuration class: `src.device.log_device.LogDevice`
 
 
 ## Startup
@@ -45,18 +53,12 @@ sudo apt-get install mosquitto-clients
 
 # preprare credentials
 SERVER="<your server>"
-MQTT_USER="<user>"
-MQTT_PWD="<pwd>"
 
 # start listener
-mosquitto_sub -h $SERVER -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_sub" -d -t smarthome/#
-# or
 mosquitto_sub -h $SERVER -p 1883 -i "client_sub" -d -t smarthome/#
 
 # send single message
-mosquitto_pub -h $SERVER -p 8883 -u $MQTT_USER -P $MQTT_PWD --cafile /etc/mosquitto/certs/ca.crt -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
-# or
-mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$(date)" -q 2
+mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$(date)"
 
 # just as info: clear retained messages
 mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -n -r -d
@@ -86,28 +88,16 @@ pip install -r requirements.txt
 
 ```bash
 # cd ... goto project dir
-
 cp ./enocean-mqtt-bridge.yaml.sample ./enocean-mqtt-bridge.yaml
 ```
 
-Edit your `enocean-mqtt-bridge.yaml`. See comments too.
+Edit your `enocean-mqtt-bridge.yaml`. See comments there. 
 
-Choose one of the available devices (modules pathes), which will handle Enocean message differently:
-- `src.device.log_device.LogDevice`: Log/print messages as it is.
-- `src.device.generic_device.GenericDevice`: Forward messages as it is.
-- `src.device.eltako_ffg7b_device.EltakoFFG7BDevice`
-    - specific to "Eltako FFG7B-rw" devices; creates JSON
-    - tranform states to (STATUS): OPEN, CLOSED, TILTED, OFFLINE, ERROR
-    - "SINCE" contains th last change time
-    - example
-        ```
-        {
-            "STATUS": "CLOSED",
-            "RSSI": -61,
-            "TIMESTAMP": "2020-03-16T21:09:37.205911+01:00",
-            "SINCE": "2020-03-15T19:09:37.205911+01:00"
-        }
-        ```
+**Enocean Base ID**
+
+Your USB gateway has an internal Enocean ID (== **Base** ID). Enocean IDs are used to identify devices and link device to each other by a teach in process. If you want to manage different devices by **one** USB gateway, then you have to use different Enocean **sender** IDs! Otherwise multiple actors will react on each command, which might not what you want. (If you don't configure an Enocean **sender** ID, the Gateway Enocean **Base** ID is used at teaching in.) 
+
+For each control channel you have to define your own Enocean **sender** IDs. You can free choose the IDs, but have to stay within the range [Enocean **Base** ID + 1, Enocean **Base** ID + X]. The Enocean **Base** ID is different for every individual gateway. It gets logged out at service start in the log file or to the console. The possible count of individual sender IDs is supposed about 128. 
 
 ### Run
 
@@ -144,17 +134,17 @@ journalctl -u enocean-mqtt-bridge --no-pager --since "5 minutes ago"
 sudo systemctl enable enocean-mqtt-bridge.service
 ```
 
-## Troubleshouting
+## Troubleshooting
 
-There happend some very quick connects/disconnects from/to MQTT broker (Mosquitto) on a Raspberry Pi. The connection
+There happened some very quick connects/disconnects from/to MQTT broker (Mosquitto) on a Raspberry Pi. The connection
 was secured only by certificate. The problem went away after configuring user name and password for the MQTT broker.
-On a Ubunutu system all was working fine even without user and password.
+On a Ubuntu system all was working fine even without user and password.
 
 `sudo service enocean-mqtt-bridge status`
 
 Mar 18 06:22:18 roofpi systemd[1]: enocean-mqtt-bridge.service: Current command vanished from the unit file, execution of the command list won't be resumed.
 
-```
+```bash
 sudo systemctl disable enocean-mqtt-bridge.service
 sudo rm /etc/systemd/system/enocean-mqtt-bridge.service
 sudo systemctl daemon-reload
@@ -165,20 +155,17 @@ sudo service enocean-mqtt-bridge start
 sudo systemctl enable enocean-mqtt-bridge.service
 ```
 
-
 ## Related projects
 
 - Inspiration, but did not fully meet my needs: [https://github.com/embyt/enocean-mqtt](https://github.com/embyt/enocean-mqtt)
 - Based on: [https://github.com/kipe/enocean](https://github.com/kipe/enocean)
+- Node-RED documentation for Enocean profiles: [https://enocean-js.github.io/enocean-js/?eep=f6-02-02](https://enocean-js.github.io/enocean-js/?eep=f6-02-02)
 
-- Node-RED Docu for Enocean profiles_ [https://enocean-js.github.io/enocean-js/?eep=f6-02-02](https://enocean-js.github.io/enocean-js/?eep=f6-02-02)
 
 ## Maintainer & License
 
-GPLv3 © [Raul Rosenlöcher](https://github.com/rosenloecher-it)
+MIT © [Raul Rosenlöcher](https://github.com/rosenloecher-it)
 
 The code is available at [GitHub][home].
 
 [home]: https://github.com/rosenloecher-it/enocean-mqtt-bridge
-[enocean-lib]: https://github.com/kipe/enocean
-
