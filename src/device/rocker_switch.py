@@ -76,7 +76,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
 
     def set_config(self, config):
         BaseDevice.set_config(self, config)
-        BaseMqtt.set_config(self, config)
+        BaseMqtt._set_config(self, config)
 
         items = [
             (ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_0, 0),

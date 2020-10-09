@@ -37,18 +37,21 @@ class BaseMqtt(abc.ABC):
         raise NotImplementedError()
 
     def set_config(self, config):
-
-        self._mqtt_channel_state = config.get(_ConfigKey.MQTT_CHANNEL_STATE.value)
-
-        self._mqtt_last_will = Config.get_str(config, _ConfigKey.MQTT_LAST_WILL, None)
-        self._mqtt_qos = Config.get_int(config, _ConfigKey.MQTT_QOS, self.DEFAULT_MQTT_QOS)
-        self._mqtt_retain = Config.get_bool(config, _ConfigKey.MQTT_RETAIN, False)
+        self._set_config(config)
 
         # check settings
         if not self._mqtt_channel_state:
             message = self.MISSING_CONFIG_FOR_NAME.format(_ConfigKey.MQTT_CHANNEL_STATE.value, self._name)
             self._logger.error(message)
             raise DeviceException(message)
+
+    def _set_config(self, config):
+
+        self._mqtt_channel_state = config.get(_ConfigKey.MQTT_CHANNEL_STATE.value)
+
+        self._mqtt_last_will = Config.get_str(config, _ConfigKey.MQTT_LAST_WILL, None)
+        self._mqtt_qos = Config.get_int(config, _ConfigKey.MQTT_QOS, self.DEFAULT_MQTT_QOS)
+        self._mqtt_retain = Config.get_bool(config, _ConfigKey.MQTT_RETAIN, False)
 
     def get_mqtt_last_will_channel(self):
         """signal ensor state, outbound channel"""
