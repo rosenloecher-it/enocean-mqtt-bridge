@@ -2,6 +2,7 @@ import datetime
 import json
 import unittest
 
+from src.device.conf_device_key import ConfDeviceKey
 from src.device.rocker_switch import RockerSwitch, RockerAction, RockerButton
 from src.enocean_connector import EnoceanMessage
 from src.tools import Tools
@@ -184,3 +185,25 @@ class TestRockerSwitch(unittest.TestCase):
         self.simu_packet_for_process_enocean_message(device, action, button)
 
         self.check_messages_for_process_enocean_message(device, action, button, channel)
+
+    def test_process_enocean_message_release_with_empty_channel(self):
+        # only channel_state configured
+        action = RockerAction.RELEASE
+        button = None
+
+        device = _MockDevice()
+        # do default channel!
+        # device._mqtt_channel_state = ""
+
+        device._mqtt_channels = {
+            0: ConfDeviceKey.MQTT_CHANNEL_BTN_0,
+            2: ConfDeviceKey.MQTT_CHANNEL_BTN_2,
+        }
+        device._mqtt_channels_long = {
+            0: ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_0,
+            2: ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_2,
+        }
+
+        self.simu_packet_for_process_enocean_message(device, action, button)
+
+        self.assertEqual(len(device.mqtt_messages), 0)

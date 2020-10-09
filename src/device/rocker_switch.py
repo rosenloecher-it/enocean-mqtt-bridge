@@ -103,7 +103,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
 
     @classmethod
     def is_valid_channel(cls, channel):
-        return channel is not None and channel not in ["~", "-"]
+        return channel and channel not in ["~", "-"]
 
     def process_enocean_message(self, message: EnoceanMessage):
 
