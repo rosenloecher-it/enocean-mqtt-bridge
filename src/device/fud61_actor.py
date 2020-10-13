@@ -5,7 +5,8 @@ from enocean.protocol.packet import Packet
 
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
+from src.tools.pickle_tools import PickleTools
 
 
 class Fud61Actor(RockerActor):
@@ -58,7 +59,7 @@ class Fud61Actor(RockerActor):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:
-            self._logger.debug("skipped packet with packet_type=%s", Tools.packet_type_text(packet.rorg))
+            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.extract_packet_type_text(packet.rorg))
             return
         if packet.rorg != self._enocean_rorg:
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
@@ -76,7 +77,7 @@ class Fud61Actor(RockerActor):
         if (switch_state == StateValue.ERROR or dim_state is None) and \
                 self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
-            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet())
+            self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet())
 
         message = self._create_message(switch_state, dim_state, rssi)
         self._publish_mqtt(message)

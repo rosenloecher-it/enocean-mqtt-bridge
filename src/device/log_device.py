@@ -4,7 +4,8 @@ from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
+from src.tools.pickle_tools import PickleTools
 
 
 class LogDevice(BaseDevice):
@@ -53,12 +54,12 @@ class LogDevice(BaseDevice):
         if packet.sender_int in self._enocean_ids_skip:
             return
 
-        packet_type = Tools.packet_type_text(packet.packet_type)
+        packet_type = PickleTools.extract_packet_type_text(packet.packet_type)
 
         self._logger.info("proceed_enocean - packet(%s): %s", packet_type, packet)
 
         if self._dump_packet and self._logger.isEnabledFor(logging.INFO):
-            self._logger.info("proceed_enocean - dump:\n%s", Tools.pickle_packet(packet))
+            self._logger.info("proceed_enocean - dump:\n%s", EnoceanTools.pickle_packet(packet))
 
         # self._try_to_extract(packet, 0xf6, 0x02, 0x02)
 

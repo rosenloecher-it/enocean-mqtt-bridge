@@ -1,7 +1,7 @@
 import unittest
 
 from src.device.base_device import BaseDevice
-from src.tools import Tools
+from src.tools.pickle_tools import PickleTools
 
 PACKET_WIN_CLOSE = """
     gANjZW5vY2Vhbi5wcm90b2NvbC5wYWNrZXQKUmFkaW9QYWNrZXQKcQApgXEBfXECKFgLAAAAcGFj
@@ -52,21 +52,21 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
         self.device._enocean_type = 0x00
 
     def test_close(self):
-        packet = Tools.unpickle(PACKET_WIN_CLOSE)
+        packet = PickleTools.unpickle(PACKET_WIN_CLOSE)
 
         comp = {'WIN': 3, 'T21': 1, 'NU': 0}
         data = self.device._extract_packet(packet)
         self.assertEqual(data, comp)
 
     def test_tilted(self):
-        packet = Tools.unpickle(PACKET_WIN_TILTED)
+        packet = PickleTools.unpickle(PACKET_WIN_TILTED)
 
         comp = {'WIN': 1, 'T21': 1, 'NU': 0}
         data = self.device._extract_packet(packet)
         self.assertEqual(data, comp)
 
     def test_open(self):
-        packet = Tools.unpickle(PACKET_WIN_OPEN)
+        packet = PickleTools.unpickle(PACKET_WIN_OPEN)
 
         comp = {'WIN': 2, 'T21': 1, 'NU': 0}
         data = self.device._extract_packet(packet)

@@ -15,7 +15,7 @@ from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
-from src.tools import Tools
+from src.tools.pickle_tools import PickleTools
 
 
 class StorageKey(Enum):
@@ -214,7 +214,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
 
         if value == HandleValue.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
-            self._logger.debug("proceed_enocean - pickled error packet:\n%s", Tools.pickle_packet(packet))
+            self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
         if self._write_since:
             since = self._determine_and_store_since(value)

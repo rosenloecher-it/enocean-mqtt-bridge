@@ -5,7 +5,7 @@ import unittest
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.rocker_switch import RockerSwitch, RockerAction, RockerButton
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.pickle_tools import PickleTools
 
 
 class _MockDevice(RockerSwitch):
@@ -61,14 +61,14 @@ class TestRockerSwitch(unittest.TestCase):
         ]
 
         for i in range(0, 3):
-            packet = Tools.unpickle_packet(loop_data[i][0])
+            packet = PickleTools.unpickle_packet(loop_data[i][0])
             device = _MockDevice()
             extracted = device._extract_packet(packet)
             expected = _MockDevice.simu_packet_props(RockerAction.PRESS_SHORT, loop_data[i][1])
             self.assertEqual(extracted, expected)
 
     def test_extract_release(self):
-        packet = Tools.unpickle_packet(PACKET_RELEASE)
+        packet = PickleTools.unpickle_packet(PACKET_RELEASE)
         device = _MockDevice()
         extracted = device._extract_packet(packet)
         expected = _MockDevice.simu_packet_props(RockerAction.RELEASE, None)

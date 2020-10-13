@@ -7,7 +7,7 @@ from tzlocal import get_localzone
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.ffg7b_sensor import HandleValue, FFG7BSensor, StorageKey
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.pickle_tools import PickleTools
 from test.device.test_base_device import PACKET_WIN_TILTED
 from test.mock_mqtt_publisher import MockMqttPublisher
 
@@ -129,7 +129,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         time_1 = datetime.datetime.now(tz=get_localzone())
 
         message = EnoceanMessage(
-            payload=Tools.unpickle(PACKET_WIN_TILTED),
+            payload=PickleTools.unpickle(PACKET_WIN_TILTED),
             enocean_id=enocean_id
         )
         device.now = time_1

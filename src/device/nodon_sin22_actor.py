@@ -8,7 +8,8 @@ from src.config import Config
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
+from src.tools.pickle_tools import PickleTools
 
 _Notification = namedtuple("_Notification", ["channel", "switch_state"])
 
@@ -49,7 +50,7 @@ class NodonSin22Actor(RockerActor):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:
-            self._logger.debug("skipped packet with packet_type=%s", Tools.packet_type_text(packet.rorg))
+            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.extract_packet_type_text(packet.rorg))
             return
         if packet.rorg != self._enocean_rorg:
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
@@ -67,7 +68,7 @@ class NodonSin22Actor(RockerActor):
 
         if notification.switch_state == StateValue.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
-            self._logger.debug("process_enocean_message - pickled error packet:\n%s", Tools.pickle_packet(packet))
+            self._logger.debug("process_enocean_message - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
         message = self._create_message(notification.switch_state, None, rssi)
         self._publish_mqtt(message)

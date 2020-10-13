@@ -2,7 +2,7 @@ import unittest
 
 from src.device.rocker_actor import StateValue
 from src.device.nodon_sin22_actor import NodonSin22Actor
-from src.tools import Tools
+from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
 
@@ -47,7 +47,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         SetupTest.set_dummy_sender_id()
 
     def test_extract_0_on(self):
-        packet = Tools.unpickle_packet(_PACKET_0_ON)
+        packet = PickleTools.unpickle_packet(_PACKET_0_ON)
 
         device = _MockDevice()
         data = device._extract_packet(packet)
@@ -57,7 +57,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         self.assertEqual(notification.switch_state, StateValue.ON)
 
     def test_extract_0_off(self):
-        packet = Tools.unpickle_packet(_PACKET_0_OFF)
+        packet = PickleTools.unpickle_packet(_PACKET_0_OFF)
 
         device = _MockDevice()
         data = device._extract_packet(packet)
@@ -67,7 +67,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         self.assertEqual(notification.switch_state, StateValue.OFF)
 
     def test_extract_1_on(self):
-        packet = Tools.unpickle_packet(_PACKET_1_ON)
+        packet = PickleTools.unpickle_packet(_PACKET_1_ON)
 
         device = _MockDevice()
         data = device._extract_packet(packet)
@@ -77,7 +77,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         self.assertEqual(notification.switch_state, StateValue.ON)
 
     def test_extract_1_off(self):
-        packet = Tools.unpickle_packet(_PACKET_1_OFF)
+        packet = PickleTools.unpickle_packet(_PACKET_1_OFF)
 
         device = _MockDevice()
         data = device._extract_packet(packet)

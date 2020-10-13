@@ -3,7 +3,7 @@ import unittest
 from src.device.rocker_actor import SwitchAction, RockerActor, ActorCommand
 from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
 
 
 class _MockDevice(RockerActor):
@@ -56,7 +56,7 @@ class TestEltakoOnOffActor(unittest.TestCase):
         device = _MockDevice()
         packet = device._create_switch_packet(SwitchAction.ON)
 
-        extract = Tools.extract_packet(
+        extract = EnoceanTools.extract_packet(
             packet=packet,
             rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
             rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,

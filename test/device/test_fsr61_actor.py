@@ -2,7 +2,7 @@ import unittest
 
 from src.device.rocker_actor import StateValue
 from src.device.fsr61_actor import Fsr61Actor
-from src.tools import Tools
+from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
 
@@ -42,7 +42,7 @@ class TestFsr61Actor(unittest.TestCase):
         SetupTest.set_dummy_sender_id()
 
     def test_extract_off(self):
-        packet = Tools.unpickle_packet(PACKET_OFF)
+        packet = PickleTools.unpickle_packet(PACKET_OFF)
 
         device = _MockDevice()
         data = device._extract_packet(packet)
@@ -51,7 +51,7 @@ class TestFsr61Actor(unittest.TestCase):
         self.assertEqual(switch_state, StateValue.ON)
 
     def test_extract_on(self):
-        packet = Tools.unpickle_packet(PACKET_ON)
+        packet = PickleTools.unpickle_packet(PACKET_ON)
 
         device = _MockDevice()
         data = device._extract_packet(packet)

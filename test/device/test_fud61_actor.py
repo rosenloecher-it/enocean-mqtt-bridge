@@ -6,7 +6,8 @@ from collections import namedtuple
 from src.device.fud61_actor import Fud61Actor
 from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
+from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
 PACKET_STATUS_ON_100 = """
@@ -79,19 +80,19 @@ class TestFud61Actor(unittest.TestCase):
         SetupTest.set_dummy_sender_id()
 
     def test_extract_off_0(self):
-        packet = Tools.unpickle(PACKET_STATUS_OFF_0)
+        packet = PickleTools.unpickle(PACKET_STATUS_OFF_0)
         device = _MockDevice()
         data = device._extract_packet(packet)
         self.assertEqual(data, {'COM': 2, 'EDIM': 0, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 0})
 
     def test_extract_on_33(self):
-        packet = Tools.unpickle(PACKET_STATUS_ON_33)
+        packet = PickleTools.unpickle(PACKET_STATUS_ON_33)
         device = _MockDevice()
         data = device._extract_packet(packet)
         self.assertEqual(data, {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_extract_on_100(self):
-        packet = Tools.unpickle(PACKET_STATUS_ON_100)
+        packet = PickleTools.unpickle(PACKET_STATUS_ON_100)
         device = _MockDevice()
         data = device._extract_packet(packet)
         self.assertEqual(data, {'COM': 2, 'EDIM': 100, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
@@ -99,7 +100,7 @@ class TestFud61Actor(unittest.TestCase):
     def test_proceed_enocean(self):
         device = _MockDevice()
         device.now = datetime.datetime(2020, 1, 1, 2, 2, 3, tzinfo=datetime.timezone.utc)
-        packet = Tools.unpickle(PACKET_STATUS_ON_33)
+        packet = PickleTools.unpickle(PACKET_STATUS_ON_33)
         message = EnoceanMessage(payload=packet, enocean_id=device._enocean_id)
 
         device.process_enocean_message(message)
@@ -122,7 +123,7 @@ class TestFud61Actor(unittest.TestCase):
 
         self.assertEqual(len(device.packets), 2)
 
-        extract = Tools.extract_packet(
+        extract = EnoceanTools.extract_packet(
             packet=device.packets[0],
             rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
             rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,
@@ -131,7 +132,7 @@ class TestFud61Actor(unittest.TestCase):
         )
         self.assertEqual(extract["NU"], 1)
 
-        extract = Tools.extract_packet(
+        extract = EnoceanTools.extract_packet(
             packet=device.packets[1],
             rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
             rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,

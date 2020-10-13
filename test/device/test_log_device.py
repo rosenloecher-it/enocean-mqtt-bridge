@@ -1,6 +1,7 @@
 import unittest
 
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
+from src.tools.pickle_tools import PickleTools
 
 
 class TestBaseDeviceExtractProps(unittest.TestCase):
@@ -23,10 +24,10 @@ CAAAAG9wdGlvbmFscQRdcQUoSwBL/0v/S/9L/0sqSwBldS4="""
 class TestSnifferSamples(unittest.TestCase):
 
     def test_ft55(self):
-        packet = Tools.unpickle_packet(PACKET_FT55_21L)
+        packet = PickleTools.unpickle_packet(PACKET_FT55_21L)
 
         # f6-02-02
-        data = Tools.extract_packet(packet, 0x02, 0x02)
+        data = EnoceanTools.extract_packet(packet, 0x02, 0x02)
         print(data)
 
         # PACKET_FT55_11P: {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1

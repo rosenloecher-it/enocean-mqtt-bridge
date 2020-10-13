@@ -11,7 +11,7 @@ from src.config import Config
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
-from src.tools import Tools
+from src.tools.enocean_tools import EnoceanTools
 
 
 class PropName(Enum):
@@ -86,7 +86,7 @@ class BaseDevice(abc.ABC):
         """
         if packet.packet_type == PACKET.RADIO and packet.rorg == self._enocean_rorg:
             try:
-                data = Tools.extract_packet(
+                data = EnoceanTools.extract_packet(
                     packet=packet,
                     rorg_func=self._enocean_func,
                     rorg_type=self._enocean_type,
