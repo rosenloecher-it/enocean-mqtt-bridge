@@ -2,6 +2,7 @@ import copy
 
 from enocean.protocol.packet import RadioPacket
 
+from src.eep import Eep
 from src.tools.enocean_tools import EnoceanTools
 
 
@@ -17,8 +18,7 @@ class EnoceanPacketFactory:
             cls._sender_id = copy.deepcopy(sender_id)
 
     @classmethod
-    def create_radio_packet(cls, rorg, rorg_func, rorg_type,
-                            direction=None, command=None, destination=None, sender=None, learn=False,
+    def create_radio_packet(cls, eep: Eep, destination=None, sender=None, learn=False,
                             **kwargs):
 
         destination_id = destination or 0xffffffff
@@ -30,9 +30,7 @@ class EnoceanPacketFactory:
             sender_id = EnoceanTools.int_to_byte_list(sender_id, 4)
 
         return RadioPacket.create(
-            rorg, rorg_func, rorg_type,
-            direction=direction,
-            command=command,
+            eep.rorg, eep.func, eep.type, direction=eep.direction, command=eep.command,
             destination=destination_id,
             sender=sender_id,
             learn=learn,

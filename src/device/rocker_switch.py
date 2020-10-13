@@ -59,19 +59,21 @@ class RockerSwitch(BaseDevice, BaseMqtt):
     DEFAULT_ENOCEAN_DIRECTION = None
     DEFAULT_ENOCEAN_COMMAND = None
 
+    DEFAULT_EEP = Eep(
+        rorg=DEFAULT_ENOCEAN_RORG,
+        func=DEFAULT_ENOCEAN_FUNC,
+        type=DEFAULT_ENOCEAN_TYPE,
+        direction=DEFAULT_ENOCEAN_DIRECTION,
+        command=DEFAULT_ENOCEAN_COMMAND
+    )
+
     EMPTY_PROPS = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
 
     def __init__(self, name):
         BaseDevice.__init__(self, name)
         BaseMqtt.__init__(self)
 
-        self._eep = Eep(
-            rorg=self.DEFAULT_ENOCEAN_RORG,
-            func=self.DEFAULT_ENOCEAN_FUNC,
-            type=self.DEFAULT_ENOCEAN_TYPE,
-            direction=self.DEFAULT_ENOCEAN_DIRECTION,
-            command=self.DEFAULT_ENOCEAN_COMMAND
-        )
+        self._eep = self.DEFAULT_EEP.clone()
 
         self._mqtt_channels = {}
         self._mqtt_channels_long = {}
@@ -182,7 +184,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
 
     @classmethod
     def simu_packet(cls, action: RockerAction, button: Optional[RockerButton],
-                    rorg: Optional[int] = None, func: Optional[int] = None, type: Optional[int] = None,
+                    eep: Optional[Eep] = None,
                     destination: Optional[int] = None, sender: Optional[int] = None,
                     learn=False) -> RadioPacket:
         """
@@ -196,14 +198,11 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         """
         props = cls.simu_packet_props(action, button)
 
-        rorg = rorg or cls.DEFAULT_ENOCEAN_RORG
-        func = func or cls.DEFAULT_ENOCEAN_FUNC
-        type = type or cls.DEFAULT_ENOCEAN_TYPE
+        if eep is None:
+            eep = cls.DEFAULT_EEP
 
         packet = EnoceanPacketFactory.create_radio_packet(
-            rorg=rorg,
-            rorg_func=func,
-            rorg_type=type,
+            eep=eep,
             destination=destination,
             sender=sender,
             learn=learn,

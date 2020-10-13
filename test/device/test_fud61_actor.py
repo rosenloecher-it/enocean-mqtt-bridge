@@ -123,20 +123,8 @@ class TestFud61Actor(unittest.TestCase):
 
         self.assertEqual(len(device.packets), 2)
 
-        extract = EnoceanTools.extract_packet(
-            packet=device.packets[0],
-            rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
-            rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,
-            direction=RockerSwitch.DEFAULT_ENOCEAN_DIRECTION,
-            command=RockerSwitch.DEFAULT_ENOCEAN_COMMAND,
-        )
+        extract = EnoceanTools.extract_packet(packet=device.packets[0], eep=RockerSwitch.DEFAULT_EEP)
         self.assertEqual(extract["NU"], 1)
 
-        extract = EnoceanTools.extract_packet(
-            packet=device.packets[1],
-            rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
-            rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,
-            direction=RockerSwitch.DEFAULT_ENOCEAN_DIRECTION,
-            command=RockerSwitch.DEFAULT_ENOCEAN_COMMAND,
-        )
+        extract = EnoceanTools.extract_packet(packet=device.packets[1], eep=RockerSwitch.DEFAULT_EEP)
         self.assertEqual(extract["NU"], 0)

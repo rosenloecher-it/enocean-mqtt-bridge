@@ -3,6 +3,7 @@ import unittest
 import enocean
 from enocean.protocol.constants import PACKET
 
+from src.eep import Eep
 from src.enocean_packet_factory import EnoceanPacketFactory
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
@@ -16,12 +17,12 @@ class TestTool(unittest.TestCase):
 
     def test_packet_roundtrip(self):
         props_in = {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
+
+        eep = Eep(rorg=0xf6, func=0x02, type=0x02)
         packet_in = EnoceanPacketFactory.create_radio_packet(
-            rorg=0xf6,
-            rorg_func=0x02,
-            rorg_type=0x02,
+            eep=eep,
             destination=EnoceanTools.int_to_byte_list(0xffffffff, 4),
-             learn=False,
+            learn=False,
             **props_in
         )
 

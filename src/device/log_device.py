@@ -70,19 +70,5 @@ class LogDevice(BaseDevice):
             except DeviceException as ex:
                 self._logger.exception("proceed_enocean - could not extract:\n%s", ex)
 
-    # def _try_to_extract(self, packet, eep_rorg, eep_func, eep_type):
-    #     if eep_rorg == packet.rorg:
-    #         try:
-    #             data = Tools.extract_packet(
-    #                 packet=packet,
-    #                 rorg_func=eep_func,
-    #                 rorg_type=eep_type,
-    #             )
-    #             if data:
-    #                 eep = f"{hex(eep_func)}-{hex(eep_type)}"
-    #                 self._logger.info("extracted (%s): %s", eep, data)
-    #         except Exception as ex:
-    #             self._logger.exception(ex)
-
     def set_last_will(self):
         pass

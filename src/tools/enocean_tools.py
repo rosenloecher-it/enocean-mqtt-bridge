@@ -1,5 +1,7 @@
 from enocean.protocol.constants import PACKET
 
+from src.eep import Eep
+
 
 class EnoceanTools:
 
@@ -12,17 +14,17 @@ class EnoceanTools:
         return result
 
     @classmethod
-    def extract_packet(cls, packet, rorg_func, rorg_type, direction=None, command=None):
+    def extract_packet(cls, packet, eep: Eep):
         """
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}
         """
         data = {}
         props = packet.parse_eep(
-            rorg_func=rorg_func,
-            rorg_type=rorg_type,
-            direction=direction,
-            command=command
+            rorg_func=eep.func,
+            rorg_type=eep.type,
+            direction=eep.direction,
+            command=eep.command
         )
         for prop_name in props:
             prop = packet.parsed[prop_name]

@@ -1,5 +1,6 @@
 import unittest
 
+from src.eep import Eep
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
@@ -27,46 +28,7 @@ class TestSnifferSamples(unittest.TestCase):
         packet = PickleTools.unpickle_packet(PACKET_FT55_21L)
 
         # f6-02-02
-        data = EnoceanTools.extract_packet(packet, 0x02, 0x02)
+        eep = Eep(rorg=0xf6, func=0x02, type=0x02)
+
+        data = EnoceanTools.extract_packet(packet, eep)
         print(data)
-
-        # PACKET_FT55_11P: {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1
-        # PACKET_FT55_11L: {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-        # PACKET_FT55_12P: {'R1': 3, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        # PACKET_FT55_12L: {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-
-        # PACKET_FT55_21P: {'R1': 0, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        # PACKET_FT55_21L: {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-        # PACKET_FT55_22P: {'R1': 2, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        # PACKET_FT55_22L: {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-
-    # def test_find_eep_profile(self):
-    #     packet = Tools.unpickle_packet(...)
-    #
-    #     direction = None
-    #     command = None
-    #
-    #     for f in range(0, 255):
-    #         for t in range(0, 255):
-    #             properties = packet.parse_eep(
-    #                 rorg_func=f,
-    #                 rorg_type=t,
-    #                 direction=direction,
-    #                 command=command
-    #             )
-    #
-    #             if not properties:
-    #                 continue
-    #
-    #             data = {}
-    #             for prop_name in properties:
-    #                 try:
-    #                     prop = packet.parsed[prop_name]
-    #
-    #                     raw_value = property['raw_value']
-    #                     data[prop_name] = raw_value
-    #
-    #                 except AttributeError:
-    #                     data[prop_name] = "!?"
-    #
-    #             print("{:02X}-{:02X}-{:02X}\n{}\n".format(packet.rorg, f, t, data))

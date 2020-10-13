@@ -56,12 +56,6 @@ class TestEltakoOnOffActor(unittest.TestCase):
         device = _MockDevice()
         packet = device._create_switch_packet(SwitchAction.ON)
 
-        extract = EnoceanTools.extract_packet(
-            packet=packet,
-            rorg_func=RockerSwitch.DEFAULT_ENOCEAN_FUNC,
-            rorg_type=RockerSwitch.DEFAULT_ENOCEAN_TYPE,
-            direction=RockerSwitch.DEFAULT_ENOCEAN_DIRECTION,
-            command=RockerSwitch.DEFAULT_ENOCEAN_COMMAND,
-        )
+        extract = EnoceanTools.extract_packet(packet=packet, eep=RockerSwitch.DEFAULT_EEP)
 
         self.assertEqual(extract, {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1})
