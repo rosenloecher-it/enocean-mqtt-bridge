@@ -63,7 +63,7 @@ class LogDevice(BaseDevice):
 
         # self._try_to_extract(packet, 0xf6, 0x02, 0x02)
 
-        if None not in [self._enocean_func, self._enocean_rorg, self._enocean_type]:
+        if None not in [self._eep.func, self._eep.rorg, self._eep.type]:
             try:
                 data = self._extract_packet(packet)
                 self._logger.info("proceed_enocean - extracted: %s", data)

@@ -10,6 +10,7 @@ from tzlocal import get_localzone
 from src.config import Config
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
+from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 
@@ -34,11 +35,7 @@ class BaseDevice(abc.ABC):
         self._enocean_target = None
         self._enocean_sender = None  # to distinguish between different actors
 
-        self._enocean_func = None
-        self._enocean_rorg = None
-        self._enocean_type = None
-        self._enocean_direction = None
-        self._enocean_command = None
+        self._eep = None  # type: Eep
 
     @property
     def _logger(self):
@@ -67,11 +64,11 @@ class BaseDevice(abc.ABC):
                 return config_value
             return default_value
 
-        self._enocean_func = config_int(self._enocean_func, ConfDeviceKey.ENOCEAN_FUNC)
-        self._enocean_rorg = config_int(self._enocean_rorg, ConfDeviceKey.ENOCEAN_RORG)
-        self._enocean_type = config_int(self._enocean_type, ConfDeviceKey.ENOCEAN_TYPE)
-        self._enocean_direction = config_int(self._enocean_direction, ConfDeviceKey.ENOCEAN_DIRECTION)
-        self._enocean_command = config_int(self._enocean_command, ConfDeviceKey.ENOCEAN_COMMAND)
+        self._eep.func = config_int(self._eep.func, ConfDeviceKey.ENOCEAN_FUNC)
+        self._eep.rorg = config_int(self._eep.rorg, ConfDeviceKey.ENOCEAN_RORG)
+        self._eep.type = config_int(self._eep.type, ConfDeviceKey.ENOCEAN_TYPE)
+        self._eep.direction = config_int(self._eep.direction, ConfDeviceKey.ENOCEAN_DIRECTION)
+        self._eep.command = config_int(self._eep.command, ConfDeviceKey.ENOCEAN_COMMAND)
 
         # check setting
         if not self._enocean_target:
@@ -84,14 +81,14 @@ class BaseDevice(abc.ABC):
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}
         """
-        if packet.packet_type == PACKET.RADIO and packet.rorg == self._enocean_rorg:
+        if packet.packet_type == PACKET.RADIO and packet.rorg == self._eep.rorg:
             try:
                 data = EnoceanTools.extract_packet(
                     packet=packet,
-                    rorg_func=self._enocean_func,
-                    rorg_type=self._enocean_type,
-                    direction=self._enocean_direction,
-                    command=self._enocean_command
+                    rorg_func=self._eep.func,
+                    rorg_type=self._eep.type,
+                    direction=self._eep.direction,
+                    command=self._eep.command
                 )
             except AttributeError as ex:
                 raise DeviceException(ex)

@@ -10,6 +10,7 @@ from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
+from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.enocean_packet_factory import EnoceanPacketFactory
 
@@ -64,12 +65,13 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         BaseDevice.__init__(self, name)
         BaseMqtt.__init__(self)
 
-        # default config values
-        self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
-        self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
-        self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
-        self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
-        self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
+        self._eep = Eep(
+            rorg=self.DEFAULT_ENOCEAN_RORG,
+            func=self.DEFAULT_ENOCEAN_FUNC,
+            type=self.DEFAULT_ENOCEAN_TYPE,
+            direction=self.DEFAULT_ENOCEAN_DIRECTION,
+            command=self.DEFAULT_ENOCEAN_COMMAND
+        )
 
         self._mqtt_channels = {}
         self._mqtt_channels_long = {}

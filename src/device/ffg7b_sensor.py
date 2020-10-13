@@ -13,6 +13,7 @@ from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
 from src.device.device_exception import DeviceException
+from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
 from src.tools.pickle_tools import PickleTools
@@ -88,11 +89,13 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         BaseCyclic.__init__(self)
 
         # default config values
-        self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
-        self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
-        self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
-        self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
-        self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
+        self._eep = Eep(
+            rorg=self.DEFAULT_ENOCEAN_RORG,
+            func=self.DEFAULT_ENOCEAN_FUNC,
+            type=self.DEFAULT_ENOCEAN_TYPE,
+            direction=self.DEFAULT_ENOCEAN_DIRECTION,
+            command=self.DEFAULT_ENOCEAN_COMMAND
+        )
 
         self._write_since_no_error = True
         self._write_since = False

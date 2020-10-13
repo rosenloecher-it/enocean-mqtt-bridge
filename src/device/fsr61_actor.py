@@ -4,6 +4,7 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet
 
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
+from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
@@ -31,12 +32,13 @@ class Fsr61Actor(RockerActor):
     def __init__(self, name):
         super().__init__(name)
 
-        # default config values
-        self._enocean_rorg = self.DEFAULT_ENOCEAN_RORG
-        self._enocean_func = self.DEFAULT_ENOCEAN_FUNC
-        self._enocean_type = self.DEFAULT_ENOCEAN_TYPE
-        self._enocean_direction = self.DEFAULT_ENOCEAN_DIRECTION
-        self._enocean_command = self.DEFAULT_ENOCEAN_COMMAND
+        self._eep = Eep(
+            rorg=self.DEFAULT_ENOCEAN_RORG,
+            func=self.DEFAULT_ENOCEAN_FUNC,
+            type=self.DEFAULT_ENOCEAN_TYPE,
+            direction=self.DEFAULT_ENOCEAN_DIRECTION,
+            command=self.DEFAULT_ENOCEAN_COMMAND
+        )
 
     def process_enocean_message(self, message: EnoceanMessage):
 
@@ -44,7 +46,7 @@ class Fsr61Actor(RockerActor):
         if packet.packet_type != PACKET.RADIO:
             self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.extract_packet_type_text(packet.rorg))
             return
-        if packet.rorg != self._enocean_rorg:
+        if packet.rorg != self._eep.rorg:
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 

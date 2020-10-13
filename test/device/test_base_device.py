@@ -1,6 +1,7 @@
 import unittest
 
 from src.device.base_device import BaseDevice
+from src.eep import Eep
 from src.tools.pickle_tools import PickleTools
 
 PACKET_WIN_CLOSE = """
@@ -46,10 +47,8 @@ class TestBaseDeviceExtractProps(unittest.TestCase):
 
     def setUp(self):
         self.device = _TestExtractPropsDevice("test")
-        self.device._enocean_func = 0x10
         self.device._enocean_target = 0x0587854a
-        self.device._enocean_rorg = 0xf6
-        self.device._enocean_type = 0x00
+        self.device._eep = Eep(rorg=0xf6, func=0x10, type=0x00)
 
     def test_close(self):
         packet = PickleTools.unpickle(PACKET_WIN_CLOSE)
