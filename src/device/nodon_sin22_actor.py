@@ -18,27 +18,19 @@ _Notification = namedtuple("_Notification", ["channel", "switch_state"])
 class NodonSin22Actor(RockerActor):
     """Actor for Nodon SIN-2-2-01"""
 
-    DEFAULT_ENOCEAN_RORG = 0xd2
-    DEFAULT_ENOCEAN_FUNC = 0x01
-    DEFAULT_ENOCEAN_TYPE = 0x01
-    # type should be 0x02, but it's not available within "enocean" lib
-
-    DEFAULT_ENOCEAN_DIRECTION = None
-    DEFAULT_ENOCEAN_COMMAND = None  # 0x01
+    DEFAULT_EEP = Eep(
+        rorg=0xd2,
+        func=0x01,
+        type=0x01,  # type should be 0x02, but it's not available within "enocean" lib
+        direction=None,
+        command=None  # 0x01
+    )
 
     def __init__(self, name):
         super().__init__(name)
 
         self._time_between_rocker_commands = 0.2
-
-        self._eep = Eep(
-            rorg=self.DEFAULT_ENOCEAN_RORG,
-            func=self.DEFAULT_ENOCEAN_FUNC,
-            type=self.DEFAULT_ENOCEAN_TYPE,
-            direction=self.DEFAULT_ENOCEAN_DIRECTION,
-            command=self.DEFAULT_ENOCEAN_COMMAND
-        )
-
+        self._eep = self.DEFAULT_EEP.clone()
         self._actor_channel = None
 
     def set_config(self, config):

@@ -21,24 +21,18 @@ class Fsr61Actor(RockerActor):
 
     See: https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
     """
-
-    DEFAULT_ENOCEAN_RORG = 0xf6
-    DEFAULT_ENOCEAN_FUNC = 0x02  # 0x12
-    DEFAULT_ENOCEAN_TYPE = 0x02  # 0x01
-
-    DEFAULT_ENOCEAN_DIRECTION = None
-    DEFAULT_ENOCEAN_COMMAND = None  # 0x01
+    DEFAULT_EEP = Eep(
+        rorg=0xf6,
+        func=0x02,  # 0x12
+        type=0x02,  # 0x01
+        direction=None,
+        command=None
+    )
 
     def __init__(self, name):
         super().__init__(name)
 
-        self._eep = Eep(
-            rorg=self.DEFAULT_ENOCEAN_RORG,
-            func=self.DEFAULT_ENOCEAN_FUNC,
-            type=self.DEFAULT_ENOCEAN_TYPE,
-            direction=self.DEFAULT_ENOCEAN_DIRECTION,
-            command=self.DEFAULT_ENOCEAN_COMMAND
-        )
+        self._eep = self.DEFAULT_EEP.clone()
 
     def process_enocean_message(self, message: EnoceanMessage):
 

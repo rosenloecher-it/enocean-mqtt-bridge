@@ -52,19 +52,12 @@ _MessageData = namedtuple("_MessageData", ["channel", "button", "action"])
 
 class RockerSwitch(BaseDevice, BaseMqtt):
 
-    DEFAULT_ENOCEAN_RORG = 0xf6
-    DEFAULT_ENOCEAN_FUNC = 0x02
-    DEFAULT_ENOCEAN_TYPE = 0x02
-
-    DEFAULT_ENOCEAN_DIRECTION = None
-    DEFAULT_ENOCEAN_COMMAND = None
-
     DEFAULT_EEP = Eep(
-        rorg=DEFAULT_ENOCEAN_RORG,
-        func=DEFAULT_ENOCEAN_FUNC,
-        type=DEFAULT_ENOCEAN_TYPE,
-        direction=DEFAULT_ENOCEAN_DIRECTION,
-        command=DEFAULT_ENOCEAN_COMMAND
+        rorg=0xf6,
+        func=0x02,
+        type=0x02,
+        direction=None,
+        command=None
     )
 
     EMPTY_PROPS = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}

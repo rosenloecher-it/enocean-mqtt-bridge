@@ -38,24 +38,18 @@ class Fud61Actor(RockerActor):
     - https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
     - https://github.com/kipe/enocean/blob/master/SUPPORTED_PROFILES.md
     """
-
-    DEFAULT_ENOCEAN_RORG = 0xa5
-    DEFAULT_ENOCEAN_FUNC = 0x38
-    DEFAULT_ENOCEAN_TYPE = 0x08
-
-    DEFAULT_ENOCEAN_DIRECTION = None
-    DEFAULT_ENOCEAN_COMMAND = 0x02
+    DEFAULT_EEP = Eep(
+        rorg=0xa5,
+        func=0x38,
+        type=0x08,
+        direction=None,
+        command=0x02
+    )
 
     def __init__(self, name):
         super().__init__(name)
 
-        self._eep = Eep(
-            rorg=self.DEFAULT_ENOCEAN_RORG,
-            func=self.DEFAULT_ENOCEAN_FUNC,
-            type=self.DEFAULT_ENOCEAN_TYPE,
-            direction=self.DEFAULT_ENOCEAN_DIRECTION,
-            command=self.DEFAULT_ENOCEAN_COMMAND
-        )
+        self._eep = self.DEFAULT_EEP.clone()
 
     def process_enocean_message(self, message: EnoceanMessage):
 

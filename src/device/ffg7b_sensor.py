@@ -74,14 +74,15 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
     No information is sent back to the device! Not supported by device.
     """
 
-    DEFAULT_ENOCEAN_RORG = 0xf6
-    DEFAULT_ENOCEAN_FUNC = 0x10
-    DEFAULT_ENOCEAN_TYPE = 0x00
-
-    DEFAULT_ENOCEAN_DIRECTION = None
-    DEFAULT_ENOCEAN_COMMAND = None
-
     DEFAULT_TIME_OFFLINE_MSG = 3600
+
+    DEFAULT_EEP = Eep(
+        rorg=0xf6,
+        func=0x10,
+        type=0x00,
+        direction=None,
+        command=None
+    )
 
     def __init__(self, name):
         BaseDevice.__init__(self, name)
@@ -89,13 +90,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         BaseCyclic.__init__(self)
 
         # default config values
-        self._eep = Eep(
-            rorg=self.DEFAULT_ENOCEAN_RORG,
-            func=self.DEFAULT_ENOCEAN_FUNC,
-            type=self.DEFAULT_ENOCEAN_TYPE,
-            direction=self.DEFAULT_ENOCEAN_DIRECTION,
-            command=self.DEFAULT_ENOCEAN_COMMAND
-        )
+        self._eep = self.DEFAULT_EEP.clone()
 
         self._write_since_no_error = True
         self._write_since = False

@@ -8,6 +8,7 @@ class ConfDeviceKey(Enum):
     DEVICE_CLASS = "device_class"
 
     ENOCEAN_TARGET = "enocean_target"
+    ENOCEAN_TARGET_SWITCH = "enocean_target_switch"
     ENOCEAN_SENDER = "enocean_sender"
     ENOCEAN_RORG = "enocean_rorg"
     ENOCEAN_FUNC = "enocean_func"
