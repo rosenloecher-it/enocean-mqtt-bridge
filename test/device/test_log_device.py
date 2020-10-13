@@ -30,5 +30,5 @@ class TestSnifferSamples(unittest.TestCase):
         # f6-02-02
         eep = Eep(rorg=0xf6, func=0x02, type=0x02)
 
-        data = EnoceanTools.extract_packet(packet, eep)
+        data = EnoceanTools.extract_props(packet, eep)
         print(data)

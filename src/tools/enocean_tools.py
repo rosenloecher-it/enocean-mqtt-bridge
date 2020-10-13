@@ -14,7 +14,7 @@ class EnoceanTools:
         return result
 
     @classmethod
-    def extract_packet(cls, packet, eep: Eep):
+    def extract_props(cls, packet, eep: Eep):
         """
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}
@@ -32,7 +32,7 @@ class EnoceanTools:
         return data
 
     @classmethod
-    def extract_packet_type_text(cls, packet_type):
+    def extract_type_text(cls, packet_type):
         if type(packet_type) == int:
             for e in PACKET:
                 if packet_type == e:

@@ -83,7 +83,7 @@ class BaseDevice(abc.ABC):
         """
         if packet.packet_type == PACKET.RADIO and packet.rorg == self._eep.rorg:
             try:
-                data = EnoceanTools.extract_packet(packet=packet, eep=self._eep)
+                data = EnoceanTools.extract_props(packet=packet, eep=self._eep)
             except AttributeError as ex:
                 raise DeviceException(ex)
         else:

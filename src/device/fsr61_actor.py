@@ -38,7 +38,7 @@ class Fsr61Actor(RockerActor):
 
         packet = message.payload  # type: Packet
         if packet.packet_type != PACKET.RADIO:
-            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.extract_packet_type_text(packet.rorg))
+            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.extract_type_text(packet.rorg))
             return
         if packet.rorg != self._eep.rorg:
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
