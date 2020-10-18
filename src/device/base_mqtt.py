@@ -3,7 +3,7 @@ from enum import Enum
 
 from src.config import Config
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.device_exception import DeviceException
+from src.tools.device_exception import DeviceException
 
 
 class _ConfigKey(Enum):

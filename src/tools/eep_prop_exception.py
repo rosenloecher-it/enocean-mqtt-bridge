@@ -1,0 +1,3 @@
+
+class EepPropException(Exception):
+    pass

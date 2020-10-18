@@ -1,10 +1,9 @@
 import json
 from collections import namedtuple
-from enum import IntEnum, Enum
-from typing import Optional, Dict
+from enum import Enum
 
 from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import RadioPacket, Packet
+from enocean.protocol.packet import Packet
 
 from src.config import Config
 from src.device.base_device import BaseDevice
@@ -12,27 +11,7 @@ from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
-from src.enocean_packet_factory import EnoceanPacketFactory
-
-
-class RockerAction(Enum):
-    RELEASE = "RELEASE"
-    PRESS_SHORT = "SHORT"  # presset
-    PRESS_LONG = "LONG"  # pressed
-    ERROR = "ERROR"
-
-
-class RockerButton(IntEnum):
-    """
-    button ids to location: <above>
-        [1] [3]
-        [0] [2]
-    work together as direction switch: 0 with 1; 2 with 3
-    """
-    ROCK0 = 0  # usually OFF (left side)
-    ROCK1 = 1  # usually ON (left side)
-    ROCK2 = 2  # usually OFF (right side)
-    ROCK3 = 3  # usually ON (right side)
+from src.tools.rocker_switch_tools import RockerSwitchTools, RockerPress
 
 
 class _OutputAttributes(Enum):
@@ -108,7 +87,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         if packet.packet_type != PACKET.RADIO:
             return
 
-        packet_data = self._extract_packet(message.payload)
+        packet_data = RockerSwitchTools.extract_props(message.payload)
         self._logger.debug('process_mqtt_message: "%s"', packet_data)
         message_data = self._prepare_message_data(packet_data)
 
@@ -127,20 +106,20 @@ class RockerSwitch(BaseDevice, BaseMqtt):
                 index = data["R2"]
                 channel = self._mqtt_channels_long.get(index) or self._mqtt_channels.get(index) \
                           or self._mqtt_channel_state
-                return _MessageData(channel=channel, button=index, action=RockerAction.PRESS_LONG)
+                return _MessageData(channel=channel, button=index, action=RockerPress.PRESS_LONG)
             elif data["EB"] == 1:
                 index = data["R1"]
                 channel = self._mqtt_channels.get(index) or self._mqtt_channel_state
-                return _MessageData(channel=channel, button=index, action=RockerAction.PRESS_SHORT)
+                return _MessageData(channel=channel, button=index, action=RockerPress.PRESS_SHORT)
             elif data == self.EMPTY_PROPS:
                 channel = self._mqtt_channels.get(None) or self._mqtt_channel_state
-                return _MessageData(channel=channel, button=None, action=RockerAction.RELEASE)
+                return _MessageData(channel=channel, button=None, action=RockerPress.RELEASE)
             else:
-                return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerAction.ERROR)
+                return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerPress.ERROR)
 
         except AttributeError as ex:  # TODO handle index errors
             self._logger.error("cannot evaluate data: %s (%s)", data, ex)
-            return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerAction.ERROR)
+            return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerPress.ERROR)
 
     def _create_mqtt_message(self, message_data: _MessageData):
         data = {
@@ -151,58 +130,6 @@ class RockerSwitch(BaseDevice, BaseMqtt):
 
         json_text = json.dumps(data)
         return json_text
-
-    @classmethod
-    def simu_packet_props(cls,
-                          action: RockerAction,
-                          button: Optional[RockerButton]) -> Dict[str, int]:
-        """
-        :param action: True == press, False == release button
-        :param button: may None in case of release
-        :return:
-        """
-        if action in [RockerAction.PRESS_SHORT, RockerAction.PRESS_LONG]:
-            if button is None:
-                raise ValueError("no RockerSwitchButton defined!")
-            if action == RockerAction.PRESS_LONG:
-                props = {'R1': 0, 'EB': 0, 'R2': button.value, 'SA': 1, 'T21': 1, 'NU': 1}
-            else:  # short
-                props = {'R1': button.value, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
-        elif action == RockerAction.RELEASE:
-            props = cls.EMPTY_PROPS
-        else:
-            raise ValueError()
-
-        return props
-
-    @classmethod
-    def simu_packet(cls, action: RockerAction, button: Optional[RockerButton],
-                    eep: Optional[Eep] = None,
-                    destination: Optional[int] = None, sender: Optional[int] = None,
-                    learn=False) -> RadioPacket:
-        """
-        :param bool press: True == press, False == release button
-        :param int button: range 0 - 3 for the 4 single buttons; may None in case of release
-        :param rorg:
-        :param func:
-        :param type:
-        :param dest_id:
-        :return:
-        """
-        props = cls.simu_packet_props(action, button)
-
-        if eep is None:
-            eep = cls.DEFAULT_EEP
-
-        packet = EnoceanPacketFactory.create_radio_packet(
-            eep=eep,
-            destination=destination,
-            sender=sender,
-            learn=learn,
-            **props
-        )
-
-        return packet
 
     def process_mqtt_message(self, message):
         """no message will be procressed!"""

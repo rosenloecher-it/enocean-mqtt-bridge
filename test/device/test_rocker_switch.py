@@ -3,9 +3,10 @@ import json
 import unittest
 
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.rocker_switch import RockerSwitch, RockerAction, RockerButton
+from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
+from src.tools.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 
 
 class _MockDevice(RockerSwitch):
@@ -64,21 +65,23 @@ class TestRockerSwitch(unittest.TestCase):
             packet = PickleTools.unpickle_packet(loop_data[i][0])
             device = _MockDevice()
             extracted = device._extract_packet(packet)
-            expected = _MockDevice.simu_packet_props(RockerAction.PRESS_SHORT, loop_data[i][1])
+            action = RockerAction(press=RockerPress.PRESS_SHORT, button=loop_data[i][1])
+            expected = RockerSwitchTools.create_props(action)
             self.assertEqual(extracted, expected)
 
     def test_extract_release(self):
         packet = PickleTools.unpickle_packet(PACKET_RELEASE)
         device = _MockDevice()
         extracted = device._extract_packet(packet)
-        expected = _MockDevice.simu_packet_props(RockerAction.RELEASE, None)
+        action = RockerAction(press=RockerPress.RELEASE)
+        expected = RockerSwitchTools.create_props(action)
         self.assertEqual(extracted, expected)
 
     DEFAULT_MQTT_CHANNEL = "default_mqtt_channel"
 
     @classmethod
-    def get_test_channel(cls, action, button):
-        return f"{button}_{action.value}"
+    def get_test_channel(cls, action):
+        return f"{action.button}_{action.press}"
 
     @classmethod
     def create_device_for_process_enocean_message(cls):
@@ -87,109 +90,99 @@ class TestRockerSwitch(unittest.TestCase):
         device._mqtt_channel_state = cls.DEFAULT_MQTT_CHANNEL
 
         device._mqtt_channels = {
-            0: cls.get_test_channel(RockerAction.PRESS_SHORT, RockerButton.ROCK0),
-            1: cls.get_test_channel(RockerAction.PRESS_SHORT, RockerButton.ROCK1),
+            0: cls.get_test_channel(RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK0)),
+            1: cls.get_test_channel(RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK1)),
         }
         device._mqtt_channels_long = {
-            0: cls.get_test_channel(RockerAction.PRESS_LONG, RockerButton.ROCK0),
-            2: cls.get_test_channel(RockerAction.PRESS_LONG, RockerButton.ROCK2),
+            0: cls.get_test_channel(RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK0)),
+            2: cls.get_test_channel(RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK2)),
         }
 
         return device
 
     @classmethod
-    def simu_packet_for_process_enocean_message(cls, device, action, button):
-
-        packet = _MockDevice.simu_packet(
-            action=action, button=button,
-            destination=0xffffffff, sender=0xffffffff
-        )
+    def simu_packet_for_process_enocean_message(cls, device: RockerSwitch, action: RockerAction):
+        packet = RockerSwitchTools.create_packet(action=action, destination=0xffffffff, sender=0xffffffff)
         message = EnoceanMessage(packet, device._enocean_id)
         device.process_enocean_message(message)
 
-    def check_messages_for_process_enocean_message(self, device, action, button, channel):
+    def check_messages_for_process_enocean_message(self, device: RockerSwitch, action: RockerAction, channel):
         self.assertEqual(len(device.mqtt_messages), 1)
         message = device.mqtt_messages[0]
 
         self.assertEqual(message[1], channel)
 
         data = json.loads(message[0])
-        self.assertEqual(data["STATE"], action.value)
-        self.assertEqual(data["BUTTON"], button.value if button is not None else None)  # in case of RELEASE
+        self.assertEqual(data["STATE"], action.press.value)
+        self.assertEqual(data["BUTTON"], action.button.value if action.button is not None else None)  # RELEASE
         self.assertEqual(data["TIMESTAMP"], device.now.isoformat())
 
     def test_process_enocean_message_short(self):
-        action = RockerAction.PRESS_SHORT
-        button = RockerButton.ROCK0
-        channel = self.get_test_channel(action, button)
+        action = RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK0)
+        channel = self.get_test_channel(action)
         device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        self.check_messages_for_process_enocean_message(device, action, channel)
 
     def test_process_enocean_message_long(self):
-        action = RockerAction.PRESS_LONG
-        button = RockerButton.ROCK0
-        channel = self.get_test_channel(action, button)
+        action = RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK0)
+        channel = self.get_test_channel(action)
         device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        self.check_messages_for_process_enocean_message(device, action, channel)
 
     def test_process_enocean_message_short_for_long(self):
         # only short configued
-        action = RockerAction.PRESS_LONG
-        button = RockerButton.ROCK1
-        channel = self.get_test_channel(RockerAction.PRESS_SHORT, button)
-        device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        action_long = RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK1)
+        action_short = RockerAction(RockerPress.PRESS_SHORT, action_long.button)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        channel = self.get_test_channel(action_short)
+        device = self.create_device_for_process_enocean_message()
+        self.simu_packet_for_process_enocean_message(device, action_long)
+
+        self.check_messages_for_process_enocean_message(device, action_long, channel)
 
     def test_process_enocean_message_only_long(self):
         # only short configued
-        action = RockerAction.PRESS_LONG
-        button = RockerButton.ROCK2
-        channel = self.get_test_channel(action, button)
+        action = RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK2)
+        channel = self.get_test_channel(action)
         device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        self.check_messages_for_process_enocean_message(device, action, channel)
 
     def test_process_enocean_message_only_long_short_to_default(self):
         # only short configued
-        action = RockerAction.PRESS_SHORT
-        button = RockerButton.ROCK2
+        action = RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK2)
         channel = self.DEFAULT_MQTT_CHANNEL
         device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        self.check_messages_for_process_enocean_message(device, action, channel)
 
     def test_process_enocean_message_to_default(self):
         # only channel_state configured
-        action = RockerAction.PRESS_SHORT
-        button = RockerButton.ROCK3
+        action = RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK3)
         channel = self.DEFAULT_MQTT_CHANNEL
         device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        self.check_messages_for_process_enocean_message(device, action, channel)
 
     def test_process_enocean_message_release(self):
         # only channel_state configured
-        action = RockerAction.RELEASE
-        button = None
+        action = RockerAction(RockerPress.RELEASE)
         channel = self.DEFAULT_MQTT_CHANNEL
         device = self.create_device_for_process_enocean_message()
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
-        self.check_messages_for_process_enocean_message(device, action, button, channel)
+        self.check_messages_for_process_enocean_message(device, action, channel)
 
     def test_process_enocean_message_release_with_empty_channel(self):
         # only channel_state configured
-        action = RockerAction.RELEASE
-        button = None
+        action = RockerAction(RockerPress.RELEASE)
 
         device = _MockDevice()
         # do default channel!
@@ -204,6 +197,6 @@ class TestRockerSwitch(unittest.TestCase):
             2: ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_2,
         }
 
-        self.simu_packet_for_process_enocean_message(device, action, button)
+        self.simu_packet_for_process_enocean_message(device, action)
 
         self.assertEqual(len(device.mqtt_messages), 0)

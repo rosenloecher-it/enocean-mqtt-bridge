@@ -9,7 +9,7 @@ from tzlocal import get_localzone
 
 from src.config import Config
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.device_exception import DeviceException
+from src.tools.device_exception import DeviceException
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
@@ -56,21 +56,6 @@ class BaseDevice(abc.ABC):
         self._enocean_target = Config.get_int(config, ConfDeviceKey.ENOCEAN_TARGET, None)
         self._enocean_sender = Config.get_int(config, ConfDeviceKey.ENOCEAN_SENDER, None)
 
-        def config_int(current_value, key, default_value=None):
-            if current_value is not None:
-                return current_value
-            config_value = Config.get_int(config, ConfDeviceKey.ENOCEAN_FUNC, None)
-            if config_value is not None:
-                return config_value
-            return default_value
-
-        self._eep.func = config_int(self._eep.func, ConfDeviceKey.ENOCEAN_FUNC)
-        self._eep.rorg = config_int(self._eep.rorg, ConfDeviceKey.ENOCEAN_RORG)
-        self._eep.type = config_int(self._eep.type, ConfDeviceKey.ENOCEAN_TYPE)
-        self._eep.direction = config_int(self._eep.direction, ConfDeviceKey.ENOCEAN_DIRECTION)
-        self._eep.command = config_int(self._eep.command, ConfDeviceKey.ENOCEAN_COMMAND)
-
-        # check setting
         if not self._enocean_target:
             message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.enum, self._name)
             self._logger.error(message)

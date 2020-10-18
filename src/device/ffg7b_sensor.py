@@ -12,7 +12,7 @@ from src.device.base_cyclic import BaseCyclic
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.device_exception import DeviceException
+from src.tools.device_exception import DeviceException
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException

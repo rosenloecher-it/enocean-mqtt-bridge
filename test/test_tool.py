@@ -19,7 +19,7 @@ class TestTool(unittest.TestCase):
         props_in = {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1}
 
         eep = Eep(rorg=0xf6, func=0x02, type=0x02)
-        packet_in = EnoceanPacketFactory.create_radio_packet(
+        packet_in = EnoceanPacketFactory.create_packet(
             eep=eep,
             destination=EnoceanTools.int_to_byte_list(0xffffffff, 4),
             learn=False,

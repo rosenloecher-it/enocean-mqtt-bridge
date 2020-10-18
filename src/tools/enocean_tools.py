@@ -1,4 +1,5 @@
 from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import RadioPacket
 
 from src.eep import Eep
 
@@ -14,7 +15,7 @@ class EnoceanTools:
         return result
 
     @classmethod
-    def extract_props(cls, packet, eep: Eep):
+    def extract_props(cls, packet: RadioPacket, eep: Eep):
         """
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}

@@ -8,8 +8,8 @@ from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
-from src.device.device_exception import DeviceException
-from src.device.rocker_switch import RockerSwitch, RockerAction, RockerButton
+from src.tools.device_exception import DeviceException
+from src.tools.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 
 
 class SwitchAction(Enum):
@@ -92,24 +92,22 @@ class RockerActor(BaseDevice, BaseMqtt):
         json_text = json.dumps(data)
         return json_text
 
-    def _create_switch_packet(self, action, learn=False, destination=None):
+    def _create_switch_packet(self, switch_action, learn=False, destination=None):
         # simulate rocker switch
-        if action == SwitchAction.ON:
-            action = RockerAction.PRESS_SHORT
-            button = RockerButton.ROCK1
-        elif action == SwitchAction.OFF:
-            action = RockerAction.PRESS_SHORT
-            button = RockerButton.ROCK0
-        elif action == SwitchAction.RELEASE:
-            action = RockerAction.RELEASE
-            button = None
+        if switch_action == SwitchAction.ON:
+            rocker_action = RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK1)
+        elif switch_action == SwitchAction.OFF:
+            switch_action = RockerPress.PRESS_SHORT
+            rocker_action = RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK0)
+        elif switch_action == SwitchAction.RELEASE:
+            rocker_action = RockerAction(RockerPress.RELEASE)
         else:
             raise RuntimeError()
 
         destination = destination or self._enocean_target or 0xffffffff
 
-        return RockerSwitch.simu_packet(
-            action, button,
+        return RockerSwitchTools.create_packet(
+            rocker_action,
             destination=destination,
             sender=self._enocean_sender,
             learn=learn

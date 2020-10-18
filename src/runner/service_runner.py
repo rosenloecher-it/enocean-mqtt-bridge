@@ -8,7 +8,7 @@ from src.config import ConfSectionKey
 from src.device.base_cyclic import BaseCyclic
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
-from src.device.device_exception import DeviceException
+from src.tools.device_exception import DeviceException
 from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher
 from src.runner.runner import Runner
