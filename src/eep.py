@@ -21,3 +21,15 @@ class Eep:
 
     def __repr__(self) -> str:
         return "{}({:02x}-{:02x}-{:02x})".format(self.__class__.__name__, self.rorg, self.func, self.type)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.rorg == other.rorg and self.func == other.func and self.type == other.type and \
+               self.direction == other.direction and self.command == other.command
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((self.__class__.__name__, self.rorg, self.func, self.type, self.direction, self.command))

@@ -10,7 +10,7 @@ from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
 
-class TestTool(unittest.TestCase):
+class TestEnoceanTools(unittest.TestCase):
 
     def setUp(self):
         SetupTest.set_dummy_sender_id()

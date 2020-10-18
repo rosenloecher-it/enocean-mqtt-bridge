@@ -17,9 +17,8 @@ class Fsr61Actor(RockerActor):
     The confirmation telegrams my device is sending does not match the specification. Expected EEP: A5-12-01
     But I got a rocker switch telegram (F6-02-02) !? So far it works.
 
-    Don't forget toteach such devices.
-
-    See: https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
+    Don't forget to teach the devices. See:
+    https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
     """
     DEFAULT_EEP = Eep(
         rorg=0xf6,
