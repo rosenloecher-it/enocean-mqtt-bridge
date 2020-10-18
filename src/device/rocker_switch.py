@@ -3,7 +3,7 @@ from collections import namedtuple
 from enum import Enum
 
 from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import Packet
+from enocean.protocol.packet import Packet, RadioPacket
 
 from src.config import Config
 from src.device.base_device import BaseDevice
@@ -26,7 +26,7 @@ class _OutputAttributes(Enum):
         return '{}'.format(self.name)
 
 
-_MessageData = namedtuple("_MessageData", ["channel", "button", "action"])
+_MessageData = namedtuple("_MessageData", ["channel", "state", "button"])
 
 
 class RockerSwitch(BaseDevice, BaseMqtt):
@@ -87,43 +87,42 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         if packet.packet_type != PACKET.RADIO:
             return
 
-        packet_data = RockerSwitchTools.extract_props(message.payload)
-        self._logger.debug('process_mqtt_message: "%s"', packet_data)
-        message_data = self._prepare_message_data(packet_data)
-
+        message_data = self._prepare_message_data(packet)
         if self.is_valid_channel(message_data.channel):
             mqtt_message = self._create_mqtt_message(message_data)
             self._publish_mqtt(mqtt_message, message_data.channel)
 
-    def _prepare_message_data(self, data) -> _MessageData:
+    def _prepare_message_data(self, packet: RadioPacket) -> _MessageData:
         # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
         # "{'R1': 1, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
         # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
         # "{'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}"
 
         try:
-            if data["SA"] == 1:
-                index = data["R2"]
-                channel = self._mqtt_channels_long.get(index) or self._mqtt_channels.get(index) \
-                          or self._mqtt_channel_state
-                return _MessageData(channel=channel, button=index, action=RockerPress.PRESS_LONG)
-            elif data["EB"] == 1:
-                index = data["R1"]
-                channel = self._mqtt_channels.get(index) or self._mqtt_channel_state
-                return _MessageData(channel=channel, button=index, action=RockerPress.PRESS_SHORT)
-            elif data == self.EMPTY_PROPS:
-                channel = self._mqtt_channels.get(None) or self._mqtt_channel_state
-                return _MessageData(channel=channel, button=None, action=RockerPress.RELEASE)
-            else:
-                return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerPress.ERROR)
+            action = RockerSwitchTools.extract_action_from_packet(packet)
+            button = action.button.value if action.button is not None else None
 
-        except AttributeError as ex:  # TODO handle index errors
-            self._logger.error("cannot evaluate data: %s (%s)", data, ex)
-            return _MessageData(channel=self._mqtt_channel_state, button=None, action=RockerPress.ERROR)
+            if action.press == RockerPress.PRESS_LONG:
+                # search "long" first, then "short==standard", then "generic default"
+                channel = self._mqtt_channels_long.get(button) or self._mqtt_channels.get(button) \
+                          or self._mqtt_channel_state
+            elif action.press == RockerPress.PRESS_SHORT:
+                channel = self._mqtt_channels.get(button) or self._mqtt_channel_state
+            elif action.press == RockerPress.RELEASE:
+                channel = self._mqtt_channels.get(None) or self._mqtt_channel_state
+            else:
+                raise ValueError("unknown rocker press action!")
+
+            return _MessageData(channel=channel, state=action.press.value, button=button)
+
+        except (AttributeError, ValueError) as ex:  # TODO handle index errors
+            self._logger.error("cannot evaluate data!")
+            self._logger.exception(ex)
+            return _MessageData(channel=self._mqtt_channel_state, state="ERROR", button=None)
 
     def _create_mqtt_message(self, message_data: _MessageData):
         data = {
-            _OutputAttributes.STATE.value: message_data.action.value,
+            _OutputAttributes.STATE.value: message_data.state,
             _OutputAttributes.BUTTON.value: message_data.button,  # type: int
             _OutputAttributes.TIMESTAMP.value: self._now().isoformat()
         }

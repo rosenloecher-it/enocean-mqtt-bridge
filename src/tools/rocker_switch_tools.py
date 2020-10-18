@@ -15,7 +15,6 @@ class RockerPress(Enum):
     RELEASE = "RELEASE"
     PRESS_SHORT = "SHORT"  # presset
     PRESS_LONG = "LONG"  # pressed
-    ERROR = "ERROR"
 
     def __str__(self):
         return self.name
@@ -95,35 +94,19 @@ class RockerSwitchTools:
     EMPTY_PROPS = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
 
     @classmethod
-    def create_packet(
-            cls, action: RockerAction,
-            eep: Optional[Eep] = None,
-            destination: Optional[int] = None, sender: Optional[int] = None,
-            learn=False
-    ) -> RadioPacket:
-        """
-        :param bool press: True == press, False == release button
-        :param int button: range 0 - 3 for the 4 single buttons; may None in case of release
-        :param eep:
-        :param dest_id:
-        :return:
-        """
+    def create_packet(cls, action: RockerAction,
+                      destination: Optional[int] = None, sender: Optional[int] = None,
+                      learn=False) -> RadioPacket:
         props = cls.create_props(action)
-        eep = eep or cls.DEFAULT_EEP
 
         packet = EnoceanPacketFactory.create_packet(
-            eep=eep, destination=destination, sender=sender, learn=learn, **props
+            eep=cls.DEFAULT_EEP, destination=destination, sender=sender, learn=learn, **props
         )
 
         return packet
 
     @classmethod
     def create_props(cls, action: RockerAction) -> Dict[str, int]:
-        """
-        :param action: True == press, False == release button
-        :param button: may None in case of release
-        :return:
-        """
         if action.press in [RockerPress.PRESS_SHORT, RockerPress.PRESS_LONG]:
             if action.button is None:
                 raise ValueError("no RockerSwitchButton defined!")
@@ -140,10 +123,6 @@ class RockerSwitchTools:
 
     @classmethod
     def extract_props(cls, packet: RadioPacket) -> Dict:
-        """
-        :param enocean.protocol.packet.RadioPacket packet:
-        :rtype: dict{str, object}
-        """
         eep = cls.DEFAULT_EEP
         if packet.packet_type == PACKET.RADIO and packet.rorg == eep.rorg:
             try:
@@ -154,6 +133,11 @@ class RockerSwitchTools:
             data = {}
 
         return data
+
+    @classmethod
+    def extract_action_from_packet(cls, packet: RadioPacket) -> RockerAction:
+        props = cls.extract_props(packet)
+        return cls.extract_action(props)
 
     @classmethod
     def extract_action(cls, data: Dict) -> RockerAction:
