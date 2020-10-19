@@ -56,7 +56,7 @@ class BaseDevice(abc.ABC):
         self._enocean_sender = Config.get_int(config, ConfDeviceKey.ENOCEAN_SENDER, None)
 
         if not self._enocean_target:
-            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.enum, self._name)
+            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.value, self._name)
             self._logger.error(message)
             raise DeviceException(message)
 

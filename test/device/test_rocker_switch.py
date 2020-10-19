@@ -87,16 +87,20 @@ class TestRockerSwitch(unittest.TestCase):
     def create_device_for_process_enocean_message(cls):
         device = _MockDevice()
 
-        device._mqtt_channel_state = cls.DEFAULT_MQTT_CHANNEL
+        device.set_config({
+            ConfDeviceKey.ENOCEAN_TARGET.value: 1001,
 
-        device._mqtt_channels = {
-            0: cls.get_test_channel(RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK0)),
-            1: cls.get_test_channel(RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK1)),
-        }
-        device._mqtt_channels_long = {
-            0: cls.get_test_channel(RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK0)),
-            2: cls.get_test_channel(RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK2)),
-        }
+            ConfDeviceKey.MQTT_CHANNEL_STATE.value: cls.DEFAULT_MQTT_CHANNEL,
+
+            ConfDeviceKey.MQTT_CHANNEL_BTN_0.value:
+                cls.get_test_channel(RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK0)),
+            ConfDeviceKey.MQTT_CHANNEL_BTN_1.value:
+                cls.get_test_channel(RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK1)),
+            ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_0.value:
+                cls.get_test_channel(RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK0)),
+            ConfDeviceKey.MQTT_CHANNEL_BTN_LONG_2.value:
+                cls.get_test_channel(RockerAction(RockerPress.PRESS_LONG, RockerButton.ROCK2)),
+        })
 
         return device
 
