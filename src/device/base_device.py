@@ -66,7 +66,7 @@ class BaseDevice(abc.ABC):
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}
         """
-        if packet.packet_type == PACKET.RADIO and packet.rorg == self._eep.rorg:
+        if packet.rorg == self._eep.rorg:
             try:
                 data = EnoceanTools.extract_props(packet=packet, eep=self._eep)
             except AttributeError as ex:

@@ -2,6 +2,7 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
 from src.eep import Eep
+from src.tools.device_exception import DeviceException
 
 
 class EnoceanTools:
@@ -20,6 +21,9 @@ class EnoceanTools:
         :param enocean.protocol.packet.RadioPacket packet:
         :rtype: dict{str, object}
         """
+        if packet.packet_type != PACKET.RADIO:
+            raise DeviceException("no radio paket ({})!".format(cls.packet_type_to_string(packet.packet_type)))
+
         data = {}
         props = packet.parse_eep(
             rorg_func=eep.func,
@@ -33,7 +37,7 @@ class EnoceanTools:
         return data
 
     @classmethod
-    def extract_type_text(cls, packet_type):
+    def packet_type_to_string(cls, packet_type):
         if type(packet_type) == int:
             for e in PACKET:
                 if packet_type == e:

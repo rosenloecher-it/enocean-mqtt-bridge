@@ -38,6 +38,6 @@ class TestEnoceanTools(unittest.TestCase):
         self.assertEqual(result, value)
 
     def test_packet_type_text(self):
-        self.assertEqual(EnoceanTools.extract_type_text(PACKET.RADIO), "RADIO")
-        self.assertEqual(EnoceanTools.extract_type_text(int(PACKET.RADIO)), "RADIO")
-        self.assertEqual(EnoceanTools.extract_type_text(None), "None")
+        self.assertEqual(EnoceanTools.packet_type_to_string(PACKET.RADIO), "RADIO")
+        self.assertEqual(EnoceanTools.packet_type_to_string(int(PACKET.RADIO)), "RADIO")
+        self.assertEqual(EnoceanTools.packet_type_to_string(None), "None")
