@@ -67,19 +67,19 @@ class Fud61Actor(RockerActor):
         # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}
 
         rssi = packet.dBm  # if hasattr(packet, "dBm") else None
-        switch_state = self.extract_switch_state(data.get("SW"))
-        dim_state = self.extract_dim_state(value=data.get("EDIM"), range=data.get("EDIMR"))
+        switch_state = self.extract_switch_value(data.get("SW"))
+        dim_state = self.extract_dim_value(value=data.get("EDIM"), range=data.get("EDIMR"))
 
         if (switch_state == StateValue.ERROR or dim_state is None) and \
                 self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
             self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet())
 
-        message = self._create_message(switch_state, dim_state, rssi)
+        message = self._create_json_message(switch_state, dim_state, rssi)
         self._publish_mqtt(message)
 
     @classmethod
-    def extract_switch_state(cls, value):
+    def extract_switch_value(cls, value):
         if value == 1:
             return StateValue.ON
         elif value == 0:
@@ -88,7 +88,7 @@ class Fud61Actor(RockerActor):
             return StateValue.ERROR
 
     @classmethod
-    def extract_dim_state(cls, value, range):
+    def extract_dim_value(cls, value, range):
         if value is None:
             return None
         if range == 0:

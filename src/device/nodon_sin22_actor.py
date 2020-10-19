@@ -64,7 +64,7 @@ class NodonSin22Actor(RockerActor):
             # write ascii representation to reproduce in tests
             self._logger.debug("process_enocean_message - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
-        message = self._create_message(notification.switch_state, None, rssi)
+        message = self._create_json_message(notification.switch_state, None, rssi)
         self._publish_mqtt(message)
 
     @classmethod

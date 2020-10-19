@@ -53,7 +53,7 @@ class Fsr61Actor(RockerActor):
             # write ascii representation to reproduce in tests
             self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
-        message = self._create_message(switch_state, None, rssi)
+        message = self._create_json_message(switch_state, None, rssi)
         self._publish_mqtt(message)
 
     @classmethod

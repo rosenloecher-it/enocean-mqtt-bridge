@@ -79,7 +79,7 @@ class RockerActor(BaseDevice, BaseMqtt):
         """signal ensor state, outbound channel"""
         return [self._mqtt_channel_cmd]
 
-    def _create_message(self, switch_state: StateValue, dim_state: Optional[int], rssi: Optional[int] = None):
+    def _create_json_message(self, switch_state: StateValue, dim_state: Optional[int], rssi: Optional[int] = None):
         data = {
             OutputAttributes.TIMESTAMP.value: self._now().isoformat(),
             OutputAttributes.STATE.value: switch_state.value
