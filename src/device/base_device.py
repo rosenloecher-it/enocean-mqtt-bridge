@@ -3,7 +3,10 @@ import logging
 from datetime import datetime
 from enum import Enum
 from threading import Timer
+from typing import Optional
 
+from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import RadioPacket
 from tzlocal import get_localzone
 
 from src.config import Config
@@ -59,6 +62,17 @@ class BaseDevice(abc.ABC):
             message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.value, self._name)
             self._logger.error(message)
             raise DeviceException(message)
+
+    def _extract_default_radio_packet(self, message: EnoceanMessage) -> Optional[RadioPacket]:
+        packet = message.payload  # type: RadioPacket
+        if packet.packet_type != PACKET.RADIO:
+            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
+            return None
+        if packet.rorg != self._eep.rorg:
+            self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
+            return None
+
+        return packet
 
     def _extract_packet_props(self, packet):
         """

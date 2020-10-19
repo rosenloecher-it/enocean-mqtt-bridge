@@ -1,12 +1,8 @@
 import logging
 
-from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import Packet
-
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
-from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
@@ -34,13 +30,8 @@ class Fsr61Actor(RockerActor):
         self._eep = self.DEFAULT_EEP.clone()
 
     def process_enocean_message(self, message: EnoceanMessage):
-
-        packet = message.payload  # type: Packet
-        if packet.packet_type != PACKET.RADIO:
-            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
-            return
-        if packet.rorg != self._eep.rorg:
-            self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
+        packet = self._extract_default_radio_packet(message)
+        if not packet:
             return
 
         data = self._extract_packet_props(packet)

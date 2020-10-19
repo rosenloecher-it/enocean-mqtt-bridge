@@ -2,8 +2,7 @@ import json
 from collections import namedtuple
 from enum import Enum
 
-from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import Packet, RadioPacket
+from enocean.protocol.packet import RadioPacket
 
 from src.config import Config
 from src.device.base_device import BaseDevice
@@ -82,9 +81,8 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         return channel and channel not in ["~", "-"]
 
     def process_enocean_message(self, message: EnoceanMessage):
-
-        packet = message.payload  # type: Packet
-        if packet.packet_type != PACKET.RADIO:
+        packet = self._extract_default_radio_packet(message)
+        if not packet:
             return
 
         message_data = self._prepare_message_data(packet)

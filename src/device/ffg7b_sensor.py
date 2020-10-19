@@ -4,18 +4,15 @@ import logging
 from enum import Enum
 from typing import Optional
 
-from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import Packet
-
 from src.config import Config
 from src.device.base_cyclic import BaseCyclic
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
-from src.tools.device_exception import DeviceException
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
+from src.tools.device_exception import DeviceException
 from src.tools.pickle_tools import PickleTools
 
 
@@ -192,9 +189,8 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
             return HandleValue.ERROR
 
     def process_enocean_message(self, message: EnoceanMessage):
-
-        packet = message.payload  # type: Packet
-        if packet.packet_type != PACKET.RADIO:
+        packet = self._extract_default_radio_packet(message)
+        if not packet:
             return
 
         self._enocean_activity = self._now()
