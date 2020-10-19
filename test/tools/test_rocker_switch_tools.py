@@ -26,10 +26,15 @@ class TestRockerButton(unittest.TestCase):
         for b in RockerButton:
             self.assertEqual(RockerButton.convert(b.value), b)
 
+        self.assertEqual(RockerButton.convert("non_sense"), None)
+
     def test_equal(self):
         for b1 in RockerButton:
             b2 = copy.deepcopy(b1)
             self.assertEqual(b1, b2)
+
+        self.assertNotEqual(RockerButton.ROCK0, RockerButton.ROCK1)
+        self.assertNotEqual(RockerButton.ROCK0, "RockerButton.ROCK0")
 
 
 class TestRockerAction(unittest.TestCase):
