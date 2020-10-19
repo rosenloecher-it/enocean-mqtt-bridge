@@ -50,7 +50,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_0_ON)
 
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 0)
@@ -60,7 +60,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_0_OFF)
 
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 0)
@@ -70,7 +70,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_1_ON)
 
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 1)
@@ -80,7 +80,7 @@ class TestNodonSin2Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_1_OFF)
 
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 1)

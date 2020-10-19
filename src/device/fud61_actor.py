@@ -63,7 +63,7 @@ class Fud61Actor(RockerActor):
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        data = self._extract_packet(packet)
+        data = self._extract_packet_props(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}

@@ -82,19 +82,19 @@ class TestFud61Actor(unittest.TestCase):
     def test_extract_off_0(self):
         packet = PickleTools.unpickle(PACKET_STATUS_OFF_0)
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
         self.assertEqual(data, {'COM': 2, 'EDIM': 0, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 0})
 
     def test_extract_on_33(self):
         packet = PickleTools.unpickle(PACKET_STATUS_ON_33)
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
         self.assertEqual(data, {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_extract_on_100(self):
         packet = PickleTools.unpickle(PACKET_STATUS_ON_100)
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
         self.assertEqual(data, {'COM': 2, 'EDIM': 100, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_proceed_enocean(self):

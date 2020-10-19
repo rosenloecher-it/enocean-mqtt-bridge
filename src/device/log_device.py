@@ -65,7 +65,7 @@ class LogDevice(BaseDevice):
 
         if None not in [self._eep.func, self._eep.rorg, self._eep.type]:
             try:
-                data = self._extract_packet(packet)
+                data = self._extract_packet_props(packet)
                 self._logger.info("proceed_enocean - extracted: %s", data)
             except DeviceException as ex:
                 self._logger.exception("proceed_enocean - could not extract:\n%s", ex)

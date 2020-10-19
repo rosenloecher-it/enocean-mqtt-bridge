@@ -43,7 +43,7 @@ class Fsr61Actor(RockerActor):
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        data = self._extract_packet(packet)
+        data = self._extract_packet_props(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         rssi = packet.dBm  # if hasattr(packet, "dBm") else None

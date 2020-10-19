@@ -50,7 +50,7 @@ class NodonSin22Actor(RockerActor):
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        data = self._extract_packet(packet)
+        data = self._extract_packet_props(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         notification = self.extract_notification(data)

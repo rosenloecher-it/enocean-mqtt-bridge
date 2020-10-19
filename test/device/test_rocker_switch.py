@@ -64,7 +64,7 @@ class TestRockerSwitch(unittest.TestCase):
         for i in range(0, 3):
             packet = PickleTools.unpickle_packet(loop_data[i][0])
             device = _MockDevice()
-            extracted = device._extract_packet(packet)
+            extracted = device._extract_packet_props(packet)
             action = RockerAction(press=RockerPress.PRESS_SHORT, button=loop_data[i][1])
             expected = RockerSwitchTools.create_props(action)
             self.assertEqual(extracted, expected)
@@ -72,7 +72,7 @@ class TestRockerSwitch(unittest.TestCase):
     def test_extract_release(self):
         packet = PickleTools.unpickle_packet(PACKET_RELEASE)
         device = _MockDevice()
-        extracted = device._extract_packet(packet)
+        extracted = device._extract_packet_props(packet)
         action = RockerAction(press=RockerPress.RELEASE)
         expected = RockerSwitchTools.create_props(action)
         self.assertEqual(extracted, expected)

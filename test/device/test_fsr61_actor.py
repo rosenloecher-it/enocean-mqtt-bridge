@@ -45,7 +45,7 @@ class TestFsr61Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(PACKET_OFF)
 
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
         switch_state = device.extract_switch_state(data)
 
         self.assertEqual(switch_state, StateValue.ON)
@@ -54,7 +54,7 @@ class TestFsr61Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(PACKET_ON)
 
         device = _MockDevice()
-        data = device._extract_packet(packet)
+        data = device._extract_packet_props(packet)
         switch_state = device.extract_switch_state(data)
 
         self.assertEqual(switch_state, StateValue.OFF)

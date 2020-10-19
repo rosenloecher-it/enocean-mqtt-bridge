@@ -199,7 +199,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
 
         self._enocean_activity = self._now()
 
-        data = self._extract_packet(packet)
+        data = self._extract_packet_props(packet)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         rssi = packet.dBm  # if hasattr(packet, "dBm") else None
