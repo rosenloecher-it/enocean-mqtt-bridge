@@ -4,14 +4,13 @@ from datetime import datetime
 from enum import Enum
 from threading import Timer
 
-from enocean.protocol.constants import PACKET
 from tzlocal import get_localzone
 
 from src.config import Config
 from src.device.conf_device_key import ConfDeviceKey
-from src.tools.device_exception import DeviceException
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
+from src.tools.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
 
 

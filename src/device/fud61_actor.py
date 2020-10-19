@@ -6,10 +6,8 @@ from enocean.protocol.packet import Packet
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
 from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
-from src.tools.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
-from src.tools.rocker_switch_tools import RockerSwitchTools
 
 
 class Fud61Actor(RockerActor):
