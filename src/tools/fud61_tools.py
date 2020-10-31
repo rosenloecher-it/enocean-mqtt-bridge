@@ -16,6 +16,12 @@ class Fud61Message:
         self.switch_state = switch_state
         self.dim_value = dim_value
 
+    def __str__(self):
+        return 'switch={}, dim={}'.format(self.switch_state, self.dim_value)
+
+    def __repr__(self) -> str:
+        return '{}({})'.format(self.__class__.__name__, str(self))
+
 
 class Fud61Tools:
 
@@ -53,7 +59,7 @@ class Fud61Tools:
 
         message.rssi = data.get("rssi")
         message.switch_state = cls.extract_switch_value(data.get("SW"))
-        message.dim_state = cls.extract_dim_value(value=data.get("EDIM"), range=data.get("EDIMR"))
+        message.dim_value = cls.extract_dim_value(value=data.get("EDIM"), range=data.get("EDIMR"))
 
         return message
 

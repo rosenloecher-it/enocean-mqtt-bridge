@@ -51,12 +51,12 @@ class Fud61Actor(RockerActor):
 
         message = Fud61Tools.extract_message(data)
 
-        if (message.switch_state == StateValue.ERROR or message.dim_state is None) and \
+        if (message.switch_state == StateValue.ERROR or message.dim_value is None) and \
                 self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
             self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet())
 
-        message = self._create_json_message(message.switch_state, message.dim_state, message.rssi)
+        message = self._create_json_message(message.switch_state, message.dim_value, message.rssi)
         self._publish_mqtt(message)
 
     def get_teach_print_message(self):

@@ -118,15 +118,15 @@ class Fud61SimpleSwitch(RockerActor):
             return
 
         data = Fud61Tools.extract_props(packet)
-        self._logger.debug("process dimmer message - got: %s", data)
-
         message = Fud61Tools.extract_message(data)
+        self._logger.info("process dimmer message: %s => %s", data, message)
+
         self._set_target_state(message.switch_state == StateValue.ON)
 
     def _process_switch_message(self, message: EnoceanMessage):
         packet = message.payload  # type: Packet
         if packet.rorg != self._switch_eep.rorg:
-            self._logger.debug("skipped rocker switch packet with rorg=%s", hex(packet.rorg))
+            self._logger.warning("skipped rocker switch packet with rorg=%s", hex(packet.rorg))
             return
 
         data = EnoceanTools.extract_props(packet, self._switch_eep)
@@ -150,16 +150,16 @@ class Fud61SimpleSwitch(RockerActor):
         elif action == Fud61SwitchAction.OFF:
             target_state = False
 
-        self._logger.debug("process switch message - action=%s, target_state=%s", action, target_state)
-
         if target_state is not None:
+            self._logger.info("process switch message - switch=%s, action=%s, target_state=%s",
+                              pressed_switch, action, target_state)
             self._set_target_state(target_state)
 
-            command = ActorCommand.ON if self._target_switch_state else ActorCommand.OFF
+            command = ActorCommand.ON if self._target_state else ActorCommand.OFF
             self._execute_actor_command(command)
 
     def _set_target_state(self, target_state: bool) -> bool:
-        self._target_switch_state = bool(target_state)
+        self._target_state = bool(target_state)
         self._storage.set(StorageKey.VALUE.value, self._target_state)
         self._storage.set(StorageKey.LAST_UPDATE.value, self._now())
 
@@ -168,4 +168,4 @@ class Fud61SimpleSwitch(RockerActor):
         except StorageException as ex:
             self._logger.exception(ex)
 
-        return self._target_switch_state
+        return self._target_state
