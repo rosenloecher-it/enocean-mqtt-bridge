@@ -79,10 +79,10 @@ class Fud61SimpleSwitch(RockerActor):
             raise DeviceException(message)
 
         items = [
-            (ConfDeviceKey.MQTT_CHANNEL_BTN_0, 0),
-            (ConfDeviceKey.MQTT_CHANNEL_BTN_1, 1),
-            (ConfDeviceKey.MQTT_CHANNEL_BTN_2, 2),
-            (ConfDeviceKey.MQTT_CHANNEL_BTN_3, 3),
+            (ConfDeviceKey.ROCKER_BUTTON_0, 0),
+            (ConfDeviceKey.ROCKER_BUTTON_1, 1),
+            (ConfDeviceKey.ROCKER_BUTTON_2, 2),
+            (ConfDeviceKey.ROCKER_BUTTON_3, 3),
         ]
         for key, index in items:
             text = Config.get_str(config, key)

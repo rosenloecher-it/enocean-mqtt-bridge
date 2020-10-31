@@ -78,8 +78,8 @@ class TestFud61SimpleSwitch(unittest.TestCase):
 
         for scenario in scenarios:
             instance = self.create_instance(scenario.target_state, {
-                ConfDeviceKey.MQTT_CHANNEL_BTN_0.value: Fud61SwitchAction.AUTO.name,
-                ConfDeviceKey.MQTT_CHANNEL_BTN_1.value: Fud61SwitchAction.AUTO.name,
+                ConfDeviceKey.ROCKER_BUTTON_0.value: Fud61SwitchAction.AUTO.name,
+                ConfDeviceKey.ROCKER_BUTTON_1.value: Fud61SwitchAction.AUTO.name,
             })
 
             packet = RockerSwitchTools.create_packet(scenario.action)
@@ -111,8 +111,8 @@ class TestFud61SimpleSwitch(unittest.TestCase):
 
         for scenario in scenarios:
             instance = self.create_instance(scenario.target_state, {
-                ConfDeviceKey.MQTT_CHANNEL_BTN_0.value: Fud61SwitchAction.ON.name,
-                ConfDeviceKey.MQTT_CHANNEL_BTN_1.value: Fud61SwitchAction.OFF.name,
+                ConfDeviceKey.ROCKER_BUTTON_0.value: Fud61SwitchAction.ON.name,
+                ConfDeviceKey.ROCKER_BUTTON_1.value: Fud61SwitchAction.OFF.name,
             })
 
             packet = RockerSwitchTools.create_packet(scenario.action)

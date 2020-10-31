@@ -49,6 +49,12 @@ class ConfDeviceKey(Enum):
     ENOCEAN_IDS = "enocean_ids"
     ENOCEAN_IDS_SKIP = "enocean_ids_skip"
 
+    # mainly Fud61SimpleSwitch
+    ROCKER_BUTTON_0 = "rocker_button_0"
+    ROCKER_BUTTON_1 = "rocker_button_1"
+    ROCKER_BUTTON_2 = "rocker_button_2"
+    ROCKER_BUTTON_3 = "rocker_button_3"
+
     def __str__(self):
         return self.__repr__()
 
