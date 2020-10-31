@@ -8,7 +8,6 @@ from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
 from src.device.conf_device_key import ConfDeviceKey
-from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.tools.rocker_switch_tools import RockerSwitchTools, RockerPress
 
@@ -30,21 +29,11 @@ _MessageData = namedtuple("_MessageData", ["channel", "state", "button"])
 
 class RockerSwitch(BaseDevice, BaseMqtt):
 
-    DEFAULT_EEP = Eep(
-        rorg=0xf6,
-        func=0x02,
-        type=0x02,
-        direction=None,
-        command=None
-    )
-
-    EMPTY_PROPS = {'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}
-
     def __init__(self, name):
         BaseDevice.__init__(self, name)
         BaseMqtt.__init__(self)
 
-        self._eep = self.DEFAULT_EEP.clone()
+        self._eep = RockerSwitchTools.DEFAULT_EEP.clone()
 
         self._mqtt_channels = {}
         self._mqtt_channels_long = {}

@@ -7,13 +7,13 @@ from enocean.protocol.packet import Packet
 from src.config import Config
 from src.device.base_device import BaseDevice
 from src.device.conf_device_key import ConfDeviceKey
-from src.tools.device_exception import DeviceException
-from src.device.fud61_actor import Fud61Actor
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
-from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
+from src.tools.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
+from src.tools.fud61_tools import Fud61Tools
+from src.tools.rocker_switch_tools import RockerSwitchTools
 
 
 class Fud61SwitchAction(Enum):
@@ -50,10 +50,10 @@ class Fud61SimpleSwitch(RockerActor):
         super().__init__(name)
 
         # base target is Fud61
-        self._eep = Fud61Actor.DEFAULT_EEP.clone()
+        self._eep = Fud61Tools.DEFAULT_EEP.clone()
 
         # 2. profile for rocker switch
-        self._switch_eep = RockerSwitch.DEFAULT_EEP.clone()
+        self._switch_eep = RockerSwitchTools.DEFAULT_EEP.clone()
 
         # self._enocean_target  == dimmer
         self._enocean_target_switch = None
@@ -116,7 +116,7 @@ class Fud61SimpleSwitch(RockerActor):
         if packet.rorg != self._eep.rorg:
             self._logger.debug("skipped fud61 packet with rorg=%s", hex(packet.rorg))
             return
-        fud61_message = Fud61Actor.extract_fud61_message(packet, self._eep)
+        fud61_message = Fud61Tools.extract_message_from_packet(packet)
         self._set_target_state(fud61_message.switch_state == StateValue.ON)
 
     def _process_switch_message(self, message: EnoceanMessage):

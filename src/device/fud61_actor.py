@@ -1,8 +1,8 @@
 import logging
 
 from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
-from src.eep import Eep
 from src.enocean_connector import EnoceanMessage
+from src.tools.fud61_tools import Fud61Tools
 from src.tools.pickle_tools import PickleTools
 
 
@@ -34,60 +34,30 @@ class Fud61Actor(RockerActor):
     - https://www.eltako.com/fileadmin/downloads/de/Gesamtkatalog/Eltako_Gesamtkatalog_KapT_low_res.pdf
     - https://github.com/kipe/enocean/blob/master/SUPPORTED_PROFILES.md
     """
-    DEFAULT_EEP = Eep(
-        rorg=0xa5,
-        func=0x38,
-        type=0x08,
-        direction=None,
-        command=0x02
-    )
 
     def __init__(self, name):
         super().__init__(name)
 
-        self._eep = self.DEFAULT_EEP
+        self._eep = Fud61Tools.DEFAULT_EEP.clone()
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = self._extract_default_radio_packet(message)
         if not packet:
             return
 
-        data = self._extract_packet_props(packet)
+        data = Fud61Tools.extract_props(packet)
+        # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}
         self._logger.debug("proceed_enocean - got: %s", data)
 
-        # input: {'COM': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1, 'RSSI': -55}
+        message = Fud61Tools.extract_message(data)
 
-        rssi = packet.dBm  # if hasattr(packet, "dBm") else None
-        switch_state = self.extract_switch_value(data.get("SW"))
-        dim_state = self.extract_dim_value(value=data.get("EDIM"), range=data.get("EDIMR"))
-
-        if (switch_state == StateValue.ERROR or dim_state is None) and \
+        if (message.switch_state == StateValue.ERROR or message.dim_state is None) and \
                 self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
             self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet())
 
-        message = self._create_json_message(switch_state, dim_state, rssi)
+        message = self._create_json_message(message.switch_state, message.dim_state, message.rssi)
         self._publish_mqtt(message)
-
-    @classmethod
-    def extract_switch_value(cls, value):
-        if value == 1:
-            return StateValue.ON
-        elif value == 0:
-            return StateValue.OFF
-        else:
-            return StateValue.ERROR
-
-    @classmethod
-    def extract_dim_value(cls, value, range):
-        if value is None:
-            return None
-        if range == 0:
-            return value
-        elif range == 1:
-            return int(value / 256 + 0.5)
-        else:
-            return None
 
     def get_teach_print_message(self):
         return \

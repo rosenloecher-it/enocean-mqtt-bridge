@@ -1,9 +1,9 @@
 import unittest
 
 from src.device.rocker_actor import SwitchAction, RockerActor, ActorCommand
-from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
+from src.tools.rocker_switch_tools import RockerSwitchTools
 
 
 class _MockDevice(RockerActor):
@@ -56,6 +56,6 @@ class TestEltakoOnOffActor(unittest.TestCase):
         device = _MockDevice()
         packet = device._create_switch_packet(SwitchAction.ON)
 
-        extract = EnoceanTools.extract_props(packet=packet, eep=RockerSwitch.DEFAULT_EEP)
+        extract = EnoceanTools.extract_props(packet=packet, eep=RockerSwitchTools.DEFAULT_EEP)
 
         self.assertEqual(extract, {'R1': 1, 'EB': 1, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 1})

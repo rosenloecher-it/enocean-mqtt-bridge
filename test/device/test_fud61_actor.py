@@ -4,10 +4,10 @@ import unittest
 from collections import namedtuple
 
 from src.device.fud61_actor import Fud61Actor
-from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
+from src.tools.rocker_switch_tools import RockerSwitchTools
 from test.setup_test import SetupTest
 
 PACKET_STATUS_ON_100 = """
@@ -123,8 +123,8 @@ class TestFud61Actor(unittest.TestCase):
 
         self.assertEqual(len(device.packets), 2)
 
-        extract = EnoceanTools.extract_props(packet=device.packets[0], eep=RockerSwitch.DEFAULT_EEP)
+        extract = EnoceanTools.extract_props(packet=device.packets[0], eep=RockerSwitchTools.DEFAULT_EEP)
         self.assertEqual(extract["NU"], 1)
 
-        extract = EnoceanTools.extract_props(packet=device.packets[1], eep=RockerSwitch.DEFAULT_EEP)
+        extract = EnoceanTools.extract_props(packet=device.packets[1], eep=RockerSwitchTools.DEFAULT_EEP)
         self.assertEqual(extract["NU"], 0)
