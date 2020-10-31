@@ -116,8 +116,12 @@ class Fud61SimpleSwitch(RockerActor):
         if packet.rorg != self._eep.rorg:
             self._logger.debug("skipped fud61 packet with rorg=%s", hex(packet.rorg))
             return
-        fud61_message = Fud61Tools.extract_message_from_packet(packet)
-        self._set_target_state(fud61_message.switch_state == StateValue.ON)
+
+        data = Fud61Tools.extract_props(packet)
+        self._logger.debug("process dimmer message - got: %s", data)
+
+        message = Fud61Tools.extract_message(data)
+        self._set_target_state(message.switch_state == StateValue.ON)
 
     def _process_switch_message(self, message: EnoceanMessage):
         packet = message.payload  # type: Packet
@@ -145,6 +149,8 @@ class Fud61SimpleSwitch(RockerActor):
             target_state = True
         elif action == Fud61SwitchAction.OFF:
             target_state = False
+
+        self._logger.debug("process switch message - action=%s, target_state=%s", action, target_state)
 
         if target_state is not None:
             self._set_target_state(target_state)
