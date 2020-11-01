@@ -28,6 +28,10 @@ Features:
   - Eltako FUD61NP(N)-230V (dimmer)
       - Switch ON/OFF and get notifications about state changes. Delivers dim state in %.
       - Configuration class: `src.device.fud61_actor.Fud61Actor`
+      - Special switch device (`src.device.fud61_simple_switch.Fud61SimpleSwitch`) to have rocker switches without 
+        dimming functionality! (If you teach in rocker switches directly to an Eltako FUD61NP(N), the switches are used 
+        for dimming too, which means all real manual button presses must be timed more or less precisly to NOT trigger 
+        the dimming. My 4 year old daughter does not get this right always. There is no MQTT connection involved.)     
   - NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch):
       - Switch and get notifications about state changes.
       - Configuration class: `src.device.nodon_sin22_actor.NodonSin22Actor`

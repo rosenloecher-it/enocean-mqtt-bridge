@@ -43,7 +43,13 @@ class StorageKey(Enum):
 
 class Fud61SimpleSwitch(RockerActor):
     """
-    Serve as as
+    Connects a rocker switch as an ON/OFF (only! == without dimming) switch to an Eltako FUD61NP(N).
+
+    If you teach in rocker switches directly to an Eltako FUD61NP(N), the switches are used to dim the dimmer too, which
+    means all real manual button presses must be timed more or less precisly to NOT trigger the dimming. My 4 year old
+    daughter does not get this right always.
+
+    There is no MQTT connection involved. This "bridge device" just triggers the ON/OFF telegrams directly to the FUD61.
     """
 
     def __init__(self, name):
