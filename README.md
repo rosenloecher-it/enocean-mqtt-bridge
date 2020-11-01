@@ -2,6 +2,7 @@
 
 Bridges and translates Enocean messages between a (USB) gateway to a MQTT broker for specific devices. 
 Runs as Linux service (e.g. on Raspberry Pi).
+The MQTT messages can be further processed with other smart home systems (e.g. Openhab, Home Assistant, Loxone)
 
 Features:
 - configurable MQTT last will / testament (for example an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
