@@ -55,7 +55,6 @@ class MqttConnector:
         self._mqtt.on_connect = self._on_connect
         self._mqtt.on_disconnect = self._on_disconnect
         self._mqtt.on_message = self._on_message
-        self._mqtt.on_publish = self._on_publish
 
         self.publish_stored_last_wills()
 
@@ -150,8 +149,3 @@ class MqttConnector:
                 self._message_queue.put(message)
         except Exception as ex:
             _logger.exception(ex)
-
-    @classmethod
-    def _on_publish(self, mqtt_client, userdata, mid):
-        """MQTT callback is invoked when message was successfully sent to the MQTT server."""
-        _logger.debug("published MQTT message %s", str(mid))
