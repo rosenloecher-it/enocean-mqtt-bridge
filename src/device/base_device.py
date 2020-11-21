@@ -32,6 +32,7 @@ class BaseDevice(abc.ABC):
 
         self._name = name
         self._logger_by_name = logging.getLogger(self._name)
+        self._log_sent_packets = False
         self._enocean_connector = None
 
         self._enocean_target = None
@@ -57,6 +58,7 @@ class BaseDevice(abc.ABC):
     def set_config(self, config):
         self._enocean_target = Config.get_int(config, ConfDeviceKey.ENOCEAN_TARGET, None)
         self._enocean_sender = Config.get_int(config, ConfDeviceKey.ENOCEAN_SENDER, None)
+        self._log_sent_packets = Config.get_bool(config, ConfDeviceKey.LOG_SENT_PACKETS, False)
 
         if not self._enocean_target:
             message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.value, self._name)
@@ -96,7 +98,8 @@ class BaseDevice(abc.ABC):
         def do_send():
             try:
                 packet.build()
-                instance._logger_by_name.debug("sent: %s", packet)
+                if self._log_sent_packets:
+                    instance._logger_by_name.debug("packet is being sent: %s", packet)
 
                 instance._enocean_connector.send(packet)
             except Exception as ex:

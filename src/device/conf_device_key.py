@@ -6,6 +6,7 @@ class ConfDeviceKey(Enum):
     NAME = "name"
 
     DEVICE_CLASS = "device_class"
+    LOG_SENT_PACKETS = "log_sent_packets"
 
     ENOCEAN_TARGET = "enocean_target"
     ENOCEAN_TARGET_SWITCH = "enocean_target_switch"
