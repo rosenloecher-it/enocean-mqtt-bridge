@@ -1,4 +1,4 @@
-enocean == 0.50.1
+git+git://github.com/rosenloecher-it/enocean@2020-11-29#egg=enocean
 paho-mqtt == 1.5.0
 py-dateutil == 2.2
 pyyaml == 5.3
