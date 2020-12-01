@@ -166,7 +166,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         if not packet:
             return
 
-        self._last_refresh = self._now()
+        self._reset_offline_message_counter()
 
         data = self._extract_packet_props(packet)
         self._logger.debug("proceed_enocean - got: %s", data)

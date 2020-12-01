@@ -22,7 +22,7 @@ class _TestTimeoutDevice(BaseMqtt):
         self._mqtt_last_will = '{"STATE": "OFFLINE", "INFO": "last will"}'
 
     def process_enocean_message(self, message):
-        self._last_refresh = self._now()
+        self._mqtt_last_refresh = self._now()
 
     def process_mqtt_message(self, message: MQTTMessage):
         pass
@@ -60,7 +60,7 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
         self.device.now = now
 
         self.device.process_enocean_message("")
-        self.assertEqual(self.device._last_refresh, now)
+        self.assertEqual(self.device._mqtt_last_refresh, now)
 
         now = now + datetime.timedelta(seconds=self.TIMEOUT - 2)
         self.device.now = now

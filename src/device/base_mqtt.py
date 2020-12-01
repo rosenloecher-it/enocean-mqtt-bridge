@@ -22,7 +22,7 @@ class BaseMqtt(abc.ABC):
         self._mqtt_retain = None
 
         self._mqtt_time_offline = None  # type: int # seconds
-        self._last_refresh = self._now()
+        self._mqtt_last_refresh = self._now()
 
         self._mqtt_publisher = None
 
@@ -96,12 +96,16 @@ class BaseMqtt(abc.ABC):
             )
             self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel_state, self._mqtt_last_will))
 
+    def _reset_offline_message_counter(self):
+        """Reset offline message counter"""
+        self._mqtt_last_refresh = self._now()
+
     def _check_and_send_offline(self):
         if self._mqtt_last_will is not None and self._mqtt_time_offline is not None \
-                and self._mqtt_time_offline > 0 and self._last_refresh is not None:
+                and self._mqtt_time_offline > 0 and self._mqtt_last_refresh is not None:
             now = self._now()
-            diff = (now - self._last_refresh).total_seconds()
+            diff = (now - self._mqtt_last_refresh).total_seconds()
             if diff >= self._mqtt_time_offline:
-                self._last_refresh = now
+                self._mqtt_last_refresh = now
                 self._publish_mqtt(self._mqtt_last_will)
                 self._logger.warning("last will sent: missing refresh")

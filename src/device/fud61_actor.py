@@ -61,7 +61,7 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
         self._last_dim_state = Fud61Eep.DEFAULT_DIM_STATE
         self._current_switch_state = None  # type: SwitchState
 
-        self._last_refresh = None  # type: datetime
+        self._last_status_request = None  # type: datetime
 
     def set_config(self, config):
         BaseDevice.set_config(self, config)
@@ -100,7 +100,8 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
         if isinstance(action.dim_state, int) and action.dim_state > self.MIN_DIM_STATE:
             self._last_dim_state = action.dim_state
 
-        self._last_refresh = self._now()
+        self._reset_offline_message_counter()
+        self._last_status_request = self._now()
 
         self._publish_actor_result(action, packet.dBm)
 
@@ -182,11 +183,11 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
         now = self._now()
         refresh_rate = self._randomized_refresh_rate
 
-        if self._last_refresh is not None:
-            diff_seconds = (now - self._last_refresh).total_seconds()
+        if self._last_status_request is not None:
+            diff_seconds = (now - self._last_status_request).total_seconds()
 
         if diff_seconds is None or diff_seconds >= refresh_rate:
-            self._last_refresh = now
+            self._last_status_request = now
             self._execute_actor_command(ActorCommand.UPDATE)
 
     @property

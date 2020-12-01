@@ -62,7 +62,7 @@ class TestFsr61Actor(unittest.TestCase):
 
             device.messages = []
             device.process_enocean_message(message)
-            self.assertEqual(device._last_refresh, device._now())
+            self.assertEqual(device._mqtt_last_refresh, device._now())
 
             self.assertEqual(len(device.messages), 1)
             result = json.loads(device.messages[0])
@@ -96,7 +96,7 @@ class TestFsr61Actor(unittest.TestCase):
         action = process_mqtt_message_to_action(b"update")
         self.assertEqual(action.command, Fsr61Command.STATUS_REQUEST)
 
-    def test_check_cyclic_tasks(self):
+    def test_cyclic_status_requests(self):
         d = self.device
         last_command = None  # type: ActorCommand
 
@@ -114,18 +114,18 @@ class TestFsr61Actor(unittest.TestCase):
         d._execute_actor_command = mock_execute_actor_command
 
         time_now = d.now
-        self.assertEqual(d._last_refresh, None)
+        self.assertEqual(d._last_status_request, None)
         self.assertEqual(check_check_cyclic_tasks(time_now), ActorCommand.UPDATE)
-        self.assertEqual(d._last_refresh, time_now)
+        self.assertEqual(d._last_status_request, time_now)
 
         time_before = time_now
         time_now = time_before + timedelta(seconds=d.DEFAULT_REFRESH_RATE - 1)
         self.assertEqual(check_check_cyclic_tasks(time_now), None)
-        self.assertEqual(d._last_refresh, time_before)
+        self.assertEqual(d._last_status_request, time_before)
 
         time_now = time_now + timedelta(seconds=d.DEFAULT_REFRESH_RATE * 0.5)
         self.assertEqual(check_check_cyclic_tasks(time_now), ActorCommand.UPDATE)
-        self.assertEqual(d._last_refresh, time_now)
+        self.assertEqual(d._last_status_request, time_now)
 
 # import unittest
 #

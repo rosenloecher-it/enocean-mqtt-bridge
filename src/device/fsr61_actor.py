@@ -39,6 +39,8 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
 
         self._mqtt_channel_cmd = None
 
+        self._last_status_request = None  # type: datetime
+
     def set_config(self, config):
         BaseDevice.set_config(self, config)
         BaseMqtt.set_config(self, config)
@@ -80,7 +82,9 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
                 self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
         self._logger.debug("proceed_enocean - switch_state=%s", switch_state)
-        self._last_refresh = self._now()
+
+        self._last_status_request = self._now()
+        self._reset_offline_message_counter()
 
         message = self._create_json_message(switch_state, rssi=packet.dBm)
         self._publish_mqtt(message)
@@ -138,11 +142,11 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
         now = self._now()
         refresh_rate = self._randomized_refresh_rate
 
-        if self._last_refresh is not None:
-            diff_seconds = (now - self._last_refresh).total_seconds()
+        if self._last_status_request is not None:
+            diff_seconds = (now - self._last_status_request).total_seconds()
 
         if diff_seconds is None or diff_seconds >= refresh_rate:
-            self._last_refresh = now
+            self._last_status_request = now
             self._execute_actor_command(ActorCommand.UPDATE)
 
     @property
