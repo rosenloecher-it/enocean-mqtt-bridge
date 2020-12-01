@@ -62,3 +62,19 @@ devices:
 
     # copy default settings here. see YAML features!
     <<: *device-default
+
+  dimmer-fud61:
+    enocean_target:       0x0123456a
+    enocean_sender:       0x0123456a  # choose yourself: base id + x
+    device_class:         "src.device.fud61_actor.Fud61Actor"
+    mqtt_channel_state:   "smarthome/enocean/light1/state"
+    mqtt_retain:          False
+    mqtt_channel_cmd:     "smarthome/enocean/light1/cmd
+
+  switch-fsr61:
+    enocean_target:       0x0123456a
+    enocean_sender:       0x0123456a  # choose yourself: base id + x
+    device_class:         "src.device.fsr61_actor.Fsr61Actor"
+    mqtt_channel_state:   "smarthome/enocean/light2/state"
+    mqtt_retain:          False
+    mqtt_channel_cmd:     "smarthome/enocean/light2/cmd

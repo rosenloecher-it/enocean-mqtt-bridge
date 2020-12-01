@@ -1,27 +1,15 @@
 import json
 from collections import namedtuple
-from enum import Enum
 
 from enocean.protocol.packet import RadioPacket
 
 from src.config import Config
+from src.common.json_attributes import JsonAttributes
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
-from src.device.conf_device_key import ConfDeviceKey
+from src.common.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
-from src.tools.rocker_switch_tools import RockerSwitchTools, RockerPress
-
-
-class _OutputAttributes(Enum):
-    TIMESTAMP = "TIMESTAMP"
-    STATE = "STATE"
-    BUTTON = "BUTTON"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
+from src.device.rocker_switch_tools import RockerSwitchTools, RockerPress
 
 
 _MessageData = namedtuple("_MessageData", ["channel", "state", "button"])
@@ -109,9 +97,9 @@ class RockerSwitch(BaseDevice, BaseMqtt):
 
     def _create_mqtt_message(self, message_data: _MessageData):
         data = {
-            _OutputAttributes.STATE.value: message_data.state,
-            _OutputAttributes.BUTTON.value: message_data.button,  # type: int
-            _OutputAttributes.TIMESTAMP.value: self._now().isoformat()
+            JsonAttributes.STATE: message_data.state,
+            JsonAttributes.BUTTON: message_data.button,  # type: int
+            JsonAttributes.TIMESTAMP: self._now().isoformat()
         }
 
         json_text = json.dumps(data)

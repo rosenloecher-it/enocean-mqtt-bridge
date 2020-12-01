@@ -1,4 +1,5 @@
 import logging
+from typing import List
 from queue import Queue, Empty
 
 import paho.mqtt.client as mqtt
@@ -73,7 +74,7 @@ class MqttConnector:
             self._mqtt = None
             _logger.debug("mqtt closed.")
 
-    def get_queued_messages(self):
+    def get_queued_messages(self) -> List[mqtt.MQTTMessage]:
         messages = []
 
         while True:

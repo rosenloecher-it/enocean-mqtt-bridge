@@ -4,10 +4,10 @@ from typing import Optional, Dict
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
-from src.tools.device_exception import DeviceException
-from src.eep import Eep
+from src.device.device_exception import DeviceException
+from src.common.eep import Eep
 from src.enocean_packet_factory import EnoceanPacketFactory
-from src.tools.eep_prop_exception import EepPropException
+from src.common.eep_prop_exception import EepPropException
 from src.tools.enocean_tools import EnoceanTools
 
 

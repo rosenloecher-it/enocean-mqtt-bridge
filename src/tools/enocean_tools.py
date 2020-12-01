@@ -1,8 +1,8 @@
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
-from src.eep import Eep
-from src.tools.device_exception import DeviceException
+from src.device.device_exception import DeviceException
+from src.common.eep import Eep
 
 
 class EnoceanTools:

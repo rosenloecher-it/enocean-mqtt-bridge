@@ -1,17 +1,17 @@
 import logging
 from collections import namedtuple
 
+from src.common.conf_device_key import ConfDeviceKey
+from src.common.eep import Eep
 from src.config import Config
-from src.device.conf_device_key import ConfDeviceKey
-from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
-from src.eep import Eep
+from src.device.base_rocker_actor import BaseRockerActor, SwitchState, ActorCommand
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
 
 _Notification = namedtuple("_Notification", ["channel", "switch_state"])
 
 
-class NodonSin22Actor(RockerActor):
+class NodonSin22Actor(BaseRockerActor):
     """Actor for Nodon SIN-2-2-01"""
 
     DEFAULT_EEP = Eep(
@@ -51,7 +51,7 @@ class NodonSin22Actor(RockerActor):
 
         rssi = packet.dBm  # if hasattr(packet, "dBm") else None
 
-        if notification.switch_state == StateValue.ERROR and self._logger.isEnabledFor(logging.DEBUG):
+        if notification.switch_state == SwitchState.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
             self._logger.debug("process_enocean_message - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
@@ -67,11 +67,11 @@ class NodonSin22Actor(RockerActor):
         value = int(data.get("OV"))
 
         if value == 0:
-            switch_state = StateValue.OFF
+            switch_state = SwitchState.OFF
         elif 0 < value <= 100:
-            switch_state = StateValue.ON
+            switch_state = SwitchState.ON
         else:
-            switch_state = StateValue.ERROR
+            switch_state = SwitchState.ERROR
 
         return _Notification(channel=int(data.get("IO")), switch_state=switch_state)
 

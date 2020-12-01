@@ -2,11 +2,12 @@ import datetime
 import json
 import unittest
 
-from src.device.conf_device_key import ConfDeviceKey
+from src.common.conf_device_key import ConfDeviceKey
+from src.common.json_attributes import JsonAttributes
 from src.device.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
-from src.tools.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
+from src.device.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 
 
 class _MockDevice(RockerSwitch):
@@ -111,15 +112,16 @@ class TestRockerSwitch(unittest.TestCase):
         device.process_enocean_message(message)
 
     def check_messages_for_process_enocean_message(self, device: RockerSwitch, action: RockerAction, channel):
+        attr = JsonAttributes
         self.assertEqual(len(device.mqtt_messages), 1)
         message = device.mqtt_messages[0]
 
         self.assertEqual(message[1], channel)
 
         data = json.loads(message[0])
-        self.assertEqual(data["STATE"], action.press.value)
-        self.assertEqual(data["BUTTON"], action.button.value if action.button is not None else None)  # RELEASE
-        self.assertEqual(data["TIMESTAMP"], device.now.isoformat())
+        self.assertEqual(data[attr.STATE], action.press.value)
+        self.assertEqual(data[attr.BUTTON], action.button.value if action.button is not None else None)  # RELEASE
+        self.assertEqual(data[attr.TIMESTAMP], device.now.isoformat())
 
     def test_process_enocean_message_short(self):
         action = RockerAction(RockerPress.PRESS_SHORT, RockerButton.ROCK0)

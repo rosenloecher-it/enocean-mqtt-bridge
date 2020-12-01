@@ -22,6 +22,7 @@ class ConfDeviceKey(Enum):
     MQTT_LAST_WILL = "mqtt_last_will"
     MQTT_QOS = "mqtt_quality"
     MQTT_RETAIN = "mqtt_retain"
+    MQTT_TIME_OFFLINE = "mqtt_time_offline"
 
     # mainly RockerSwitch
     MQTT_CHANNEL_RELEASE = "mqtt_channel_release"
@@ -43,7 +44,6 @@ class ConfDeviceKey(Enum):
     WRITE_SINCE_SEPARATE_ERROR = "write_since_separate_error"
     WRITE_SINCE = "write_since"
     RESTORE_LAST_MAX_DIFF = "restore_last_max_diff"
-    TIME_OFFLINE_MSG = "mqtt_time_offline"
 
     # mainly LogDevice
     DUMP_PACKETS = "dump_packets"

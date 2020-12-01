@@ -4,15 +4,16 @@ import logging
 from enum import Enum
 from typing import Optional
 
+from src.common.json_attributes import JsonAttributes
 from src.config import Config
 from src.device.base_cyclic import BaseCyclic
 from src.device.base_device import BaseDevice
 from src.device.base_mqtt import BaseMqtt
-from src.device.conf_device_key import ConfDeviceKey
-from src.eep import Eep
+from src.common.conf_device_key import ConfDeviceKey
+from src.common.eep import Eep
 from src.enocean_connector import EnoceanMessage
 from src.storage import Storage, StorageException
-from src.tools.device_exception import DeviceException
+from src.device.device_exception import DeviceException
 from src.tools.pickle_tools import PickleTools
 
 
@@ -25,11 +26,11 @@ class StorageKey(Enum):
 
 
 class HandleValue(Enum):
-    CLOSED = "CLOSED"
-    ERROR = "ERROR"
-    OFFLINE = "OFFLINE"
-    OPEN = "OPEN"
-    TILTED = "TILTED"
+    CLOSED = "closed"
+    ERROR = "error"
+    OFFLINE = "offline"
+    OPEN = "open"
+    TILTED = "tilted"
 
     def __str__(self):
         return self.__repr__()
@@ -50,19 +51,6 @@ class HandleValue(Enum):
         return None
 
 
-class HandlePosAttr(Enum):
-    RSSI = "RSSI"
-    SINCE = "SINCE"
-    TIMESTAMP = "TIMESTAMP"
-    STATE = "STATE"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
-
-
 class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
     """Specialized class to forward notfications of Eltako FFG7B-rw (similar to Eltako TF-FGB) windows/door handles.
     Output is a json dict with values of `HandleValues`. Additionally there is a `SINCE` field (JSON) which indicates
@@ -70,8 +58,6 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
 
     No information is sent back to the device! Not supported by device.
     """
-
-    DEFAULT_TIME_OFFLINE_MSG = 3600
 
     DEFAULT_EEP = Eep(
         rorg=0xf6,
@@ -92,11 +78,8 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         self._write_since_no_error = True
         self._write_since = False
         self._restore_last_max_diff = None
-        self._time_offline_msg = None
 
         self._storage = Storage()
-
-        self._enocean_activity = self._now()
 
     def set_config(self, config):
         BaseDevice.set_config(self, config)
@@ -106,7 +89,6 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         self._write_since = Config.get_bool(config, ConfDeviceKey.WRITE_SINCE, False)
         self._write_since_no_error = Config.get_bool(config, ConfDeviceKey.WRITE_SINCE_SEPARATE_ERROR, True)
         self._restore_last_max_diff = Config.get_int(config, ConfDeviceKey.RESTORE_LAST_MAX_DIFF, 15)
-        self._time_offline_msg = Config.get_int(config, ConfDeviceKey.TIME_OFFLINE_MSG, self.DEFAULT_TIME_OFFLINE_MSG)
 
         storage_file = Config.get_str(config, ConfDeviceKey.STORAGE_FILE, None)
         self._storage.set_file(storage_file)
@@ -154,28 +136,19 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
             timestamp = self._now()
 
         data = {
-            HandlePosAttr.TIMESTAMP.value: timestamp.isoformat(),
-            HandlePosAttr.STATE.value: value.value
+            JsonAttributes.TIMESTAMP: timestamp.isoformat(),
+            JsonAttributes.STATE: value.value
         }
         if rssi is not None:
-            data[HandlePosAttr.RSSI.value] = rssi
+            data[JsonAttributes.RSSI] = rssi
         if since is not None:
-            data[HandlePosAttr.SINCE.value] = since.isoformat()
+            data[JsonAttributes.SINCE] = since.isoformat()
 
         json_text = json.dumps(data)
         return json_text
 
     def check_cyclic_tasks(self):
         self._check_and_send_offline()
-
-    def _check_and_send_offline(self):
-        if self._mqtt_last_will is not None and self._time_offline_msg is not None and self._time_offline_msg > 0:
-            now = self._now()
-            diff = (now - self._enocean_activity).total_seconds()
-            if diff >= self._time_offline_msg:
-                self._enocean_activity = self._now()
-                self._publish_mqtt(self._mqtt_last_will)
-                self._logger.warning("last will sent: missing refresh")
 
     @classmethod
     def extract_handle_state(self, value):
@@ -193,7 +166,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         if not packet:
             return
 
-        self._enocean_activity = self._now()
+        self._last_refresh = self._now()
 
         data = self._extract_packet_props(packet)
         self._logger.debug("proceed_enocean - got: %s", data)

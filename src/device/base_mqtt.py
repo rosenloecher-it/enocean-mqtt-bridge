@@ -1,18 +1,10 @@
 import abc
-from enum import Enum
+
+from paho.mqtt.client import MQTTMessage
 
 from src.config import Config
-from src.device.conf_device_key import ConfDeviceKey
-from src.tools.device_exception import DeviceException
-
-
-class _ConfigKey(Enum):
-    MQTT_CHANNEL_STATE = ConfDeviceKey.MQTT_CHANNEL_STATE.value
-
-    MQTT_LAST_WILL = ConfDeviceKey.MQTT_LAST_WILL.value
-    MQTT_QOS = ConfDeviceKey.MQTT_QOS.value
-    MQTT_RETAIN = ConfDeviceKey.MQTT_RETAIN.value
-    TIME_OFFLINE_MSG = ConfDeviceKey.TIME_OFFLINE_MSG.value
+from src.common.conf_device_key import ConfDeviceKey
+from src.device.device_exception import DeviceException
 
 
 class BaseMqtt(abc.ABC):
@@ -29,6 +21,9 @@ class BaseMqtt(abc.ABC):
         self._mqtt_qos = None
         self._mqtt_retain = None
 
+        self._mqtt_time_offline = None  # type: int # seconds
+        self._last_refresh = self._now()
+
         self._mqtt_publisher = None
 
     @property
@@ -41,17 +36,18 @@ class BaseMqtt(abc.ABC):
 
         # check settings
         if not self._mqtt_channel_state:
-            message = self.MISSING_CONFIG_FOR_NAME.format(_ConfigKey.MQTT_CHANNEL_STATE.value, self._name)
+            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.MQTT_CHANNEL_STATE.value, self._name)
             self._logger.error(message)
             raise DeviceException(message)
 
     def _set_config(self, config):
 
-        self._mqtt_channel_state = config.get(_ConfigKey.MQTT_CHANNEL_STATE.value)
+        self._mqtt_channel_state = config.get(ConfDeviceKey.MQTT_CHANNEL_STATE.value)
 
-        self._mqtt_last_will = Config.get_str(config, _ConfigKey.MQTT_LAST_WILL, None)
-        self._mqtt_qos = Config.get_int(config, _ConfigKey.MQTT_QOS, self.DEFAULT_MQTT_QOS)
-        self._mqtt_retain = Config.get_bool(config, _ConfigKey.MQTT_RETAIN, False)
+        self._mqtt_last_will = Config.get_str(config, ConfDeviceKey.MQTT_LAST_WILL, None)
+        self._mqtt_qos = Config.get_int(config, ConfDeviceKey.MQTT_QOS, self.DEFAULT_MQTT_QOS)
+        self._mqtt_retain = Config.get_bool(config, ConfDeviceKey.MQTT_RETAIN, False)
+        self._mqtt_time_offline = Config.get_int(config, ConfDeviceKey.MQTT_TIME_OFFLINE)
 
     def get_mqtt_last_will_channel(self):
         """signal ensor state, outbound channel"""
@@ -87,10 +83,7 @@ class BaseMqtt(abc.ABC):
             self._logger.info("mqtt publish: {0}={1}".format(inner_mqtt_channel, message))
 
     @abc.abstractmethod
-    def process_mqtt_message(self, message):
-        """
-        :param src.enocean_interface.EnoceanMessage message:
-        """
+    def process_mqtt_message(self, message: MQTTMessage):
         raise NotImplementedError
 
     def set_last_will(self):
@@ -102,3 +95,13 @@ class BaseMqtt(abc.ABC):
                 retain=self._mqtt_retain
             )
             self._logger.info("mqtt last will: {0}={1}".format(self._mqtt_channel_state, self._mqtt_last_will))
+
+    def _check_and_send_offline(self):
+        if self._mqtt_last_will is not None and self._mqtt_time_offline is not None \
+                and self._mqtt_time_offline > 0 and self._last_refresh is not None:
+            now = self._now()
+            diff = (now - self._last_refresh).total_seconds()
+            if diff >= self._mqtt_time_offline:
+                self._last_refresh = now
+                self._publish_mqtt(self._mqtt_last_will)
+                self._logger.warning("last will sent: missing refresh")

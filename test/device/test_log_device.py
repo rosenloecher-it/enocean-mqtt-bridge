@@ -1,6 +1,6 @@
 import unittest
 
-from src.eep import Eep
+from src.common.eep import Eep
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 

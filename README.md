@@ -2,7 +2,10 @@
 
 Bridges and translates Enocean messages between a (USB) gateway to a MQTT broker for specific devices. 
 Runs as Linux service (e.g. on Raspberry Pi).
-The MQTT messages can be further processed with other smart home systems (e.g. Openhab, Home Assistant, Loxone)
+
+The MQTT messages can be further processed with other smarthome systems (e.g. Openhab, Home Assistant, Loxone). 
+MQTT based messages may help you to switch between smarthome systems smoothly by accessing your Enocean devices 
+from different systems.
 
 Features:
 - configurable MQTT last will / testament (for example an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
@@ -17,10 +20,10 @@ Features:
     - outputs JSON with time of last state change (SINCE)
       ```json
       {
-          "STATUS": "CLOSED",
-          "RSSI": -61,
-          "TIMESTAMP": "2020-03-16T21:09:37.205911+01:00",
-          "SINCE": "2020-03-15T19:09:37.205911+01:00"
+          "status": "closed",
+          "rssi": -61,
+          "timestamp": "2020-03-16t21:09:37.205911+01:00",
+          "since": "2020-03-15t19:09:37.205911+01:00"
       }
       ```
     - Transform states to (STATUS): OPEN, CLOSED, TILTED, OFFLINE, ERROR   
@@ -28,7 +31,7 @@ Features:
       - Switch and get notifications about state changes.
       - Configuration class: `src.device.fsr61_actor.Fsr61Actor`
   - Eltako FUD61NP(N)-230V (dimmer)
-      - Switch ON/OFF and get notifications about state changes. Delivers dim state in %.
+      - Dim and switch ON/OFF and get notifications about state changes. Delivers dim state in %.
       - Configuration class: `src.device.fud61_actor.Fud61Actor`
       - Special switch device (`src.device.fud61_simple_switch.Fud61SimpleSwitch`) to have rocker switches without 
         dimming functionality! (If you teach in rocker switches directly to an Eltako FUD61NP(N), the switches are used 

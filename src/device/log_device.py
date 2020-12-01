@@ -2,9 +2,9 @@ import logging
 
 from src.config import Config
 from src.device.base_device import BaseDevice
-from src.device.conf_device_key import ConfDeviceKey
+from src.common.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
-from src.tools.device_exception import DeviceException
+from src.device.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 

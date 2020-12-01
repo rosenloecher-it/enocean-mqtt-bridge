@@ -2,7 +2,7 @@ import copy
 
 from enocean.protocol.packet import RadioPacket
 
-from src.eep import Eep
+from src.common.eep import Eep
 from src.tools.enocean_tools import EnoceanTools
 
 

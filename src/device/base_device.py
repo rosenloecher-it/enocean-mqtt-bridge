@@ -10,10 +10,10 @@ from enocean.protocol.packet import RadioPacket
 from tzlocal import get_localzone
 
 from src.config import Config
-from src.device.conf_device_key import ConfDeviceKey
-from src.eep import Eep
+from src.common.conf_device_key import ConfDeviceKey
+from src.common.eep import Eep
 from src.enocean_connector import EnoceanMessage
-from src.tools.device_exception import DeviceException
+from src.device.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
 
 

@@ -1,7 +1,7 @@
 import unittest
 
 from src.device.base_device import BaseDevice
-from src.eep import Eep
+from src.common.eep import Eep
 from src.tools.pickle_tools import PickleTools
 
 PACKET_WIN_CLOSE = """

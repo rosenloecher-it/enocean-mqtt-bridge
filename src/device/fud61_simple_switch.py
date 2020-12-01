@@ -1,31 +1,32 @@
 from enum import Enum
-from typing import Optional, Dict
+from typing import Dict
 
 from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import Packet
+from enocean.protocol.packet import Packet, RadioPacket
 
+from src.common.conf_device_key import ConfDeviceKey
 from src.config import Config
+from src.device.base_cyclic import BaseCyclic
 from src.device.base_device import BaseDevice
-from src.device.conf_device_key import ConfDeviceKey
-from src.device.rocker_actor import RockerActor, StateValue, ActorCommand
+from src.device.base_rocker_actor import SwitchState, ActorCommand
+from src.device.device_exception import DeviceException
+from src.device.fud61_actor import Fud61Actor
+from src.device.fud61_eep import Fud61Action
+from src.device.rocker_switch_tools import RockerSwitchTools, RockerAction
 from src.enocean_connector import EnoceanMessage
-from src.storage import Storage, StorageException
-from src.tools.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
-from src.tools.fud61_tools import Fud61Tools
-from src.tools.rocker_switch_tools import RockerSwitchTools
 
 
-class Fud61SwitchAction(Enum):
+class Fud61SwitchOperation(Enum):
     ON = "on"
     OFF = "off"
     AUTO = "auto"
 
     def __str__(self):
-        return self.__repr__()
+        return self.value
 
     def __repr__(self) -> str:
-        return '{}'.format(self.name)
+        return '{}({})'.format(self.__class__.__name__, str(self))
 
     @classmethod
     def parse(cls, text):
@@ -36,12 +37,7 @@ class Fud61SwitchAction(Enum):
         return None
 
 
-class StorageKey(Enum):
-    VALUE = "VALUE"
-    LAST_UPDATE = "LAST_UPDATE"
-
-
-class Fud61SimpleSwitch(RockerActor):
+class Fud61SimpleSwitch(Fud61Actor):
     """
     Connects a rocker switch as an ON/OFF (only! == without dimming) switch to an Eltako FUD61NP(N).
 
@@ -55,19 +51,10 @@ class Fud61SimpleSwitch(RockerActor):
     def __init__(self, name):
         super().__init__(name)
 
-        # base target is Fud61
-        self._eep = Fud61Tools.DEFAULT_EEP.clone()
-
-        # 2. profile for rocker switch
-        self._switch_eep = RockerSwitchTools.DEFAULT_EEP.clone()
-
         # self._enocean_target  == dimmer
         self._enocean_target_switch = None
 
-        self._target_state = False
-        self._switch_channels = {}  # type: Dict[int, Fud61SwitchAction]
-
-        self._storage = Storage()
+        self._button_operations = {}  # type: Dict[int, Fud61SwitchOperation]
 
     @property
     def enocean_targets(self):
@@ -75,7 +62,10 @@ class Fud61SimpleSwitch(RockerActor):
         return [self._enocean_target, self._enocean_target_switch]
 
     def set_config(self, config):
+        # completely overwrite base function to get rid of ConfDeviceKey.MQTT_CHANNEL_CMD
         BaseDevice.set_config(self, config)
+        # skip, not needed: BaseMqtt.set_config(self, config)
+        BaseCyclic.set_config(self, config)
 
         key = ConfDeviceKey.ENOCEAN_TARGET_SWITCH
         self._enocean_target_switch = Config.get_int(config, key, None)
@@ -92,19 +82,9 @@ class Fud61SimpleSwitch(RockerActor):
         ]
         for key, index in items:
             text = Config.get_str(config, key)
-            action = Fud61SwitchAction.parse(text)
+            action = Fud61SwitchOperation.parse(text)
             if action:
-                self._switch_channels[index] = action
-
-        storage_file = Config.get_str(config, ConfDeviceKey.STORAGE_FILE, None)
-        self._storage.set_file(storage_file)
-
-        try:
-            self._storage.load()
-            self._target_state = bool(self._storage.get(StorageKey.VALUE.value))
-        except StorageException as ex:
-            self._logger.exception(ex)
-            self._target_state = False
+                self._button_operations[index] = action
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload  # type: Packet
@@ -113,65 +93,33 @@ class Fud61SimpleSwitch(RockerActor):
             return
 
         if message.enocean_id == self._enocean_target:  # fud61
-            self._process_dimmer_message(message)
+            self._process_actor_packet(packet)
         elif message.enocean_id == self._enocean_target_switch:  # rocker switch
-            self._process_switch_message(message)
+            self._process_switch_packet(packet)
 
-    def _process_dimmer_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: Packet
-        if packet.rorg != self._eep.rorg:
-            self._logger.debug("skipped fud61 packet with rorg=%s", hex(packet.rorg))
+    def _publish_actor_result(self, action: Fud61Action, rssi: int):
+        pass  # no mqtt used here
+
+    def _process_switch_packet(self, packet: RadioPacket):
+        rocker_action = RockerSwitchTools.extract_action_from_packet(packet)  # type: RockerAction
+        if rocker_action.button is None:
+            return  # skip, likely RELEASE
+
+        operation = self._button_operations.get(rocker_action.button.value)
+        command = None  # Optional[ActorCommand]
+        if operation == Fud61SwitchOperation.AUTO:
+            if self._current_switch_state is SwitchState.ON:
+                command = ActorCommand.OFF
+            elif self._current_switch_state is SwitchState.OFF:
+                command = ActorCommand.ON
+        elif operation == Fud61SwitchOperation.ON:
+            command = ActorCommand.ON
+        elif operation == Fud61SwitchOperation.OFF:
+            command = ActorCommand.OFF
+
+        if command is None:
+            self._logger.debug("skip rocker action: %s", rocker_action)
             return
 
-        data = Fud61Tools.extract_props(packet)
-        message = Fud61Tools.extract_message(data)
-        self._logger.info("process dimmer message: %s => %s", data, message)
-
-        self._set_target_state(message.switch_state == StateValue.ON)
-
-    def _process_switch_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: Packet
-        if packet.rorg != self._switch_eep.rorg:
-            self._logger.warning("skipped rocker switch packet with rorg=%s", hex(packet.rorg))
-            return
-
-        data = EnoceanTools.extract_props(packet, self._switch_eep)
-        # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
-        # "{'R1': 1, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
-        # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
-        # "{'R1': 0, 'EB': 0, 'R2': 0, 'SA': 0, 'T21': 1, 'NU': 0}"
-
-        pressed_switch = None  # type: Optional[int]
-        if data["SA"] == 1:
-            pressed_switch = data["R2"]
-        elif data["EB"] == 1:
-            pressed_switch = data["R1"]
-
-        action = self._switch_channels.get(pressed_switch)
-        target_state = None  # Optional[bool]
-        if action == Fud61SwitchAction.AUTO:
-            target_state = not self._target_state
-        elif action == Fud61SwitchAction.ON:
-            target_state = True
-        elif action == Fud61SwitchAction.OFF:
-            target_state = False
-
-        if target_state is not None:
-            self._logger.info("process switch message - switch=%s, action=%s, target_state=%s",
-                              pressed_switch, action, target_state)
-            self._set_target_state(target_state)
-
-            command = ActorCommand.ON if self._target_state else ActorCommand.OFF
-            self._execute_actor_command(command)
-
-    def _set_target_state(self, target_state: bool) -> bool:
-        self._target_state = bool(target_state)
-        self._storage.set(StorageKey.VALUE.value, self._target_state)
-        self._storage.set(StorageKey.LAST_UPDATE.value, self._now())
-
-        try:
-            self._storage.save()
-        except StorageException as ex:
-            self._logger.exception(ex)
-
-        return self._target_state
+        self._logger.debug("process rocker action: %s => %s", rocker_action, operation)
+        self._execute_actor_command(command)

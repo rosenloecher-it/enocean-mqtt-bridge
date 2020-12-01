@@ -1,6 +1,6 @@
 import unittest
 
-from src.eep import Eep
+from src.common.eep import Eep
 
 
 class TestEep(unittest.TestCase):
