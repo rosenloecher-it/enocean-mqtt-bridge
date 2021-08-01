@@ -12,7 +12,7 @@ from src.device.base.base_rocker_actor import SwitchState, ActorCommand
 from src.device.device_exception import DeviceException
 from src.device.eltako.fud61_actor import Fud61Actor
 from src.device.eltako.fud61_eep import Fud61Action
-from src.device.rocker_switch_tools import RockerSwitchTools, RockerAction
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 

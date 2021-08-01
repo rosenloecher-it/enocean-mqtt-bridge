@@ -5,9 +5,9 @@ from enum import IntEnum
 from typing import List
 
 from src.config import ConfSectionKey
-from src.device.base_cyclic import BaseCyclic
-from src.device.base_device import BaseDevice
-from src.device.base_mqtt import BaseMqtt
+from src.device.base.base_cyclic import BaseCyclic
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_mqtt import BaseMqtt
 from src.device.device_exception import DeviceException
 from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher

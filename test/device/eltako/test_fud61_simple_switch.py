@@ -6,7 +6,7 @@ from src.common.switch_state import SwitchState
 from src.device.eltako.fud61_eep import Fud61Eep, Fud61Action, Fud61Command
 from src.device.eltako.fud61_simple_switch import Fud61SimpleSwitch, Fud61SwitchOperation
 from src.enocean_connector import EnoceanMessage
-from src.device.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 from test.setup_test import SetupTest
 
 

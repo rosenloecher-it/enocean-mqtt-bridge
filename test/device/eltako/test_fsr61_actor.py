@@ -9,7 +9,7 @@ from src.common.actor_command import ActorCommand
 from src.common.switch_state import SwitchState
 from src.device.eltako.fsr61_actor import Fsr61Actor
 from src.device.eltako.fsr61_eep import Fsr61Action, Fsr61Eep, Fsr61Command
-from src.device.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton, RockerPress
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton, RockerPress
 from src.enocean_connector import EnoceanMessage
 from test.setup_test import SetupTest
 

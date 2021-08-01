@@ -18,14 +18,14 @@ from src.device.base.base_cyclic import BaseCyclic
 from src.device.base.base_device import BaseDevice
 from src.device.base.base_mqtt import BaseMqtt
 from src.device.device_exception import DeviceException
-from src.device.eltako.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
+from src.device.eltako_fsr61_eep import Fsr61Eep, EltakoFsr61Action, EltakoFsr61Command
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
+class EltakoFsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
     """
     Specialized for: Eltako FSR61-230V (an ON/OFF relay switch)
     """
@@ -115,14 +115,14 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
 
     def _execute_actor_command(self, command: ActorCommand):
         if command in [ActorCommand.ON, ActorCommand.OFF]:
-            action = Fsr61Action(
-                command=Fsr61Command.SWITCHING,
+            action = EltakoFsr61Action(
+                command=EltakoFsr61Command.SWITCHING,
                 switch_state=SwitchState.ON if command == ActorCommand.ON else SwitchState.OFF,
             )
         elif command == ActorCommand.UPDATE:
-            action = Fsr61Action(command=Fsr61Command.STATUS_REQUEST)
+            action = EltakoFsr61Action(command=EltakoFsr61Command.STATUS_REQUEST)
         elif command == ActorCommand.LEARN:
-            action = Fsr61Action(command=Fsr61Command.SWITCHING, switch_state=SwitchState.ON, learn=True)
+            action = EltakoFsr61Action(command=EltakoFsr61Command.SWITCHING, switch_state=SwitchState.ON, learn=True)
         else:
             raise ValueError("ActorCommand ({}) not supported!".format(command))
 

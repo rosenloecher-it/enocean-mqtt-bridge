@@ -8,7 +8,7 @@ import enocean
 
 from src.config import ConfMainKey
 from src.common.conf_device_key import ConfDeviceKey
-from src.device.base_device import BaseDevice
+from src.device.base.base_device import BaseDevice
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector
 from src.enocean_packet_factory import EnoceanPacketFactory

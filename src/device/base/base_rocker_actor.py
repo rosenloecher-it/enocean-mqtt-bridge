@@ -11,7 +11,7 @@ from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.actor_command import ActorCommand
 from src.device.device_exception import DeviceException
-from src.device.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 from src.common.switch_state import SwitchState
 
 
