@@ -5,7 +5,7 @@ import unittest
 from tzlocal import get_localzone
 
 from src.common.conf_device_key import ConfDeviceKey
-from src.device.ffg7b_sensor import HandleValue, FFG7BSensor, StorageKey
+from src.device.eltako.ffg7b_sensor import HandleValue, FFG7BSensor, StorageKey
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
 from test.device.test_base_device import PACKET_WIN_TILTED

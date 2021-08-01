@@ -14,11 +14,11 @@ from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
 from src.common.switch_state import SwitchState
 from src.config import Config
-from src.device.base_cyclic import BaseCyclic
-from src.device.base_device import BaseDevice
-from src.device.base_mqtt import BaseMqtt
+from src.device.base.base_cyclic import BaseCyclic
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_mqtt import BaseMqtt
 from src.device.device_exception import DeviceException
-from src.device.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
+from src.device.eltako.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
 from src.device.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools

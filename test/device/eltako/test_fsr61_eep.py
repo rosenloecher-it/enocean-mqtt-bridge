@@ -1,7 +1,7 @@
 import unittest
 
 from src.common.switch_state import SwitchState
-from src.device.fsr61_eep import Fsr61Action, Fsr61Command, Fsr61Eep
+from src.device.eltako.fsr61_eep import Fsr61Action, Fsr61Command, Fsr61Eep
 
 
 class TestFsr61Eep(unittest.TestCase):

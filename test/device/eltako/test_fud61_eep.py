@@ -1,7 +1,7 @@
 import unittest
 
 from src.common.switch_state import SwitchState
-from src.device.fud61_eep import Fud61Action, Fud61Command, Fud61Eep
+from src.device.eltako.fud61_eep import Fud61Action, Fud61Command, Fud61Eep
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 

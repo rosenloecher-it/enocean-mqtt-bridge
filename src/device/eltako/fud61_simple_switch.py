@@ -6,12 +6,12 @@ from enocean.protocol.packet import Packet, RadioPacket
 
 from src.common.conf_device_key import ConfDeviceKey
 from src.config import Config
-from src.device.base_cyclic import BaseCyclic
-from src.device.base_device import BaseDevice
-from src.device.base_rocker_actor import SwitchState, ActorCommand
+from src.device.base.base_cyclic import BaseCyclic
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_rocker_actor import SwitchState, ActorCommand
 from src.device.device_exception import DeviceException
-from src.device.fud61_actor import Fud61Actor
-from src.device.fud61_eep import Fud61Action
+from src.device.eltako.fud61_actor import Fud61Actor
+from src.device.eltako.fud61_eep import Fud61Action
 from src.device.rocker_switch_tools import RockerSwitchTools, RockerAction
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools

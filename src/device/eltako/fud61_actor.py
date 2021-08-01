@@ -12,12 +12,12 @@ from enocean.protocol.packet import RadioPacket
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
 from src.config import Config
-from src.device.base_cyclic import BaseCyclic
-from src.device.base_device import BaseDevice
-from src.device.base_mqtt import BaseMqtt
-from src.device.base_rocker_actor import SwitchState, ActorCommand
+from src.device.base.base_cyclic import BaseCyclic
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_mqtt import BaseMqtt
+from src.device.base.base_rocker_actor import SwitchState, ActorCommand
 from src.device.device_exception import DeviceException
-from src.device.fud61_eep import Fud61Eep, Fud61Action, Fud61Command
+from src.device.eltako.fud61_eep import Fud61Eep, Fud61Action, Fud61Command
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools

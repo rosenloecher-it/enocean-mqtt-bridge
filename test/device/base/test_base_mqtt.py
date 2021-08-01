@@ -6,7 +6,7 @@ from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
 
 from src.common.conf_device_key import ConfDeviceKey
-from src.device.base_mqtt import BaseMqtt
+from src.device.base.base_mqtt import BaseMqtt
 from test.mock_mqtt_publisher import MockMqttPublisher
 
 _logger = logging.getLogger(__name__)

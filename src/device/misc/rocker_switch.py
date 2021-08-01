@@ -5,11 +5,11 @@ from enocean.protocol.packet import RadioPacket
 
 from src.config import Config
 from src.common.json_attributes import JsonAttributes
-from src.device.base_device import BaseDevice
-from src.device.base_mqtt import BaseMqtt
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
-from src.device.rocker_switch_tools import RockerSwitchTools, RockerPress
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress
 
 
 _MessageData = namedtuple("_MessageData", ["channel", "state", "button"])

@@ -6,9 +6,9 @@ from typing import Optional
 
 from src.common.json_attributes import JsonAttributes
 from src.config import Config
-from src.device.base_cyclic import BaseCyclic
-from src.device.base_device import BaseDevice
-from src.device.base_mqtt import BaseMqtt
+from src.device.base.base_cyclic import BaseCyclic
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.eep import Eep
 from src.enocean_connector import EnoceanMessage

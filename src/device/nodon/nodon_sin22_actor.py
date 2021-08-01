@@ -4,7 +4,7 @@ from collections import namedtuple
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.eep import Eep
 from src.config import Config
-from src.device.base_rocker_actor import BaseRockerActor, SwitchState, ActorCommand
+from src.device.base.base_rocker_actor import BaseRockerActor, SwitchState, ActorCommand
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
 

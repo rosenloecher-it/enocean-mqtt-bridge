@@ -6,8 +6,8 @@ from paho.mqtt.client import MQTTMessage
 
 from src.common.actor_command import ActorCommand
 from src.common.switch_state import SwitchState
-from src.device.fud61_actor import Fud61Actor
-from src.device.fud61_eep import Fud61Action, Fud61Eep, Fud61Command
+from src.device.eltako.fud61_actor import Fud61Actor
+from src.device.eltako.fud61_eep import Fud61Action, Fud61Eep, Fud61Command
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest

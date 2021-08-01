@@ -6,8 +6,8 @@ import time
 
 from src.config import Config
 from src.common.json_attributes import JsonAttributes
-from src.device.base_device import BaseDevice
-from src.device.base_mqtt import BaseMqtt
+from src.device.base.base_device import BaseDevice
+from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.actor_command import ActorCommand
 from src.device.device_exception import DeviceException

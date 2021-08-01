@@ -1,6 +1,6 @@
 import unittest
 
-from src.device.base_rocker_actor import RockerSwitchAction, BaseRockerActor
+from src.device.base.base_rocker_actor import RockerSwitchAction, BaseRockerActor
 from src.device.rocker_switch_tools import RockerSwitchTools
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools

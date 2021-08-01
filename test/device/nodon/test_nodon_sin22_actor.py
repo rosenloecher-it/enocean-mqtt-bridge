@@ -1,7 +1,7 @@
 import unittest
 
 from src.common.switch_state import SwitchState
-from src.device.nodon_sin22_actor import NodonSin22Actor
+from src.device.nodon.nodon_sin22_actor import NodonSin22Actor
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 

@@ -1,6 +1,6 @@
 import unittest
 
-from src.device.base_device import BaseDevice
+from src.device.base.base_device import BaseDevice
 from src.common.eep import Eep
 from src.tools.pickle_tools import PickleTools
 

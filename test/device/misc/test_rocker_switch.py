@@ -4,10 +4,10 @@ import unittest
 
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
-from src.device.rocker_switch import RockerSwitch
+from src.device.misc.rocker_switch import RockerSwitch
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
-from src.device.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 
 
 class _MockDevice(RockerSwitch):

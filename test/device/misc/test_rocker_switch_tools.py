@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from src.device.rocker_switch_tools import RockerAction, RockerPress, RockerButton, RockerSwitchTools
+from src.device.misc.rocker_switch_tools import RockerAction, RockerPress, RockerButton, RockerSwitchTools
 
 
 class TestRockerPress(unittest.TestCase):
