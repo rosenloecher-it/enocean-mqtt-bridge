@@ -45,3 +45,5 @@ __work__/
 enocean-mqtt-bridge.yaml
 enocean-mqtt-bridge.service
 
+/enocean
+
