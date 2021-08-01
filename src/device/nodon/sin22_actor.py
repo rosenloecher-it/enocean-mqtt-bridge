@@ -11,7 +11,7 @@ from src.tools.pickle_tools import PickleTools
 _Notification = namedtuple("_Notification", ["channel", "switch_state"])
 
 
-class NodonSin22Actor(BaseRockerActor):
+class Sin22Actor(BaseRockerActor):
     """Actor for Nodon SIN-2-2-01"""
 
     DEFAULT_EEP = Eep(

@@ -1,12 +1,12 @@
 import unittest
 
 from src.common.switch_state import SwitchState
-from src.device.nodon.nodon_sin22_actor import NodonSin22Actor
+from src.device.nodon.sin22_actor import Sin22Actor
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
 
-class _MockDevice(NodonSin22Actor):
+class _MockDevice(Sin22Actor):
 
     def __init__(self):
         self.now = None
@@ -41,7 +41,7 @@ _PACKET_0_OFF = """gAN9cQAoWAsAAABwYWNrZXRfdHlwZXEBSwFYBAAAAGRhdGFxAl1xAyhL0ksES
 SwBlWAgAAABvcHRpb25hbHEEXXEFKEsAS/9L/0v/S/9LOksAZXUu"""
 
 
-class TestNodonSin2Actor(unittest.TestCase):
+class TestSin22Actor(unittest.TestCase):
 
     def setUp(self):
         SetupTest.set_dummy_sender_id()
