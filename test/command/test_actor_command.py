@@ -1,6 +1,6 @@
 import unittest
 
-from src.common.actor_command import ActorCommand
+from src.command.actor_command import ActorCommand
 
 
 class TestActorCommand(unittest.TestCase):
