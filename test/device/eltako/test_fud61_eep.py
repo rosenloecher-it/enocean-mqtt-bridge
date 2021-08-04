@@ -90,16 +90,19 @@ class TestFud61Eep(unittest.TestCase):
         packet = PickleTools.unpickle(PACKET_STATUS_OFF_0)
         # data = Fud61Eep.get_props_from_packet(packet, Fud61Command.DIMMING)
         data = Fud61Eep.get_props_from_packet(packet)
+        data.pop('LNRB', None)  # depends on enocean version
         self.assertEqual(data, {'CMD': 2, 'EDIM': 0, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 0})
 
     def test_extract_on_33(self):
         packet = PickleTools.unpickle(PACKET_STATUS_ON_33)
         data = Fud61Eep.get_props_from_packet(packet)
+        data.pop('LNRB', None)  # depends on enocean version
         self.assertEqual(data, {'CMD': 2, 'EDIM': 33, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_extract_on_100(self):
         packet = PickleTools.unpickle(PACKET_STATUS_ON_100)
         data = Fud61Eep.get_props_from_packet(packet)
+        data.pop('LNRB', None)  # depends on enocean version
         self.assertEqual(data, {'CMD': 2, 'EDIM': 100, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_switch_on(self):
