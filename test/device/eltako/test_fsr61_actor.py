@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from paho.mqtt.client import MQTTMessage
 
-from src.common.actor_command import ActorCommand
+from src.command.switch_command import SwitchCommand
 from src.common.switch_state import SwitchState
 from src.device.eltako.fsr61_actor import Fsr61Actor
 from src.device.eltako.fsr61_eep import Fsr61Action, Fsr61Eep, Fsr61Command
@@ -98,13 +98,13 @@ class TestFsr61Actor(unittest.TestCase):
 
     def test_cyclic_status_requests(self):
         d = self.device
-        last_command = None  # type: ActorCommand
+        last_command = None  # type: SwitchCommand
 
-        def mock_execute_actor_command(command: ActorCommand):
+        def mock_execute_actor_command(command: SwitchCommand):
             nonlocal last_command
             last_command = command
 
-        def check_check_cyclic_tasks(now: datetime) -> ActorCommand:
+        def check_check_cyclic_tasks(now: datetime) -> SwitchCommand:
             nonlocal last_command
             last_command = None
             d.now = now
@@ -115,7 +115,7 @@ class TestFsr61Actor(unittest.TestCase):
 
         time_now = d.now
         self.assertEqual(d._last_status_request, None)
-        self.assertEqual(check_check_cyclic_tasks(time_now), ActorCommand.UPDATE)
+        self.assertEqual(check_check_cyclic_tasks(time_now), SwitchCommand.UPDATE)
         self.assertEqual(d._last_status_request, time_now)
 
         time_before = time_now
@@ -124,7 +124,7 @@ class TestFsr61Actor(unittest.TestCase):
         self.assertEqual(d._last_status_request, time_before)
 
         time_now = time_now + timedelta(seconds=d.DEFAULT_REFRESH_RATE * 0.5)
-        self.assertEqual(check_check_cyclic_tasks(time_now), ActorCommand.UPDATE)
+        self.assertEqual(check_check_cyclic_tasks(time_now), SwitchCommand.UPDATE)
         self.assertEqual(d._last_status_request, time_now)
 
 # import unittest

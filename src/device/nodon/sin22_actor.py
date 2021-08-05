@@ -1,10 +1,11 @@
 import logging
 from collections import namedtuple
 
+from src.command.switch_command import SwitchCommand
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.eep import Eep
 from src.config import Config
-from src.device.base.base_rocker_actor import BaseRockerActor, SwitchState, ActorCommand
+from src.device.base.base_rocker_actor import BaseRockerActor, SwitchState
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
 
@@ -79,11 +80,11 @@ class Sin22Actor(BaseRockerActor):
         return "Nodon SIN-2-2-01: 1 channel per configured device (no parameters)!"
 
     def send_teach_telegram(self, cli_arg):
-        command = ActorCommand.ON
+        command = SwitchCommand.ON
 
         if cli_arg:
             try:
-                command = self.extract_actor_command(cli_arg)
+                command = SwitchCommand.parse(cli_arg)
             except ValueError:
                 raise ValueError("could not interprete teach argument ({})!".format(cli_arg))
 

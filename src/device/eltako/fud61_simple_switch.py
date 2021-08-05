@@ -3,12 +3,13 @@ from typing import Dict
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import Packet, RadioPacket
+from src.command.dimmer_command import DimmerCommandType, DimmerCommand
 
 from src.common.conf_device_key import ConfDeviceKey
 from src.config import Config
 from src.device.base.base_cyclic import BaseCyclic
 from src.device.base.base_device import BaseDevice
-from src.device.base.base_rocker_actor import SwitchState, ActorCommand
+from src.device.base.base_rocker_actor import SwitchState
 from src.device.device_exception import DeviceException
 from src.device.eltako.fud61_actor import Fud61Actor
 from src.device.eltako.fud61_eep import Fud61Action
@@ -106,16 +107,16 @@ class Fud61SimpleSwitch(Fud61Actor):
             return  # skip, likely RELEASE
 
         operation = self._button_operations.get(rocker_action.button.value)
-        command = None  # Optional[ActorCommand]
+        command = None  # Optional[DimmerCommand]
         if operation == Fud61SwitchOperation.AUTO:
             if self._current_switch_state is SwitchState.ON:
-                command = ActorCommand.OFF
+                command = DimmerCommand(DimmerCommandType.OFF)
             elif self._current_switch_state is SwitchState.OFF:
-                command = ActorCommand.ON
+                command = DimmerCommand(DimmerCommandType.ON)
         elif operation == Fud61SwitchOperation.ON:
-            command = ActorCommand.ON
+            command = DimmerCommand(DimmerCommandType.ON)
         elif operation == Fud61SwitchOperation.OFF:
-            command = ActorCommand.OFF
+            command = DimmerCommand(DimmerCommandType.OFF)
 
         if command is None:
             self._logger.debug("skip rocker action: %s", rocker_action)

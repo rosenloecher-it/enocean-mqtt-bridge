@@ -2,20 +2,21 @@ import json
 import logging
 import random
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict
 
 from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
+from src.command.dimmer_command import DimmerCommand, DimmerCommandType
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
 from src.config import Config
 from src.device.base.base_cyclic import BaseCyclic
 from src.device.base.base_device import BaseDevice
 from src.device.base.base_mqtt import BaseMqtt
-from src.device.base.base_rocker_actor import SwitchState, ActorCommand
+from src.device.base.base_rocker_actor import SwitchState
 from src.device.device_exception import DeviceException
 from src.device.eltako.fud61_eep import Fud61Eep, Fud61Action, Fud61Command
 from src.enocean_connector import EnoceanMessage
@@ -113,7 +114,7 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
         return "FUD61: Set teach target to AUTO!"
 
     def send_teach_telegram(self, cli_arg):
-        self._execute_actor_command(ActorCommand.LEARN)
+        self._execute_actor_command(DimmerCommand(DimmerCommandType.LEARN))
 
     def get_mqtt_channel_subscriptions(self):
         """signal ensor state, outbound channel"""
@@ -134,38 +135,38 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
     def process_mqtt_message(self, message: MQTTMessage):
         try:
             self._logger.debug('process_mqtt_message: "%s"', message.payload)
-            command = ActorCommand.parse_dimmer(message.payload)
+            command = DimmerCommand.parse(message.payload)
             self._logger.debug("mqtt command: '{}'".format(repr(command)))
-            self._execute_actor_command(command=command[0], dim_state=command[1])
+            self._execute_actor_command(command)
         except ValueError:
             self._logger.error("cannot execute command! message: {}".format(message.payload))
 
-    def _execute_actor_command(self, command: ActorCommand, dim_state: Optional[int] = None):
+    def _execute_actor_command(self, command: DimmerCommand):
         action, props, packet = None, None, None
 
-        if command == ActorCommand.ON:
+        if command.is_on:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,
                 switch_state=SwitchState.ON,
                 dim_state=self._last_dim_state
             )
-        elif command == ActorCommand.OFF:
+        elif command.is_off:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,
                 switch_state=SwitchState.OFF
             )
-        elif command == ActorCommand.DIM and dim_state is not None:
+        elif command.is_dim:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,
                 # switch_state=SwitchState.ON if dim_state > 0 else SwitchState.OFF,
-                dim_state=dim_state
+                dim_state=command.value
             )
-        elif command == ActorCommand.UPDATE:
+        elif command.is_update:
             action = Fud61Action(command=Fud61Command.STATUS_REQUEST)
-        elif command == ActorCommand.LEARN:
+        elif command.is_learn:
             action = Fud61Action(command=Fud61Command.DIMMING, dim_state=100, learn=True)
         else:
-            raise ValueError("ActorCommand ({}, dim_state={}) not supported!".format(command, dim_state))
+            raise ValueError("command ({}) is not supported!".format(repr(command)))
 
         action.sender = self._enocean_sender
         action.destination = self._enocean_target or 0xffffffff
@@ -188,7 +189,7 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
 
         if diff_seconds is None or diff_seconds >= refresh_rate:
             self._last_status_request = now
-            self._execute_actor_command(ActorCommand.UPDATE)
+            self._execute_actor_command(DimmerCommand(DimmerCommandType.UPDATE))
 
     @property
     def _randomized_refresh_rate(self) -> int:

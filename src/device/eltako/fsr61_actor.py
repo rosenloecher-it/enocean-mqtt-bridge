@@ -9,7 +9,7 @@ from enocean.protocol.packet import RadioPacket
 from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
 
-from src.common.actor_command import ActorCommand
+from src.command.switch_command import SwitchCommand
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
 from src.common.switch_state import SwitchState
@@ -54,7 +54,7 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
             raise DeviceException(message)
 
     def send_teach_telegram(self, cli_arg):
-        self._execute_actor_command(ActorCommand.LEARN)
+        self._execute_actor_command(SwitchCommand.LEARN)
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload  # type: RadioPacket
@@ -107,24 +107,24 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
     def process_mqtt_message(self, message: MQTTMessage):
         try:
             self._logger.debug('process_mqtt_message: "%s"', message.payload)
-            command = ActorCommand.parse_switch(message.payload)
+            command = SwitchCommand.parse(message.payload)
             self._logger.debug("mqtt command: '{}'".format(repr(command)))
             self._execute_actor_command(command)
         except ValueError:
             self._logger.error("cannot execute command! message: {}".format(message.payload))
 
-    def _execute_actor_command(self, command: ActorCommand):
-        if command in [ActorCommand.ON, ActorCommand.OFF]:
+    def _execute_actor_command(self, command: SwitchCommand):
+        if command.is_on_or_off:
             action = Fsr61Action(
                 command=Fsr61Command.SWITCHING,
-                switch_state=SwitchState.ON if command == ActorCommand.ON else SwitchState.OFF,
+                switch_state=SwitchState.ON if command.is_on else SwitchState.OFF,
             )
-        elif command == ActorCommand.UPDATE:
+        elif command.is_update:
             action = Fsr61Action(command=Fsr61Command.STATUS_REQUEST)
-        elif command == ActorCommand.LEARN:
+        elif command.is_learn:
             action = Fsr61Action(command=Fsr61Command.SWITCHING, switch_state=SwitchState.ON, learn=True)
         else:
-            raise ValueError("ActorCommand ({}) not supported!".format(command))
+            raise ValueError("SwitchCommand ({}) not supported!".format(command))
 
         action.sender = self._enocean_sender
         action.destination = self._enocean_target or 0xffffffff
@@ -147,7 +147,7 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
 
         if diff_seconds is None or diff_seconds >= refresh_rate:
             self._last_status_request = now
-            self._execute_actor_command(ActorCommand.UPDATE)
+            self._execute_actor_command(SwitchCommand.UPDATE)
 
     @property
     def _randomized_refresh_rate(self) -> int:

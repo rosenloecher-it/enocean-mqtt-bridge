@@ -4,7 +4,7 @@ import unittest
 
 from paho.mqtt.client import MQTTMessage
 
-from src.common.actor_command import ActorCommand
+from src.command.dimmer_command import DimmerCommandType, DimmerCommand
 from src.common.switch_state import SwitchState
 from src.device.eltako.fud61_actor import Fud61Actor
 from src.device.eltako.fud61_eep import Fud61Action, Fud61Eep, Fud61Command
@@ -139,13 +139,13 @@ class TestFud61Actor(unittest.TestCase):
 
     def test_cyclic_status_requests(self):
         d = self.device
-        last_command = None  # type: ActorCommand
+        last_command = None  # type: DimmerCommand
 
-        def mock_execute_actor_command(command: ActorCommand):
+        def mock_execute_actor_command(command: DimmerCommand):
             nonlocal last_command
             last_command = command
 
-        def check_check_cyclic_tasks(now: datetime) -> ActorCommand:
+        def check_check_cyclic_tasks(now: datetime) -> DimmerCommand:
             nonlocal last_command
             last_command = None
             d.now = now
@@ -156,7 +156,7 @@ class TestFud61Actor(unittest.TestCase):
 
         time_now = d.now
         self.assertEqual(d._last_status_request, None)
-        self.assertEqual(check_check_cyclic_tasks(time_now), ActorCommand.UPDATE)
+        self.assertEqual(check_check_cyclic_tasks(time_now), DimmerCommand(DimmerCommandType.UPDATE))
         self.assertEqual(d._last_status_request, time_now)
 
         time_before = time_now
@@ -165,5 +165,5 @@ class TestFud61Actor(unittest.TestCase):
         self.assertEqual(d._last_status_request, time_before)
 
         time_now = time_now + datetime.timedelta(seconds=d.DEFAULT_REFRESH_RATE * 0.5)
-        self.assertEqual(check_check_cyclic_tasks(time_now), ActorCommand.UPDATE)
+        self.assertEqual(check_check_cyclic_tasks(time_now), DimmerCommand(DimmerCommandType.UPDATE))
         self.assertEqual(d._last_status_request, time_now)

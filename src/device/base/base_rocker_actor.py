@@ -4,12 +4,12 @@ from typing import Optional
 
 import time
 
+from src.command.switch_command import SwitchCommand
 from src.config import Config
 from src.common.json_attributes import JsonAttributes
 from src.device.base.base_device import BaseDevice
 from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
-from src.common.actor_command import ActorCommand
 from src.device.device_exception import DeviceException
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 from src.common.switch_state import SwitchState
@@ -81,11 +81,11 @@ class BaseRockerActor(BaseDevice, BaseMqtt):
             learn=learn
         )
 
-    def _execute_actor_command(self, command: ActorCommand, learn=False):
+    def _execute_actor_command(self, command: SwitchCommand, learn=False):
         destination = 0xffffffff
 
-        if command in [ActorCommand.ON, ActorCommand.OFF]:
-            action = RockerSwitchAction.ON if command == ActorCommand.ON else RockerSwitchAction.OFF
+        if command.is_on_or_off:
+            action = RockerSwitchAction.ON if command.is_on else RockerSwitchAction.OFF
             packet = self._create_switch_packet(action, destination=destination, learn=learn)
             self._send_enocean_packet(packet)
 
@@ -103,7 +103,7 @@ class BaseRockerActor(BaseDevice, BaseMqtt):
         self._logger.debug('process_mqtt_message: "%s"', message.payload)
 
         try:
-            command = ActorCommand.parse_switch(message.payload)
+            command = SwitchCommand.parse(message.payload)
             self._logger.debug("command '{}'".format(command))
             self._execute_actor_command(command)
         except ValueError:
