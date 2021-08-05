@@ -1,10 +1,10 @@
 import logging
 
+import enocean
 from src.config import Config
 from src.device.base.base_device import BaseDevice
 from src.common.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
-from src.device.device_exception import DeviceException
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
@@ -40,13 +40,15 @@ class LogDevice(BaseDevice):
         self._enocean_ids = set()
         self._enocean_ids_skip = set()
 
-        if self._enocean_target is None:
-            self._enocean_ids.add(None)  # listen to all!
-        else:
+        if self._enocean_target is not None:
             add_id_not_none(self._enocean_ids, self._enocean_target)
-            add_id_not_none(self._enocean_ids, config.get(ConfDeviceKey.ENOCEAN_IDS.value))
-
-        add_id_not_none(self._enocean_ids_skip, config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))
+        else:
+            enocean_ids = config.get(ConfDeviceKey.ENOCEAN_IDS.value)
+            if not enocean_ids:
+                self._enocean_ids.add(None)  # listen to all!
+            else:
+                add_id_not_none(self._enocean_ids, enocean_ids)
+            add_id_not_none(self._enocean_ids_skip, config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))
 
         self._dump_packet = Config.get_bool(config, ConfDeviceKey.DUMP_PACKETS, False)
 
@@ -55,21 +57,31 @@ class LogDevice(BaseDevice):
         if packet.sender_int in self._enocean_ids_skip:
             return
 
-        packet_type = PickleTools.extract_packet_type_text(packet.packet_type)
-
-        self._logger.info("proceed_enocean - packet(%s): %s", packet_type, packet)
+        packet_type = EnoceanTools.packet_type_to_string(packet.packet_type)
 
         if self._dump_packet and self._logger.isEnabledFor(logging.INFO):
-            self._logger.info("proceed_enocean - dump:\n%s", EnoceanTools.pickle_packet(packet))
+            self._logger.info(
+                "proceed_enocean - packet: %s; sender: %s; dest: %s; RORG: %s; dump:\n%s",
+                packet_type,
+                packet.sender_hex,
+                packet.destination_hex,
+                enocean.utils.to_hex_string(packet.rorg),
+                PickleTools.pickle_packet(packet)
+            )
+            packet.parse()
+            if packet.contains_eep:
+                self.logger.debug(
+                    'learn received, EEP detected, RORG: 0x%02X, FUNC: 0x%02X, TYPE: 0x%02X, Manufacturer: 0x%02X' %
+                    (packet.rorg, packet.rorg_func, packet.rorg_type, packet.rorg_manufacturer))  # noqa: E501
 
-        # self._try_to_extract(packet, 0xf6, 0x02, 0x02)
-
-        if None not in [self._eep.func, self._eep.rorg, self._eep.type]:
-            try:
-                data = self._extract_packet_props(packet)
-                self._logger.info("proceed_enocean - extracted: %s", data)
-            except DeviceException as ex:
-                self._logger.exception("proceed_enocean - could not extract:\n%s", ex)
+        else:
+            self._logger.info(
+                "proceed_enocean - packet: %s; sender: %s; dest: %s; RORG: %s",
+                packet_type,
+                packet.destination_hex,
+                enocean.utils.to_hex_string(packet.rorg),
+                packet.sender_hex
+            )
 
     def set_last_will(self):
         pass
