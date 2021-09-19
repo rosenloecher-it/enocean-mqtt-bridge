@@ -1,6 +1,6 @@
-attrs == 21.2.0
+attrs == 21.2
 git+git://github.com/rosenloecher-it/enocean@2020-11-29#egg=enocean
-paho-mqtt == 1.5.0
+paho-mqtt == 1.5
 py-dateutil == 2.2
-pyyaml == 5.3
-tzlocal == 2.0
+pyyaml == 5.4
+tzlocal == 2.1
