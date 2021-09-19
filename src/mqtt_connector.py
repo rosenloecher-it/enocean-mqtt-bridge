@@ -119,7 +119,7 @@ class MqttConnector:
 
             _logger.info("subscripted to MQTT channels (%s)", channels)
 
-    def _on_connect(self, mqtt_client, userdata, flags, rc):
+    def _on_connect(self, _mqtt_client, _userdata, flags, rc):
         """MQTT callback is called when client connects to MQTT server."""
         if rc == 0:
             self._is_connected = True
@@ -131,7 +131,7 @@ class MqttConnector:
         if self.on_connect:
             self.on_connect(rc)
 
-    def _on_disconnect(self, mqtt_client, userdata, rc):
+    def _on_disconnect(self, _mqtt_client, _userdata, rc):
         """MQTT callback for when the client disconnects from the MQTT server."""
         self._is_connected = False
         if rc == 0:
@@ -142,7 +142,7 @@ class MqttConnector:
         if self.on_disconnect:
             self.on_disconnect(rc)
 
-    def _on_message(self, mqtt_client, userdata, message):
+    def _on_message(self, _mqtt_client, _userdata, message):
         """MQTT callback when a message is received from MQTT server"""
         try:
             _logger.debug('_on_message: topic="%s" payload="%s"', message.topic, message.payload)

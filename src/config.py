@@ -20,6 +20,7 @@ class ConfSectionKey(Enum):
         return '{}'.format(self.name)
 
 
+# noinspection PyCompatibility
 class Config:
 
     CLI_KEYS_ONLY = [ConfMainKey.CONF_FILE, ConfMainKey.LOG_PRINT, ConfMainKey.SYSTEMD]
@@ -43,11 +44,11 @@ class Config:
             data = yaml.unsafe_load(stream)
 
         # main section
-        def update_main(section, item_enum):
+        def update_main(current_section, item_enum):
             item_name = item_enum.value
             value_cli = self._config.get(item_name)
             if value_cli is None:
-                value_file = section.get(item_name)
+                value_file = current_section.get(item_name)
                 self._config[item_name] = value_file
 
         key = ConfSectionKey.MAIN.value
@@ -202,18 +203,18 @@ class Config:
         value = config.get(key)
 
         if not isinstance(value, type(logging.INFO)):
-            input = str(value).lower().strip() if value is not None else value
-            if input == "debug":
+            input_value = str(value).lower().strip() if value is not None else value
+            if input_value == "debug":
                 value = logging.DEBUG
-            elif input == "info":
+            elif input_value == "info":
                 value = logging.INFO
-            elif input == "warning":
+            elif input_value == "warning":
                 value = logging.WARNING
-            elif input == "error":
+            elif input_value == "error":
                 value = logging.ERROR
             else:
-                if input is not None:
-                    print("cannot parse {} ({})!".format(key, input))
+                if input_value is not None:
+                    print("cannot parse {} ({})!".format(key, input_value))
                 value = default
 
         return value

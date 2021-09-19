@@ -1,7 +1,9 @@
 import abc
 
+from src.device.base.base_device import BaseDevice
 
-class BaseCyclic(abc.ABC):
+
+class BaseCyclic(BaseDevice):
 
     @abc.abstractmethod
     def check_cyclic_tasks(self):

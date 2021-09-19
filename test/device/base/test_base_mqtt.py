@@ -30,6 +30,9 @@ class _TestTimeoutDevice(BaseMqtt):
     def _now(self):
         return self.now
 
+    def name(self):
+        return self.__class__.__name__
+
     @property
     def _logger(self):
         return _dummy_logger

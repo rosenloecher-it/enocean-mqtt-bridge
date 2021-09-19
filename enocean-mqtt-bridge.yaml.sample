@@ -47,9 +47,8 @@ devices:
 
     # secific to "Eltako FFG7B-rw" devices; creates JSON
     # tranform states to: OPEN, CLOSED, TILTED, OFFLINE, ERROR
-    device_class:         "src.device.eltako.ffg7b_sensor.FFG7BSensor"
-    # device_class:       "src.device.log_device.LogDevice"  # log out as it is
-    # device_class:       "src.device.generic_device.GenericDevice"  # forward to MQTT as it is
+    device_type:          "EltakoFFG7B"
+    # device_type:        "Sniffer"  # log out as it is
 
     write_since:          True
     storage_file:         ./__work__/storage-winhandle-office.yaml
@@ -66,7 +65,7 @@ devices:
   dimmer-fud61:
     enocean_target:       0x0123456a
     enocean_sender:       0x0123456a  # choose yourself: base id + x
-    device_class:         "src.device.eltako.fud61_actor.Fud61Actor"
+    device_type:          "EltakoFud61"
     mqtt_channel_state:   "smarthome/enocean/light1/state"
     mqtt_retain:          False
     mqtt_channel_cmd:     "smarthome/enocean/light1/cmd
@@ -74,7 +73,7 @@ devices:
   switch-fsr61:
     enocean_target:       0x0123456a
     enocean_sender:       0x0123456a  # choose yourself: base id + x
-    device_class:         "src.device.eltako.fsr61_actor.Fsr61Actor"
+    device_type:          "EltakoFsr61"
     mqtt_channel_state:   "smarthome/enocean/light2/state"
     mqtt_retain:          False
     mqtt_channel_cmd:     "smarthome/enocean/light2/cmd

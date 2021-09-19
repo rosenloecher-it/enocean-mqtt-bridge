@@ -10,7 +10,11 @@ class ShutterCommandType(Enum):
     LEARN = BaseCommand.LEARN
     UPDATE = BaseCommand.UPDATE  # trigger updated notification
 
-    POS = "SET"  # %; 0 == up; 100 == down
+    CONFIG = "CONFIG"
+    STOP = "STOP"
+    POSITION = "POSITION"  # %; 0 == up; 100 == down
+    # OPEN_TIME
+    # CLOSE_TIME
 
 
 @attr.s
@@ -28,7 +32,7 @@ class ShutterCommand:
 
     @property
     def is_pos(self):
-        return self.type == ShutterCommandType.POS
+        return self.type == ShutterCommandType.POSITION
 
     @property
     def is_learn(self):
@@ -56,23 +60,28 @@ class ShutterCommand:
         result = None  # type: Optional[ShutterCommand]
 
         if text:
-            if text in ["DOWN", "ON"]:
-                result = ShutterCommand(ShutterCommandType.POS, 100)
-            elif text in ["UP", "OFF"]:
-                result = ShutterCommand(ShutterCommandType.POS, 0)
-            elif text in ["UPDATE", "REFRESH"]:
+
+            if text in ["CONFIG"]:
+                result = ShutterCommand(ShutterCommandType.CONFIG)
+            elif text in ["DOWN", "ON", "CLOSE"]:
+                result = ShutterCommand(ShutterCommandType.POSITION, 100)
+            elif text in ["UP", "OFF", "OPEN"]:
+                result = ShutterCommand(ShutterCommandType.POSITION, 0)
+            elif text in ["UPDATE", "REFRESH", "QUERY"]:
                 result = ShutterCommand(ShutterCommandType.UPDATE)
             elif text in ["LEARN", "TEACH", "TEACH-IN"]:
                 result = ShutterCommand(ShutterCommandType.LEARN)
+            elif text in ["STOP"]:
+                result = ShutterCommand(ShutterCommandType.STOP)
             else:
                 try:
-                    value = float(text)
+                    value = int(float(text))
                     if 0 <= value <= 100:
-                        result = ShutterCommand(ShutterCommandType.POS, value)
+                        result = ShutterCommand(ShutterCommandType.POSITION, value)
                     elif 0 > value:
-                        result = ShutterCommand(ShutterCommandType.POS, 0)
+                        result = ShutterCommand(ShutterCommandType.POSITION, 0)
                     elif 100 < value:
-                        result = ShutterCommand(ShutterCommandType.POS, 100)
+                        result = ShutterCommand(ShutterCommandType.POSITION, 100)
                 except ValueError:
                     pass
 

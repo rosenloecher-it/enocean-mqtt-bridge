@@ -7,7 +7,7 @@ from typing import Optional
 from src.common.json_attributes import JsonAttributes
 from src.config import Config
 from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_device import BaseDevice
+from src.device.base.base_enocean import BaseEnocean
 from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
 from src.common.eep import Eep
@@ -51,7 +51,7 @@ class HandleValue(Enum):
         return None
 
 
-class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
+class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
     """Specialized class to forward notfications of Eltako FFG7B-rw (similar to Eltako TF-FGB) windows/door handles.
     Output is a json dict with values of `HandleValues`. Additionally there is a `SINCE` field (JSON) which indicates
     the last change time.
@@ -68,7 +68,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
     )
 
     def __init__(self, name):
-        BaseDevice.__init__(self, name)
+        BaseEnocean.__init__(self, name)
         BaseMqtt.__init__(self)
         BaseCyclic.__init__(self)
 
@@ -82,7 +82,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         self._storage = Storage()
 
     def set_config(self, config):
-        BaseDevice.set_config(self, config)
+        BaseEnocean.set_config(self, config)
         BaseMqtt.set_config(self, config)
         BaseCyclic.set_config(self, config)
 
@@ -151,7 +151,7 @@ class FFG7BSensor(BaseDevice, BaseMqtt, BaseCyclic):
         self._check_and_send_offline()
 
     @classmethod
-    def extract_handle_state(self, value):
+    def extract_handle_state(cls, value):
         if value == 3:
             return HandleValue.CLOSED
         elif value == 2:

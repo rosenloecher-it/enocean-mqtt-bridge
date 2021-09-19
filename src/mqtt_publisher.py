@@ -1,6 +1,8 @@
 from collections import namedtuple
+from typing import Optional
 
 from src.mqtt_connector import MqttConnector
+
 
 LastWill = namedtuple("LastWill", ["channel", "message", "qos", "retain"])
 
@@ -8,7 +10,7 @@ LastWill = namedtuple("LastWill", ["channel", "message", "qos", "retain"])
 class MqttPublisher:
 
     def __init__(self):
-        self._mqtt = None  # type: MqttConnector
+        self._mqtt = None  # type: Optional[MqttConnector]
         self.stored_last_wills = []
 
     def open(self, mqtt: MqttConnector):

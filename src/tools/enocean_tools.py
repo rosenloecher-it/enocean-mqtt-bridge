@@ -1,14 +1,16 @@
+from typing import Dict
+
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
-from src.device.device_exception import DeviceException
 from src.common.eep import Eep
+from src.device.device_exception import DeviceException
 
 
 class EnoceanTools:
 
     @classmethod
-    def int_to_byte_list(cls, value: int, list_length: int):
+    def int_to_byte_list(cls, value: int):
         result = []
         for i in range(0, 4):
             result.append(value >> (i * 8) & 0xff)
@@ -16,11 +18,7 @@ class EnoceanTools:
         return result
 
     @classmethod
-    def extract_props(cls, packet: RadioPacket, eep: Eep):
-        """
-        :param enocean.protocol.packet.RadioPacket packet:
-        :rtype: dict{str, object}
-        """
+    def extract_props(cls, packet: RadioPacket, eep: Eep) -> Dict[str, object]:
         if packet.packet_type != PACKET.RADIO:
             raise DeviceException("no radio paket ({})!".format(cls.packet_type_to_string(packet.packet_type)))
 

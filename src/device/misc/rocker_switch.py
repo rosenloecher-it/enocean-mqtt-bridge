@@ -5,7 +5,7 @@ from enocean.protocol.packet import RadioPacket
 
 from src.config import Config
 from src.common.json_attributes import JsonAttributes
-from src.device.base.base_device import BaseDevice
+from src.device.base.base_enocean import BaseEnocean
 from src.device.base.base_mqtt import BaseMqtt
 from src.common.conf_device_key import ConfDeviceKey
 from src.enocean_connector import EnoceanMessage
@@ -15,10 +15,10 @@ from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress
 _MessageData = namedtuple("_MessageData", ["channel", "state", "button"])
 
 
-class RockerSwitch(BaseDevice, BaseMqtt):
+class RockerSwitch(BaseEnocean, BaseMqtt):
 
     def __init__(self, name):
-        BaseDevice.__init__(self, name)
+        BaseEnocean.__init__(self, name)
         BaseMqtt.__init__(self)
 
         self._eep = RockerSwitchTools.DEFAULT_EEP.clone()
@@ -27,7 +27,7 @@ class RockerSwitch(BaseDevice, BaseMqtt):
         self._mqtt_channels_long = {}
 
     def set_config(self, config):
-        BaseDevice.set_config(self, config)
+        BaseEnocean.set_config(self, config)
         BaseMqtt._set_config(self, config)
 
         items = [

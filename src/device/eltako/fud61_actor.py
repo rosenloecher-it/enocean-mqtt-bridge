@@ -2,7 +2,7 @@ import json
 import logging
 import random
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
 from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
@@ -14,7 +14,7 @@ from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
 from src.config import Config
 from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_device import BaseDevice
+from src.device.base.base_enocean import BaseEnocean
 from src.device.base.base_mqtt import BaseMqtt
 from src.device.base.base_rocker_actor import SwitchState
 from src.device.device_exception import DeviceException
@@ -24,7 +24,7 @@ from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
+class Fud61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
     """
     Specialized for: Eltako FUD61NP(N)-230V (dimmer)
 
@@ -52,7 +52,7 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
     MIN_DIM_STATE = 10
 
     def __init__(self, name):
-        BaseDevice.__init__(self, name)
+        BaseEnocean.__init__(self, name)
         BaseMqtt.__init__(self)
         BaseCyclic.__init__(self)
 
@@ -60,19 +60,19 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
 
         self._default_dim_state = Fud61Eep.DEFAULT_DIM_STATE
         self._last_dim_state = Fud61Eep.DEFAULT_DIM_STATE
-        self._current_switch_state = None  # type: SwitchState
+        self._current_switch_state = None  # type: Optional[SwitchState]
 
-        self._last_status_request = None  # type: datetime
+        self._last_status_request = None  # type: Optional[datetime]
 
     def set_config(self, config):
-        BaseDevice.set_config(self, config)
+        BaseEnocean.set_config(self, config)
         BaseMqtt.set_config(self, config)
         BaseCyclic.set_config(self, config)
 
         key = ConfDeviceKey.MQTT_CHANNEL_CMD
         self._mqtt_channel_cmd = Config.get_str(config, key)
         if not self._mqtt_channel_cmd:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self._name)
+            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self.name)
             self._logger.error(message)
             raise DeviceException(message)
 
@@ -142,8 +142,6 @@ class Fud61Actor(BaseDevice, BaseMqtt, BaseCyclic):
             self._logger.error("cannot execute command! message: {}".format(message.payload))
 
     def _execute_actor_command(self, command: DimmerCommand):
-        action, props, packet = None, None, None
-
         if command.is_on:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,

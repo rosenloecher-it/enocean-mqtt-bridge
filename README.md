@@ -16,7 +16,7 @@ Features:
 - Supported/tested Enocean devices:
   - Eltako FFG7B-rw (nearly identical to Eltako TF-FGB; windows/door handle sensor)
     - check sensor state based on repeated messages and send a configurable OFFLINE message if the device is silent for a configurable timeout.
-    - Configuration class: `src.device.ffg7b_sensor.FFG7BSensor`
+    - Configuration device name: `EltakoFFG7B`
     - outputs JSON with time of last state change (SINCE)
       ```json
       {
@@ -29,22 +29,22 @@ Features:
     - Transform states to (STATUS): OPEN, CLOSED, TILTED, OFFLINE, ERROR   
   - Eltako FSR61-230V (ON/OFF relay switch)
       - Switch and get notifications about state changes.
-      - Configuration class: `src.device.fsr61_actor.Fsr61Actor`
+      - Configuration device name: `EltakoFsr61`
   - Eltako FUD61NP(N)-230V (dimmer)
       - Dim and switch ON/OFF and get notifications about state changes. Delivers dim state in %.
-      - Configuration class: `src.device.fud61_actor.Fud61Actor`
-      - Special switch device (`src.device.fud61_simple_switch.Fud61SimpleSwitch`) to have rocker switches without 
+      - Configuration device name: `EltakoFud61`
+      - Special switch device (`EltakoFud61SimpleSwitch`) to have rocker switches without 
         dimming functionality! (If you teach in rocker switches directly to an Eltako FUD61NP(N), the switches are used 
         for dimming too, which means all real manual button presses must be timed more or less precisly to NOT trigger 
         the dimming. My 4 year old daughter does not get this right always. There is no MQTT connection involved.)     
   - NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch):
       - Switch and get notifications about state changes.
-      - Configuration class: `src.device.nodon_sin22_actor.NodonSin22Actor`
+      - Configuration device name: `NodonSin22`
   - RockerSwitch (manual wireless radio switch)
       - Forward manual state changes.
-      - Configuration class: `src.device.rocker_switch.RockerSwitch`
+      - Configuration device name: `RockerSwitch`
   - Generic Log-Device to sniff and log incoming Enocean messages
-      - Configuration class: `src.device.log_device.LogDevice`
+      - Configuration device name: `Sniffer`
 
 
 ## Startup

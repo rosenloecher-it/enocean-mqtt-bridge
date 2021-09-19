@@ -1,13 +1,15 @@
 import abc
+from typing import Optional
 
 from paho.mqtt.client import MQTTMessage
 
-from src.config import Config
 from src.common.conf_device_key import ConfDeviceKey
+from src.config import Config
+from src.device.base.base_device import BaseDevice
 from src.device.device_exception import DeviceException
 
 
-class BaseMqtt(abc.ABC):
+class BaseMqtt(BaseDevice):
 
     DEFAULT_MQTT_QOS = 1
     DEFAULT_MQTT_KEEPALIVE = 60
@@ -16,27 +18,24 @@ class BaseMqtt(abc.ABC):
     DEFAULT_MQTT_PROTOCOL = 4  # 5==MQTTv5, default: 4==MQTTv311, 3==MQTTv31
 
     def __init__(self):
+        super().__init__()
+
         self._mqtt_channel_state = None
         self._mqtt_last_will = None
         self._mqtt_qos = None
         self._mqtt_retain = None
 
-        self._mqtt_time_offline = None  # type: int # seconds
+        self._mqtt_time_offline = None  # type: Optional[int]  # seconds
         self._mqtt_last_refresh = self._now()
 
         self._mqtt_publisher = None
-
-    @property
-    @abc.abstractmethod
-    def _logger(self):
-        raise NotImplementedError()
 
     def set_config(self, config):
         self._set_config(config)
 
         # check settings
         if not self._mqtt_channel_state:
-            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.MQTT_CHANNEL_STATE.value, self._name)
+            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.MQTT_CHANNEL_STATE.value, self.name)
             self._logger.error(message)
             raise DeviceException(message)
 

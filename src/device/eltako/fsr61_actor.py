@@ -7,7 +7,6 @@ from typing import Optional
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 from paho.mqtt.client import MQTTMessage
-from tzlocal import get_localzone
 
 from src.command.switch_command import SwitchCommand
 from src.common.conf_device_key import ConfDeviceKey
@@ -15,7 +14,7 @@ from src.common.json_attributes import JsonAttributes
 from src.common.switch_state import SwitchState
 from src.config import Config
 from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_device import BaseDevice
+from src.device.base.base_enocean import BaseEnocean
 from src.device.base.base_mqtt import BaseMqtt
 from src.device.device_exception import DeviceException
 from src.device.eltako.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
@@ -25,7 +24,7 @@ from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
+class Fsr61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
     """
     Specialized for: Eltako FSR61-230V (an ON/OFF relay switch)
     """
@@ -33,23 +32,23 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
     DEFAULT_REFRESH_RATE = 300  # in seconds
 
     def __init__(self, name):
-        BaseDevice.__init__(self, name)
+        BaseEnocean.__init__(self, name)
         BaseMqtt.__init__(self)
         BaseCyclic.__init__(self)
 
         self._mqtt_channel_cmd = None
 
-        self._last_status_request = None  # type: datetime
+        self._last_status_request = None  # type: Optional[datetime]
 
     def set_config(self, config):
-        BaseDevice.set_config(self, config)
+        BaseEnocean.set_config(self, config)
         BaseMqtt.set_config(self, config)
         BaseCyclic.set_config(self, config)
 
         key = ConfDeviceKey.MQTT_CHANNEL_CMD
         self._mqtt_channel_cmd = Config.get_str(config, key)
         if not self._mqtt_channel_cmd:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self._name)
+            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self.name)
             self._logger.error(message)
             raise DeviceException(message)
 
@@ -152,7 +151,3 @@ class Fsr61Actor(BaseDevice, BaseMqtt, BaseCyclic):
     @property
     def _randomized_refresh_rate(self) -> int:
         return self.DEFAULT_REFRESH_RATE + random.randint(0, self.DEFAULT_REFRESH_RATE * 0.1)
-
-    def _now(self):
-        """overwrite in test to simulate different times"""
-        return datetime.now(tz=get_localzone())

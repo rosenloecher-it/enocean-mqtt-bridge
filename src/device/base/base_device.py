@@ -1,130 +1,41 @@
 import abc
+import datetime
 import logging
-from datetime import datetime
-from enum import Enum
-from threading import Timer
 from typing import Optional
 
-from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import RadioPacket
 from tzlocal import get_localzone
 
-from src.config import Config
-from src.common.conf_device_key import ConfDeviceKey
-from src.common.eep import Eep
-from src.enocean_connector import EnoceanMessage
-from src.device.device_exception import DeviceException
-from src.tools.enocean_tools import EnoceanTools
-
-
-class PropName(Enum):
-    RSSI = "RSSI"
+_class_logger = logging.getLogger(__name__)
 
 
 class BaseDevice(abc.ABC):
-    """Encapsulates Enocean basics. A device without Enocean makes no sense in this app!"""
+    """Encapsulates some basics."""
 
-    MISSING_CONFIG_FOR_NAME = "no '{}' configured for device '{}'!"
-
-    def __init__(self, name):
-        if not name:
-            raise RuntimeError("No valid name!")
-
-        self._name = name
-        self._logger_by_name = logging.getLogger(self._name)
-        self._log_sent_packets = False
-        self._enocean_connector = None
-
-        self._enocean_target = None
-        self._enocean_sender = None  # to distinguish between different actors
-
-        self._eep = None  # type: Eep
+    def __init__(self):
+        self.__name = None  # type: Optional[str]
+        self.__logger_by_name = None  # type: Optional[logging.Logger]
 
     @property
     def _logger(self):
-        return self._logger_by_name
+        if self.__logger_by_name:
+            return self.__logger_by_name
+
+        if self.__name:
+            self.__logger_by_name = logging.getLogger(self.__name)
+            return self.__logger_by_name
+
+        return _class_logger
+
+    def _set_name(self, name):
+        if self.__name:
+            raise RuntimeError("Initialize only once!")
+
+        self.__name = name
 
     @property
     def name(self):
-        return self._name
-
-    @property
-    def enocean_targets(self):
-        return [self._enocean_target]
-
-    def set_enocean_connector(self, enocean):
-        self._enocean_connector = enocean
-
-    def set_config(self, config):
-        self._enocean_target = Config.get_int(config, ConfDeviceKey.ENOCEAN_TARGET, None)
-        self._enocean_sender = Config.get_int(config, ConfDeviceKey.ENOCEAN_SENDER, None)
-        self._log_sent_packets = Config.get_bool(config, ConfDeviceKey.LOG_SENT_PACKETS, False)
-
-        if not self._enocean_target:
-            message = self.MISSING_CONFIG_FOR_NAME.format(ConfDeviceKey.ENOCEAN_TARGET.value, self._name)
-            self._logger.error(message)
-            raise DeviceException(message)
-
-    def _extract_default_radio_packet(self, message: EnoceanMessage) -> Optional[RadioPacket]:
-        packet = message.payload  # type: RadioPacket
-        if packet.packet_type != PACKET.RADIO:
-            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
-            return None
-        if packet.rorg != self._eep.rorg:
-            self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
-            return None
-
-        return packet
-
-    def _extract_packet_props(self, packet):
-        """
-        :param enocean.protocol.packet.RadioPacket packet:
-        :rtype: dict{str, object}
-        """
-        if packet.rorg == self._eep.rorg:
-            try:
-                data = EnoceanTools.extract_props(packet=packet, eep=self._eep)
-            except AttributeError as ex:
-                raise DeviceException(ex)
-        else:
-            data = {}
-
-        return data
-
-    def _send_enocean_packet(self, packet, delay=0):
-
-        instance = self
-
-        def do_send():
-            try:
-                packet.build()
-                if self._log_sent_packets:
-                    instance._logger_by_name.debug("packet is being sent: %s", packet)
-
-                instance._enocean_connector.send(packet)
-            except Exception as ex:
-                instance._logger_by_name.exception(ex)
-
-        if delay < 0.001:
-            do_send()
-        else:
-            t = Timer(delay, do_send)
-            t.start()
-
-    @abc.abstractmethod
-    def process_enocean_message(self, message: EnoceanMessage):
-        """
-        :param src.enocean_interface.EnoceanMessage message:
-        """
-        raise NotImplementedError()
-
-    def get_teach_print_message(self):
-        return None
-
-    def send_teach_telegram(self, cli_arg):
-        # NotImplementedError matchs better, but let PyCharm complain about not implemented functions.
-        raise RuntimeError("No teaching implemented!")
+        return self.__name or self.__class__.__name__ + "???"
 
     def _now(self):
         """overwrite in test to simulate different times"""
-        return datetime.now(tz=get_localzone())
+        return datetime.datetime.now(tz=get_localzone())

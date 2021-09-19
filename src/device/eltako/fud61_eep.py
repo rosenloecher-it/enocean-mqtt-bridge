@@ -240,12 +240,12 @@ class Fud61Eep:
         return action
 
     @classmethod
-    def extract_dim_value(cls, value, range):
+    def extract_dim_value(cls, value, range_type):
         if value is None:
             return None
-        if range == 0:
+        if range_type == 0:
             return value
-        elif range == 1:
+        elif range_type == 1:
             return int(value / 256 + 0.5)
         else:
             return None

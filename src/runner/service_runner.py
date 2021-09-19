@@ -13,6 +13,7 @@ from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher
 from src.runner.runner import Runner
 
+
 _logger = logging.getLogger(__name__)
 
 
@@ -117,7 +118,7 @@ class ServiceRunner(Runner):
                     channels = [c for c in self._mqtt_channels_subscriptions]
                     self._mqtt_connector.subscribe(channels)
 
-                    for id, devices in self._enocean_ids.items():
+                    for _, devices in self._enocean_ids.items():
                         for device in devices:
                             if isinstance(device, BaseMqtt):
                                 device.open_mqtt()
@@ -200,14 +201,14 @@ class ServiceRunner(Runner):
     def _connect_enocean(self):
         super()._connect_enocean()
 
-        for id, devices in self._enocean_ids.items():
+        for _, devices in self._enocean_ids.items():
             for device in devices:
                 device.set_enocean_connector(self._enocean_connector)
 
     def _collect_mqtt_subscriptions(self):
         self._mqtt_channels_subscriptions = {}
 
-        for id, devices in self._enocean_ids.items():
+        for _, devices in self._enocean_ids.items():
             for device in devices:
                 if isinstance(device, BaseMqtt):
                     channels = device.get_mqtt_channel_subscriptions()

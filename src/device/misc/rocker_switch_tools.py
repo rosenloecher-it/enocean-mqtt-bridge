@@ -50,7 +50,7 @@ class RockerButton(IntEnum):
         return None
 
 
-class RockerAction():
+class RockerAction:
 
     def __init__(self, press: RockerPress = None, button: RockerButton = None, is_error=False):
         self.press = press

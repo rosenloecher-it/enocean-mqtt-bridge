@@ -1,15 +1,16 @@
 import logging
 
-import enocean
-from src.config import Config
-from src.device.base.base_device import BaseDevice
+from enocean import utils as enocean_utils
+
 from src.common.conf_device_key import ConfDeviceKey
+from src.config import Config
+from src.device.base.base_enocean import BaseEnocean
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class LogDevice(BaseDevice):
+class LogEnocean(BaseEnocean):
 
     def __init__(self, name):
         super().__init__(name)
@@ -28,13 +29,13 @@ class LogDevice(BaseDevice):
     def set_config(self, config):
         # don't call base function
 
-        def add_id_not_none(target, input):
-            if input is None:
+        def add_id_not_none(target, id_input):
+            if id_input is None:
                 return
-            elif type(input) == int:
+            elif type(id_input) == int:
                 target.add(id)
             else:
-                for i in input:
+                for i in id_input:
                     target.add(i)
 
         self._enocean_ids = set()
@@ -65,12 +66,12 @@ class LogDevice(BaseDevice):
                 packet_type,
                 packet.sender_hex,
                 packet.destination_hex,
-                enocean.utils.to_hex_string(packet.rorg),
+                enocean_utils.to_hex_string(packet.rorg),
                 PickleTools.pickle_packet(packet)
             )
             packet.parse()
             if packet.contains_eep:
-                self.logger.debug(
+                self._logger.debug(
                     'learn received, EEP detected, RORG: 0x%02X, FUNC: 0x%02X, TYPE: 0x%02X, Manufacturer: 0x%02X' %
                     (packet.rorg, packet.rorg_func, packet.rorg_type, packet.rorg_manufacturer))  # noqa: E501
 
@@ -79,7 +80,7 @@ class LogDevice(BaseDevice):
                 "proceed_enocean - packet: %s; sender: %s; dest: %s; RORG: %s",
                 packet_type,
                 packet.destination_hex,
-                enocean.utils.to_hex_string(packet.rorg),
+                enocean_utils.to_hex_string(packet.rorg),
                 packet.sender_hex
             )
 

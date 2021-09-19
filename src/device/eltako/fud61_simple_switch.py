@@ -8,7 +8,7 @@ from src.command.dimmer_command import DimmerCommandType, DimmerCommand
 from src.common.conf_device_key import ConfDeviceKey
 from src.config import Config
 from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_device import BaseDevice
+from src.device.base.base_enocean import BaseEnocean
 from src.device.base.base_rocker_actor import SwitchState
 from src.device.device_exception import DeviceException
 from src.device.eltako.fud61_actor import Fud61Actor
@@ -64,14 +64,14 @@ class Fud61SimpleSwitch(Fud61Actor):
 
     def set_config(self, config):
         # completely overwrite base function to get rid of ConfDeviceKey.MQTT_CHANNEL_CMD
-        BaseDevice.set_config(self, config)
+        BaseEnocean.set_config(self, config)
         # skip, not needed: BaseMqtt.set_config(self, config)
         BaseCyclic.set_config(self, config)
 
         key = ConfDeviceKey.ENOCEAN_TARGET_SWITCH
         self._enocean_target_switch = Config.get_int(config, key, None)
         if not self._enocean_target_switch:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key.enum, self._name)
+            message = self.MISSING_CONFIG_FOR_NAME.format(key.enum, self.name)
             self._logger.error(message)
             raise DeviceException(message)
 
@@ -89,7 +89,7 @@ class Fud61SimpleSwitch(Fud61Actor):
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload  # type: Packet
-        if packet.packet_type != PACKET.RADIO:
+        if packet.packet_type != PACKET.RADIO or not isinstance(packet, RadioPacket):
             self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
             return
 

@@ -60,4 +60,4 @@ class TeachRunner(Runner):
         print("received: %s", packet)
 
         if isinstance(packet, UTETeachInPacket):
-            print('new device learned! The ID is %s.' % (packet.sender_hex))
+            print('new device learned! The ID is %s.' % packet.sender_hex)

@@ -1,17 +1,17 @@
 import abc
 import logging
 import signal
-
 import time
 
-import enocean
+from enocean import utils as enocean_utils
 
-from src.config import ConfMainKey
 from src.common.conf_device_key import ConfDeviceKey
-from src.device.base.base_device import BaseDevice
+from src.config import ConfMainKey
+from src.device.base.base_enocean import BaseEnocean
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector
 from src.enocean_packet_factory import EnoceanPacketFactory
+from src.runner.device_registry import DeviceRegistry
 
 _logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class Runner(abc.ABC):
                 # got a base id
                 EnoceanPacketFactory.set_sender_id(base_id)
                 if type(base_id) == list:
-                    base_id = enocean.utils.combine_hex(base_id)
+                    base_id = enocean_utils.combine_hex(base_id)
                 _logger.info("base_id=%s", hex(base_id))
                 break
 
@@ -79,18 +79,23 @@ class Runner(abc.ABC):
         if not name:
             raise DeviceException("invalid name => device skipped!")
 
-        device_class_import = config.get(ConfDeviceKey.DEVICE_CLASS.value)
+        device_type_key = config.get(ConfDeviceKey.DEVICE_TYPE.value)
+        if device_type_key in [None, "dummy"]:
+            return None  # skip
 
-        if device_class_import in [None, "dummy"]:
-            return  # skip
+        device_class = DeviceRegistry.get(device_type_key)
+        if not device_class:
+            device_class = self._load_class(device_type_key)
+
+        if not device_class:
+            return None  # skip
 
         try:
-            device_class = self._load_class(device_class_import)
             device_instance = device_class(name)
             self._check_device_class(device_instance)
         except Exception as ex:
             _logger.exception(ex)
-            raise DeviceException("cannot instantiate device: name='{}', class='{}'!".format(device_class_import, name))
+            raise DeviceException("cannot instantiate device: name='{}', class='{}'!".format(device_class, name))
 
         device_instance.set_config(config)
 
@@ -101,18 +106,18 @@ class Runner(abc.ABC):
         raise NotImplementedError
 
     @classmethod
-    def _load_class(cls, path: str) -> BaseDevice.__class__:
+    def _load_class(cls, path: str) -> BaseEnocean.__class__:
         delimiter = path.rfind(".")
         classname = path[delimiter + 1:len(path)]
-        mod = __import__(path[0:delimiter], globals(), locals(), [classname])
-        return getattr(mod, classname)
+        module_path = __import__(path[0:delimiter], globals(), locals(), [classname])
+        return getattr(module_path, classname)
 
     @classmethod
     def _check_device_class(cls, device):
-        if not isinstance(device, BaseDevice):
+        if not isinstance(device, BaseEnocean):
             if device:
                 class_info = device.__class__.__module__ + '.' + device.__class__.__name__
             else:
                 class_info = 'None'
-            class_target = BaseDevice.__module__ + '.' + BaseDevice.__name__
+            class_target = BaseEnocean.__module__ + '.' + BaseEnocean.__name__
             raise TypeError("{} is not of type {}!".format(class_info, class_target))

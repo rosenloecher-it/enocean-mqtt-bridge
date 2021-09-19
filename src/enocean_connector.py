@@ -1,4 +1,5 @@
 import logging
+# noinspection PyCompatibility
 import queue
 from collections import namedtuple
 

@@ -13,7 +13,7 @@ class EnoceanPacketFactory:
     @classmethod
     def set_sender_id(cls, sender_id):
         if type(sender_id) == int:
-            cls._sender_id = EnoceanTools.int_to_byte_list(sender_id, 4)
+            cls._sender_id = EnoceanTools.int_to_byte_list(sender_id)
         else:
             cls._sender_id = copy.deepcopy(sender_id)
 
@@ -22,11 +22,11 @@ class EnoceanPacketFactory:
 
         destination_id = destination or 0xffffffff
         if type(destination_id) == int:
-            destination_id = EnoceanTools.int_to_byte_list(destination_id, 4)
+            destination_id = EnoceanTools.int_to_byte_list(destination_id)
 
         sender_id = sender or cls._sender_id
         if type(sender_id) == int:
-            sender_id = EnoceanTools.int_to_byte_list(sender_id, 4)
+            sender_id = EnoceanTools.int_to_byte_list(sender_id)
 
         return RadioPacket.create(
             eep.rorg, eep.func, eep.type, direction=eep.direction, command=eep.command,

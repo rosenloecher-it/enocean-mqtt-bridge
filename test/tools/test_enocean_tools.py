@@ -21,7 +21,7 @@ class TestEnoceanTools(unittest.TestCase):
         eep = Eep(rorg=0xf6, func=0x02, type=0x02)
         packet_in = EnoceanPacketFactory.create_packet(
             eep=eep,
-            destination=EnoceanTools.int_to_byte_list(0xffffffff, 4),
+            destination=EnoceanTools.int_to_byte_list(0xffffffff),
             learn=False,
             **props_in
         )
@@ -33,7 +33,7 @@ class TestEnoceanTools(unittest.TestCase):
 
     def test_int_to_byte_list(self):
         value = 0x034567af
-        byte_list = EnoceanTools.int_to_byte_list(value, 4)
+        byte_list = EnoceanTools.int_to_byte_list(value)
         result = enocean.utils.combine_hex(byte_list)
         self.assertEqual(result, value)
 
