@@ -33,7 +33,7 @@ class _MockDevice(Fud61Actor):
 
         super().__init__("mock")
 
-        self._enocean_id = 0xffffffff
+        self._enocean_target = 0x12121212
 
         self.messages = []
         self.packets = []
@@ -60,14 +60,14 @@ class TestFud61Actor(unittest.TestCase):
         device = self.device
 
         packet = PickleTools.unpickle(PACKET_STATUS_ON_33)
-        message = EnoceanMessage(payload=packet, enocean_id=device._enocean_id)
+        message = EnoceanMessage(payload=packet, enocean_id=device._enocean_target)
 
         device.process_enocean_message(message)
 
         self.assertEqual(len(device.messages), 1)
         result = json.loads(device.messages[0])
 
-        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': 'on', 'rssi': -55, 'dim_state': 33}
+        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': 'on', 'dim_state': 33}
         self.assertEqual(result, compare)
 
     def test_proceed_enocean_2(self):
@@ -76,7 +76,7 @@ class TestFud61Actor(unittest.TestCase):
         action = Fud61Action(Fud61Command.DIMMING, dim_state=90)
         packet = Fud61Eep.create_packet(action)
         packet.dBm = -55
-        message = EnoceanMessage(payload=packet, enocean_id=device._enocean_id)
+        message = EnoceanMessage(payload=packet, enocean_id=device._enocean_target)
         device.process_enocean_message(message)
 
         self.assertEqual(device._last_dim_state, action.dim_state)
@@ -85,7 +85,7 @@ class TestFud61Actor(unittest.TestCase):
         self.assertEqual(len(device.messages), 1)
         result = json.loads(device.messages[0])
 
-        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': 'on', 'rssi': -55, 'dim_state': 90}
+        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': 'on', 'dim_state': 90}
         self.assertEqual(result, compare)
 
     def test_mqtt_command(self):
@@ -117,7 +117,7 @@ class TestFud61Actor(unittest.TestCase):
         # simulate state
         action_state_simu = Fud61Action(Fud61Command.DIMMING, dim_state=action.dim_state)
         packet_state_simu = Fud61Eep.create_packet(action_state_simu)
-        message_state_simu = EnoceanMessage(payload=packet_state_simu, enocean_id=device._enocean_id)
+        message_state_simu = EnoceanMessage(payload=packet_state_simu, enocean_id=device._enocean_target)
         device.process_enocean_message(message_state_simu)
         self.assertEqual(device._last_dim_state, action.dim_state)
 
@@ -136,6 +136,18 @@ class TestFud61Actor(unittest.TestCase):
         # loop 6 - request update
         action = process_mqtt_message_to_action(b"update")
         self.assertEqual(action.command, Fud61Command.STATUS_REQUEST)
+
+        # loop 7 - toggle off
+        action = process_mqtt_message_to_action(b"toggle")
+        self.assertEqual(action.switch_state, SwitchState.OFF)
+        self.assertEqual(action.dim_state, 0)
+
+        # loop 7 - toggle on
+        device._current_switch_state = SwitchState.OFF  # missing enocean update (process_enocean_message)
+        action = process_mqtt_message_to_action(b"toggle")
+        self.assertEqual(action.command, Fud61Command.DIMMING)
+        self.assertEqual(action.switch_state, SwitchState.ON)
+        self.assertEqual(action.dim_state, 50)
 
     def test_cyclic_status_requests(self):
         d = self.device

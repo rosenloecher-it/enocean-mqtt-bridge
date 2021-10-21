@@ -21,7 +21,7 @@ class _MockDevice(Fsr61Actor):
 
         super().__init__("mock")
 
-        self._enocean_id = 0xffffffff
+        self._enocean_target = 0x12121212
 
         self.messages = []
         self.packets = []
@@ -58,16 +58,16 @@ class TestFsr61Actor(unittest.TestCase):
             action = RockerAction(RockerPress.PRESS_SHORT, scenario.rocker_button)
             packet = RockerSwitchTools.create_packet(action)
             packet.dBm = -55
-            message = EnoceanMessage(payload=packet, enocean_id=device._enocean_id)
+            message = EnoceanMessage(payload=packet, enocean_id=device._enocean_target)
 
             device.messages = []
             device.process_enocean_message(message)
-            self.assertEqual(device._mqtt_last_refresh, device._now())
+            self.assertEqual(device._last_refresh_time, device._now())
 
             self.assertEqual(len(device.messages), 1)
             result = json.loads(device.messages[0])
 
-            compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': scenario.expected_state, 'rssi': -55}
+            compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': scenario.expected_state}
             self.assertEqual(result, compare)
 
     def test_mqtt_command(self):

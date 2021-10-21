@@ -9,8 +9,6 @@ class ConfMainKey(Enum):
     LOG_MAX_COUNT = "log_max_count"
     LOG_PRINT = "log_print"
     SYSTEMD = "systemd"
-    TEACH = "teach"
-    TEACH_XTRA = "teach_xtra"
 
     ENOCEAN_PORT = "enocean_port"
 

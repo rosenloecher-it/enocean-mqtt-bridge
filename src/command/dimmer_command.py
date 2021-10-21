@@ -13,6 +13,7 @@ class DimmerCommandType(Enum):
 
     OFF = "OFF"
     ON = "ON"
+    TOGGLE = "TOGGLE"  # toggle ON/OFF
 
     def __str__(self):
         return self.value
@@ -51,6 +52,10 @@ class DimmerCommand:
         return self.type == DimmerCommandType.OFF
 
     @property
+    def is_toggle(self):
+        return self.type == DimmerCommandType.TOGGLE
+
+    @property
     def is_learn(self):
         return self.type == DimmerCommandType.LEARN
 
@@ -85,6 +90,8 @@ class DimmerCommand:
                 command = DimmerCommand(DimmerCommandType.UPDATE)
             elif text in ["LEARN", "TEACH", "TEACH-IN"]:
                 command = DimmerCommand(DimmerCommandType.LEARN)
+            elif text == "TOGGLE":
+                command = DimmerCommand(DimmerCommandType.TOGGLE)
             else:
                 try:
                     value = int(text)

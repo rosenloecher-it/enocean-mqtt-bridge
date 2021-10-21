@@ -3,49 +3,34 @@
 Bridges and translates Enocean messages between a (USB) gateway to a MQTT broker for specific devices. 
 Runs as Linux service (e.g. on Raspberry Pi).
 
-The MQTT messages can be further processed with other smarthome systems (e.g. Openhab, Home Assistant, Loxone). 
-MQTT based messages may help you to switch between smarthome systems smoothly by accessing your Enocean devices 
-from different systems.
+The MQTT messages can be further processed with other smarthome systems (e.g. Openhab, Home Assistant, Loxone).
+These smarthome systems may support the listed devices directly.
+But decoupling the systems and use a separated MQTT message broker has some advantages.
+You can access the smarthome state via generic MQTT clients and don't have to use proprietary APIs.
+(Useful, when you want to write your own rules independently from a dedicated smarthome system.)
+In the end you could degrade your smarthome system to a pure GUI tool and switch easily between different ones.
 
-Features:
-- configurable MQTT last will / testament (for example an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
+## Features
+
+- Configurable MQTT last will / testament (for example an "OFFLINE" status can be predefined at MQTT level for connection interrupts)
 - Live cycle management (restarts) are supposed to be handled by systemd (script provided).
-- Helps to establish multiple Enocean gateways in case of limited signal range. (But some Enocean devices offer a repeater function.)
 - Supported/tested Enocean gateways:
   - DOSMUNG Gateway USB Stick with SMA Port, chipset TCM 310
 - Supported/tested Enocean devices:
-  - Eltako FFG7B-rw (nearly identical to Eltako TF-FGB; windows/door handle sensor)
-    - check sensor state based on repeated messages and send a configurable OFFLINE message if the device is silent for a configurable timeout.
-    - Configuration device name: `EltakoFFG7B`
-    - outputs JSON with time of last state change (SINCE)
-      ```json
-      {
-          "status": "closed",
-          "rssi": -61,
-          "timestamp": "2020-03-16t21:09:37.205911+01:00",
-          "since": "2020-03-15t19:09:37.205911+01:00"
-      }
-      ```
-    - Transform states to (STATUS): OPEN, CLOSED, TILTED, OFFLINE, ERROR   
-  - Eltako FSR61-230V (ON/OFF relay switch)
-      - Switch and get notifications about state changes.
-      - Configuration device name: `EltakoFsr61`
-  - Eltako FUD61NP(N)-230V (dimmer)
-      - Dim and switch ON/OFF and get notifications about state changes. Delivers dim state in %.
-      - Configuration device name: `EltakoFud61`
-      - Special switch device (`EltakoFud61SimpleSwitch`) to have rocker switches without 
-        dimming functionality! (If you teach in rocker switches directly to an Eltako FUD61NP(N), the switches are used 
-        for dimming too, which means all real manual button presses must be timed more or less precisly to NOT trigger 
-        the dimming. My 4 year old daughter does not get this right always. There is no MQTT connection involved.)     
-  - NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch):
-      - Switch and get notifications about state changes.
-      - Configuration device name: `NodonSin22`
-  - RockerSwitch (manual wireless radio switch)
-      - Forward manual state changes.
-      - Configuration device name: `RockerSwitch`
-  - Generic Log-Device to sniff and log incoming Enocean messages
-      - Configuration device name: `Sniffer`
+  - [Eltako FFG7B-rw (nearly identical to Eltako TF-FGB; windows handle)](./docs/eltako_ffg7b.md)
+  - [Eltako FSB61NB-230V (roller shutter)](./docs/eltako_fsb61.md)
+  - [Eltako FSR61-230V (ON/OFF relay switch)](./docs/eltako_fsr61.md)
+  - [Eltako FUD61NP(N)-230V (dimmer)](./docs/eltako_fud61.md)
+  - [NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch)](./docs/nodon_sin22.md)
+  - [RockerSwitch (manual wireless radio switch; forwards manual click events as MQTT commands)](./docs/rocker_switch.md)
+- Not supported:
+  - Nodon SIN-2-RS-01: Not reliable to pair. Questions were not answered by Nodon.
 
+
+## Requirements
+
+- Python 3.7+
+- Linux / Raspberry Pi
 
 ## Startup
 

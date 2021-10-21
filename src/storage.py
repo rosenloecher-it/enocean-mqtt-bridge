@@ -2,6 +2,10 @@ import os
 import yaml
 
 
+CONFKEY_STORAGE_FILE = "storage_file"
+CONFKEY_STORAGE_MAX_AGE_SECS = "storage_max_age_secs"  # former: "restore_last_max_diff"
+
+
 class StorageException(Exception):
     pass
 
@@ -15,13 +19,20 @@ class Storage:
     def set_file(self, file):
         self._file = file
 
+    def empty(self):
+        self._data = {}
+
+    @property
+    def initilized(self):
+        return self._data is not None
+
     def load(self):
         try:
             if self._file is not None and os.path.isfile(self._file):
                 with open(self._file, 'r') as stream:
                     self._data = yaml.unsafe_load(stream)
             else:
-                self._data = {}
+                self.empty()
         except (PermissionError, ValueError) as ex:
             raise StorageException(ex)
 

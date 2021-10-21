@@ -4,7 +4,7 @@ import unittest
 
 from tzlocal import get_localzone
 
-from src.common.conf_device_key import ConfDeviceKey
+from src.device.base.device import CONFKEY_MQTT_CHANNEL_STATE, CONFKEY_ENOCEAN_SENDER, CONFKEY_ENOCEAN_TARGET
 from src.device.eltako.ffg7b_sensor import HandleValue, FFG7BSensor, StorageKey
 from src.enocean_connector import EnoceanMessage
 from src.tools.pickle_tools import PickleTools
@@ -19,6 +19,7 @@ class _MockDevice(FFG7BSensor):
         super().__init__("mock")
 
         self.sent_message = None
+        self._storage.empty()
 
     def _now(self):
         return self.now
@@ -39,13 +40,9 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
 
         device = _MockDevice()
         device.set_config({
-            ConfDeviceKey.ENOCEAN_TARGET.value: 123,
-            ConfDeviceKey.ENOCEAN_FUNC.value: 123,
-            ConfDeviceKey.ENOCEAN_RORG.value: 123,
-            ConfDeviceKey.ENOCEAN_TYPE.value: 123,
-            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "channel",
-
-            ConfDeviceKey.WRITE_SINCE.value: True
+            CONFKEY_ENOCEAN_SENDER: 123,
+            CONFKEY_ENOCEAN_TARGET: 123,
+            CONFKEY_MQTT_CHANNEL_STATE: "channel",
         })
 
         time_1 = datetime.datetime(2020, 1, 1, 2, 2, 3, tzinfo=get_localzone())
@@ -115,15 +112,12 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         enocean_id = 0x05555555
 
         device = _MockDevice()
-        device.set_config({
-            ConfDeviceKey.ENOCEAN_TARGET.value: enocean_id,
-            ConfDeviceKey.ENOCEAN_RORG.value: 0xf6,
-            ConfDeviceKey.ENOCEAN_FUNC.value: 0x10,
-            ConfDeviceKey.ENOCEAN_TYPE.value: 0x00,
-            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "channel",
-
-            ConfDeviceKey.WRITE_SINCE.value: True
-        })
+        config = {
+            CONFKEY_ENOCEAN_TARGET: enocean_id,
+            CONFKEY_MQTT_CHANNEL_STATE: "channel",
+            CONFKEY_ENOCEAN_SENDER: 1234,
+        }
+        device.set_config(config)
 
         time_1 = datetime.datetime.now(tz=get_localzone())
 
@@ -138,6 +132,5 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
         self.assertEqual(sent_data, {
             'timestamp': time_1.isoformat(),
             'since': time_1.isoformat(),
-            'rssi': -58,
             'state': 'tilted'
         })

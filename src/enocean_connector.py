@@ -24,6 +24,8 @@ class EnoceanConnector:
         self._cached_base_id = None
         self.on_receive = None  # type: callable(EnoceanMessage)
 
+        # TODO LOCK
+
     def open(self):
         self._enocean = SerialCommunicator(self._port)
         self._enocean.start()

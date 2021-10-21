@@ -50,7 +50,6 @@ devices:
     device_type:          "EltakoFFG7B"
     # device_type:        "Sniffer"  # log out as it is
 
-    write_since:          True
     storage_file:         ./__work__/storage-winhandle-office.yaml
 
     # see EnOcean Equipment Profiles (EEP) or https://github.com/kipe/enocean

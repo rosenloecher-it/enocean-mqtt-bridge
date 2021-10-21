@@ -5,6 +5,8 @@ from enocean.protocol.packet import RadioPacket
 
 from src.common.eep import Eep
 from src.device.device_exception import DeviceException
+from src.tools.converter import Converter
+from src.tools.pickle_tools import PickleTools
 
 
 class EnoceanTools:
@@ -43,3 +45,32 @@ class EnoceanTools:
         elif type(packet_type) == PACKET:
             return packet_type.name
         return str(packet_type)
+
+    @classmethod
+    def log_pickled_enocean_packet(cls, logger_func, packet, text):
+        logger_func(
+            "%s - packet: %s; sender: %s; dest: %s; RORG: %s; dump:\n%s",
+            text,
+            EnoceanTools.packet_type_to_string(packet.packet_type),
+            Converter.to_hex_string(packet.sender_int),
+            Converter.to_hex_string(packet.destination_int),
+            Converter.to_hex_string(packet.rorg),
+            PickleTools.pickle_packet(packet)
+        )
+
+    @classmethod
+    def extract_packet_props(cls, packet, eep):
+        """
+        :param enocean.protocol.packet.RadioPacket packet:
+        :param Eep eep:
+        :rtype: dict{str, object}
+        """
+        if packet.rorg == eep.rorg:
+            try:
+                data = EnoceanTools.extract_props(packet=packet, eep=eep)
+            except AttributeError as ex:
+                raise DeviceException(ex)
+        else:
+            data = {}
+
+        return data

@@ -10,7 +10,7 @@ class BaseCommand(Enum):
     def extract_json(cls, text: str):
         data = json.loads(text)
 
-        sections = ["command", "cmd", "state", "COMMAND", "CMD", "STATE"]
+        sections = ["command", "cmd", "COMMAND", "CMD"]
         for section in sections:
             text = data.get(section)
             if text is not None:

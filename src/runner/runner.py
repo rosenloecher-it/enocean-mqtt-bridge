@@ -1,19 +1,23 @@
 import abc
+import json
 import logging
 import signal
 import time
 
 from enocean import utils as enocean_utils
 
-from src.common.conf_device_key import ConfDeviceKey
 from src.config import ConfMainKey
-from src.device.base.base_enocean import BaseEnocean
+from src.device.base.device import Device
 from src.device.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector
 from src.enocean_packet_factory import EnoceanPacketFactory
 from src.runner.device_registry import DeviceRegistry
 
+
 _logger = logging.getLogger(__name__)
+
+
+CONFKEY_DEVICE_TYPE = "device_type"
 
 
 class Runner(abc.ABC):
@@ -35,7 +39,9 @@ class Runner(abc.ABC):
 
     def open(self, config):
         self._config = config
-        _logger.debug("config: %s", self._config)
+        # if _logger.isEnabledFor(logging.DEBUG):
+        #     pretty = json.dumps(self._config, indent=4, sort_keys=True)
+        #     _logger.debug("config: %s", pretty)
 
     def close(self):
         if self._enocean_connector is not None:  # and self._enocean.is_alive():
@@ -79,7 +85,7 @@ class Runner(abc.ABC):
         if not name:
             raise DeviceException("invalid name => device skipped!")
 
-        device_type_key = config.get(ConfDeviceKey.DEVICE_TYPE.value)
+        device_type_key = config.get(CONFKEY_DEVICE_TYPE)
         if device_type_key in [None, "dummy"]:
             return None  # skip
 
@@ -106,7 +112,7 @@ class Runner(abc.ABC):
         raise NotImplementedError
 
     @classmethod
-    def _load_class(cls, path: str) -> BaseEnocean.__class__:
+    def _load_class(cls, path: str) -> Device.__class__:
         delimiter = path.rfind(".")
         classname = path[delimiter + 1:len(path)]
         module_path = __import__(path[0:delimiter], globals(), locals(), [classname])
@@ -114,10 +120,10 @@ class Runner(abc.ABC):
 
     @classmethod
     def _check_device_class(cls, device):
-        if not isinstance(device, BaseEnocean):
+        if not isinstance(device, Device):
             if device:
                 class_info = device.__class__.__module__ + '.' + device.__class__.__name__
             else:
                 class_info = 'None'
-            class_target = BaseEnocean.__module__ + '.' + BaseEnocean.__name__
+            class_target = Device.__module__ + '.' + Device.__name__
             raise TypeError("{} is not of type {}!".format(class_info, class_target))

@@ -2,6 +2,7 @@ import unittest
 
 from src.common.switch_state import SwitchState
 from src.device.nodon.sin22_actor import Sin22Actor
+from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
@@ -12,8 +13,6 @@ class _MockDevice(Sin22Actor):
         self.now = None
 
         super().__init__("mock")
-
-        self._enocean_id = 0xffffffff
 
         self.messages = []
         self.packets = []
@@ -50,7 +49,7 @@ class TestSin22Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_0_ON)
 
         device = _MockDevice()
-        data = device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 0)
@@ -60,7 +59,7 @@ class TestSin22Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_0_OFF)
 
         device = _MockDevice()
-        data = device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 0)
@@ -70,7 +69,7 @@ class TestSin22Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_1_ON)
 
         device = _MockDevice()
-        data = device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 1)
@@ -80,7 +79,7 @@ class TestSin22Actor(unittest.TestCase):
         packet = PickleTools.unpickle_packet(_PACKET_1_OFF)
 
         device = _MockDevice()
-        data = device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 1)

@@ -9,18 +9,19 @@ class TestDimmerCommand(unittest.TestCase):
 
         self.assertEqual(DimmerCommand.parse(" On "), DimmerCommand(DimmerCommandType.ON))
 
-        self.assertEqual(DimmerCommand.parse('{"STATE": " on "}'), DimmerCommand(DimmerCommandType.ON))
+        self.assertEqual(DimmerCommand.parse('{"COMMAND": " on "}'), DimmerCommand(DimmerCommandType.ON))
         self.assertEqual(DimmerCommand.parse(" oFF "), DimmerCommand(DimmerCommandType.OFF))
-        self.assertEqual(DimmerCommand.parse('{"STATE": " ofF "}'), DimmerCommand(DimmerCommandType.OFF))
+        self.assertEqual(DimmerCommand.parse('{"COMMAND": " ofF "}'), DimmerCommand(DimmerCommandType.OFF))
         self.assertEqual(DimmerCommand.parse(" learn "), DimmerCommand(DimmerCommandType.LEARN))
         self.assertEqual(DimmerCommand.parse(" teach "), DimmerCommand(DimmerCommandType.LEARN))
         self.assertEqual(DimmerCommand.parse(" teach-IN "), DimmerCommand(DimmerCommandType.LEARN))
         self.assertEqual(DimmerCommand.parse(" Update "), DimmerCommand(DimmerCommandType.UPDATE))
         self.assertEqual(DimmerCommand.parse(" refresh "), DimmerCommand(DimmerCommandType.UPDATE))
+        self.assertEqual(DimmerCommand.parse(" toggle "), DimmerCommand(DimmerCommandType.TOGGLE))
 
         self.assertEqual(DimmerCommand.parse(" 1 "), DimmerCommand(DimmerCommandType.DIM, 1))
         self.assertEqual(DimmerCommand.parse(" 77 "), DimmerCommand(DimmerCommandType.DIM, 77))
-        self.assertEqual(DimmerCommand.parse('{"STATE": " 9 "}'), DimmerCommand(DimmerCommandType.DIM, 9))
+        self.assertEqual(DimmerCommand.parse('{"COMMAND": " 9 "}'), DimmerCommand(DimmerCommandType.DIM, 9))
         self.assertEqual(DimmerCommand.parse(" 0 "), DimmerCommand(DimmerCommandType.OFF))
         self.assertEqual(DimmerCommand.parse(" 100 "), DimmerCommand(DimmerCommandType.DIM, 100))
 

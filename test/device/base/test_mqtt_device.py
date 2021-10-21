@@ -5,24 +5,24 @@ import unittest
 from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
 
-from src.common.conf_device_key import ConfDeviceKey
-from src.device.base.base_mqtt import BaseMqtt
+from src.device.base import device
+from src.device.base.device import Device
 from test.mock_mqtt_publisher import MockMqttPublisher
 
 _logger = logging.getLogger(__name__)
 _dummy_logger = _logger
 
 
-class _TestTimeoutDevice(BaseMqtt):
+class _TestTimeoutDevice(Device):
 
     def __init__(self):
-        self.now = None
-        super().__init__()
+        self.now = datetime.datetime.now(tz=get_localzone()) - datetime.timedelta(minutes=10)
+        super().__init__("_TestTimeoutDevice")
 
         self._mqtt_last_will = '{"STATE": "OFFLINE", "INFO": "last will"}'
 
     def process_enocean_message(self, message):
-        self._mqtt_last_refresh = self._now()
+        self._last_refresh = self._now()
 
     def process_mqtt_message(self, message: MQTTMessage):
         pass
@@ -50,20 +50,22 @@ class TestBaseDeviceCheckAndSendOffline(unittest.TestCase):
 
         self.device = _TestTimeoutDevice()
 
-        self.device.set_config({
-            ConfDeviceKey.MQTT_CHANNEL_STATE.value: "dummy",
-            ConfDeviceKey.MQTT_LAST_WILL.value: self.last_will,
-            ConfDeviceKey.MQTT_TIME_OFFLINE.value: self.TIMEOUT,
-        })
+        self.device._set_config({
+            device.CONFKEY_MQTT_CHANNEL_CMD: "dummy-cmd",
+            device.CONFKEY_MQTT_CHANNEL_STATE: "dummy",
+            device.CONFKEY_MQTT_LAST_WILL: self.last_will,
+            device.CONFKEY_MQTT_TIME_OFFLINE: self.TIMEOUT,
+        }, ["*"])
 
         self.device.set_mqtt_publisher(self.mqtt_publisher)
 
     def test_positive(self):
         now = datetime.datetime.now(tz=get_localzone())
         self.device.now = now
+        self.device._last_refresh_time = now
 
         self.device.process_enocean_message("")
-        self.assertEqual(self.device._mqtt_last_refresh, now)
+        self.assertEqual(self.device._last_refresh, now)
 
         now = now + datetime.timedelta(seconds=self.TIMEOUT - 2)
         self.device.now = now

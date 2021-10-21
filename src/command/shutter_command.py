@@ -10,7 +10,6 @@ class ShutterCommandType(Enum):
     LEARN = BaseCommand.LEARN
     UPDATE = BaseCommand.UPDATE  # trigger updated notification
 
-    CONFIG = "CONFIG"
     STOP = "STOP"
     POSITION = "POSITION"  # %; 0 == up; 100 == down
     # OPEN_TIME
@@ -21,6 +20,7 @@ class ShutterCommandType(Enum):
 class ShutterCommand:
     type = attr.ib()
     value = attr.ib(default=None)  # type: int
+    force_calibration = attr.ib(default=False)  # type: bool
 
     def __str__(self):
         if self.is_pos:
@@ -61,27 +61,36 @@ class ShutterCommand:
 
         if text:
 
-            if text in ["CONFIG"]:
-                result = ShutterCommand(ShutterCommandType.CONFIG)
-            elif text in ["DOWN", "ON", "CLOSE"]:
+            if text in ["DOWN", "ON", "CLOSE"]:
                 result = ShutterCommand(ShutterCommandType.POSITION, 100)
             elif text in ["UP", "OFF", "OPEN"]:
                 result = ShutterCommand(ShutterCommandType.POSITION, 0)
-            elif text in ["UPDATE", "REFRESH", "QUERY"]:
+            elif text in ["UPDATE", "REFRESH", "QUERY", "STATUS"]:
                 result = ShutterCommand(ShutterCommandType.UPDATE)
             elif text in ["LEARN", "TEACH", "TEACH-IN"]:
                 result = ShutterCommand(ShutterCommandType.LEARN)
             elif text in ["STOP"]:
                 result = ShutterCommand(ShutterCommandType.STOP)
             else:
+                def parse_calibration_suffix(handle_text, suffix):
+                    if handle_text.endswith(suffix):
+                        handle_text = handle_text[:-len(suffix)]
+                        return handle_text, True
+                    else:
+                        return handle_text, False
+
+                parsed_text, force_calibration = parse_calibration_suffix(text, "C")
+                if not force_calibration:
+                    parsed_text, force_calibration = parse_calibration_suffix(parsed_text, "CALIBRATE")
+
                 try:
-                    value = int(float(text))
+                    value = int(float(parsed_text))
                     if 0 <= value <= 100:
-                        result = ShutterCommand(ShutterCommandType.POSITION, value)
+                        result = ShutterCommand(type=ShutterCommandType.POSITION, value=value, force_calibration=force_calibration)
                     elif 0 > value:
-                        result = ShutterCommand(ShutterCommandType.POSITION, 0)
+                        result = ShutterCommand(type=ShutterCommandType.POSITION, value=0, force_calibration=force_calibration)
                     elif 100 < value:
-                        result = ShutterCommand(ShutterCommandType.POSITION, 100)
+                        result = ShutterCommand(type=ShutterCommandType.POSITION, value=100, force_calibration=force_calibration)
                 except ValueError:
                     pass
 

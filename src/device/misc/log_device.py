@@ -2,15 +2,18 @@ import logging
 
 from enocean import utils as enocean_utils
 
-from src.common.conf_device_key import ConfDeviceKey
-from src.config import Config
-from src.device.base.base_enocean import BaseEnocean
+from src.device.base.device import Device
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class LogEnocean(BaseEnocean):
+CONFKEY_DUMP_PACKETS = "dump_packets"
+CONFKEY_ENOCEAN_IDS = "enocean_ids"
+CONFKEY_ENOCEAN_IDS_SKIP = "enocean_ids_skip"
+
+
+class LogEnocean(Device):
 
     def __init__(self, name):
         super().__init__(name)
@@ -44,14 +47,14 @@ class LogEnocean(BaseEnocean):
         if self._enocean_target is not None:
             add_id_not_none(self._enocean_ids, self._enocean_target)
         else:
-            enocean_ids = config.get(ConfDeviceKey.ENOCEAN_IDS.value)
+            enocean_ids = config.get(CONFKEY_ENOCEAN_IDS)
             if not enocean_ids:
                 self._enocean_ids.add(None)  # listen to all!
             else:
                 add_id_not_none(self._enocean_ids, enocean_ids)
-            add_id_not_none(self._enocean_ids_skip, config.get(ConfDeviceKey.ENOCEAN_IDS_SKIP.value))
+            add_id_not_none(self._enocean_ids_skip, config.get(CONFKEY_ENOCEAN_IDS_SKIP))
 
-        self._dump_packet = Config.get_bool(config, ConfDeviceKey.DUMP_PACKETS, False)
+        self._dump_packet = config.get(CONFKEY_DUMP_PACKETS, False)
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload

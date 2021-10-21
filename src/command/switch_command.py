@@ -9,6 +9,7 @@ class SwitchCommand(Enum):
 
     OFF = "OFF"
     ON = "ON"
+    TOGGLE = "TOGGLE"
 
     def __str__(self):
         return self.value
@@ -31,6 +32,10 @@ class SwitchCommand(Enum):
     @property
     def is_off(self):
         return self == self.OFF
+
+    @property
+    def is_toggle(self):
+        return self == self.TOGGLE
 
     @property
     def is_learn(self):
@@ -66,6 +71,8 @@ class SwitchCommand(Enum):
                 command = SwitchCommand.UPDATE
             elif text in ["LEARN", "TEACH", "TEACH-IN"]:
                 command = SwitchCommand.LEARN
+            elif text == "TOGGLE":
+                command = SwitchCommand.TOGGLE
             elif text in ["1", "100"]:
                 return SwitchCommand.ON
             elif text in ["0"]:

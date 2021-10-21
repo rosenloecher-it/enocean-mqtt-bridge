@@ -4,17 +4,29 @@ import logging
 from enum import Enum
 from typing import Optional
 
-from src.common.json_attributes import JsonAttributes
-from src.config import Config
-from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_enocean import BaseEnocean
-from src.device.base.base_mqtt import BaseMqtt
-from src.common.conf_device_key import ConfDeviceKey
+from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import RadioPacket
+
 from src.common.eep import Eep
-from src.enocean_connector import EnoceanMessage
-from src.storage import Storage, StorageException
+from src.common.json_attributes import JsonAttributes
+from src.device.base.cyclic_device import CheckCyclicTask
+from src.device.base.device import Device, CONFKEY_ENOCEAN_SENDER, CONFKEY_MQTT_CHANNEL_CMD
 from src.device.device_exception import DeviceException
+from src.enocean_connector import EnoceanMessage
+from src.storage import Storage, StorageException, CONFKEY_STORAGE_MAX_AGE_SECS, CONFKEY_STORAGE_FILE
+from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
+
+
+FFG7B_SENSOR_JSONSCHEMA = {
+    "type": "object",
+    "properties": {
+        CONFKEY_STORAGE_FILE: {"type": "string", "minLength": 1},
+        CONFKEY_STORAGE_MAX_AGE_SECS: {"type": "number", "minimum": 1},
+    },
+    "required": [
+    ],
+}
 
 
 class StorageKey(Enum):
@@ -51,7 +63,7 @@ class HandleValue(Enum):
         return None
 
 
-class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
+class FFG7BSensor(Device, CheckCyclicTask):
     """Specialized class to forward notfications of Eltako FFG7B-rw (similar to Eltako TF-FGB) windows/door handles.
     Output is a json dict with values of `HandleValues`. Additionally there is a `SINCE` field (JSON) which indicates
     the last change time.
@@ -68,29 +80,27 @@ class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
     )
 
     def __init__(self, name):
-        BaseEnocean.__init__(self, name)
-        BaseMqtt.__init__(self)
-        BaseCyclic.__init__(self)
+        Device.__init__(self, name)
+        CheckCyclicTask.__init__(self)
 
         # default config values
         self._eep = self.DEFAULT_EEP.clone()
 
-        self._write_since_no_error = True
-        self._write_since = False
-        self._restore_last_max_diff = None
+        self._storage_max_age = None  # type: Optional[int]  # age in seconds
 
         self._storage = Storage()
 
-    def set_config(self, config):
-        BaseEnocean.set_config(self, config)
-        BaseMqtt.set_config(self, config)
-        BaseCyclic.set_config(self, config)
+    def _set_config(self, config, skip_require_fields: [str]):
+        skip_require_fields = [*skip_require_fields, CONFKEY_ENOCEAN_SENDER, CONFKEY_MQTT_CHANNEL_CMD]
 
-        self._write_since = Config.get_bool(config, ConfDeviceKey.WRITE_SINCE, False)
-        self._write_since_no_error = Config.get_bool(config, ConfDeviceKey.WRITE_SINCE_SEPARATE_ERROR, True)
-        self._restore_last_max_diff = Config.get_int(config, ConfDeviceKey.RESTORE_LAST_MAX_DIFF, 15)
+        super()._set_config(config, skip_require_fields)
 
-        storage_file = Config.get_str(config, ConfDeviceKey.STORAGE_FILE, None)
+        schema = self.filter_required_fields(FFG7B_SENSOR_JSONSCHEMA, skip_require_fields)
+        self.validate_config(config, schema)
+
+        self._storage_max_age = config.get(CONFKEY_STORAGE_MAX_AGE_SECS, 60)
+
+        storage_file = config.get(CONFKEY_STORAGE_FILE)
         self._storage.set_file(storage_file)
 
         try:
@@ -100,7 +110,7 @@ class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
 
     def _determine_and_store_since(self, value_enum: HandleValue):
         success_value = HandleValue.is_success(value_enum)
-        if not self._write_since_no_error or success_value:
+        if success_value:
             key_state = StorageKey.VALUE_SUCCESS.value
             key_time = StorageKey.TIME_SUCCESS.value
         else:
@@ -129,8 +139,7 @@ class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
 
         return time_since
 
-    def _create_message(self, value: HandleValue, since: Optional[datetime.datetime],
-                        rssi: Optional[int] = None, timestamp: Optional[datetime.datetime] = None):
+    def _create_message(self, value: HandleValue, since: Optional[datetime.datetime], timestamp: Optional[datetime.datetime] = None):
 
         if not timestamp:
             timestamp = self._now()
@@ -139,8 +148,6 @@ class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
             JsonAttributes.TIMESTAMP: timestamp.isoformat(),
             JsonAttributes.STATE: value.value
         }
-        if rssi is not None:
-            data[JsonAttributes.RSSI] = rssi
         if since is not None:
             data[JsonAttributes.SINCE] = since.isoformat()
 
@@ -162,16 +169,18 @@ class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
             return HandleValue.ERROR
 
     def process_enocean_message(self, message: EnoceanMessage):
-        packet = self._extract_default_radio_packet(message)
-        if not packet:
+        packet = message.payload  # type: RadioPacket
+        if packet.packet_type != PACKET.RADIO:
+            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
+            return
+        if packet.rorg != self._eep.rorg:
+            self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        self._reset_offline_message_counter()
+        self._reset_offline_refresh_timer()
 
-        data = self._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, self._eep)
         self._logger.debug("proceed_enocean - got: %s", data)
-
-        rssi = packet.dBm  # if hasattr(packet, "dBm") else None
 
         try:
             value = self.extract_handle_state(data.get("WIN"))
@@ -183,21 +192,21 @@ class FFG7BSensor(BaseEnocean, BaseMqtt, BaseCyclic):
             # write ascii representation to reproduce in tests
             self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
-        if self._write_since:
-            since = self._determine_and_store_since(value)
-        else:
-            since = None
+        since = self._determine_and_store_since(value)
 
-        message = self._create_message(value, since, rssi=rssi)
+        message = self._create_message(value, since)
         self._publish_mqtt(message)
 
     def _restore_last_state(self):
         """restore old STATE when in time"""
+        if not self._storage.initilized:
+            return  # TODO race condition: MQTT conection or loaded configuration
+
         last_observation = self._storage.get(StorageKey.TIME_LAST_OBSERVATION.value)
         if not last_observation:
             return
         diff_seconds = (self._now() - last_observation).total_seconds()
-        if diff_seconds > self._restore_last_max_diff:
+        if diff_seconds > self._storage_max_age:
             return
         if self._storage.get(StorageKey.TIME_ERROR.value) is not None:
             return

@@ -1,18 +1,33 @@
 import logging
 from collections import namedtuple
 
-from src.command.switch_command import SwitchCommand
-from src.common.conf_device_key import ConfDeviceKey
+from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import RadioPacket
+
 from src.common.eep import Eep
-from src.config import Config
-from src.device.base.base_rocker_actor import BaseRockerActor, SwitchState
+from src.device.base.rocker_actor import RockerActor, SwitchState
 from src.enocean_connector import EnoceanMessage
+from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
+
+
+CONFKEY_ACTOR_CHANNEL = "actor_channel"
+
+
+SIN22ACTOR_JSONSCHEMA = {
+    "type": "object",
+    "properties": {
+        CONFKEY_ACTOR_CHANNEL: {"type": "integer", "enum": [0, 1]},
+
+    },
+    "required": [CONFKEY_ACTOR_CHANNEL],
+}
+
 
 _Notification = namedtuple("_Notification", ["channel", "switch_state"])
 
 
-class Sin22Actor(BaseRockerActor):
+class Sin22Actor(RockerActor):
     """Actor for Nodon SIN-2-2-01"""
 
     DEFAULT_EEP = Eep(
@@ -30,19 +45,24 @@ class Sin22Actor(BaseRockerActor):
         self._eep = self.DEFAULT_EEP.clone()
         self._actor_channel = None
 
-    def set_config(self, config):
-        super().set_config(config)
+    def _set_config(self, config, skip_require_fields: [str]):
+        super()._set_config(config, skip_require_fields)
 
-        self._actor_channel = Config.get_int(config, ConfDeviceKey.ACTOR_CHANNEL)
-        if self._actor_channel is None:
-            raise ValueError(f"No configuration for '{ConfDeviceKey.ACTOR_CHANNEL.value}'!")
+        schema = self.filter_required_fields(SIN22ACTOR_JSONSCHEMA, skip_require_fields)
+        self.validate_config(config, schema)
+
+        self._actor_channel = config[CONFKEY_ACTOR_CHANNEL]
 
     def process_enocean_message(self, message: EnoceanMessage):
-        packet = self._extract_default_radio_packet(message)
-        if not packet:
+        packet = message.payload  # type: RadioPacket
+        if packet.packet_type != PACKET.RADIO:
+            self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
+            return
+        if packet.rorg != self._eep.rorg:
+            self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        data = self._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, self._eep)
         self._logger.debug("proceed_enocean - got: %s", data)
 
         notification = self.extract_notification(data)
@@ -50,13 +70,11 @@ class Sin22Actor(BaseRockerActor):
             self._logger.debug("skip channel (%s, awaiting=%s)", notification.channel, self._actor_channel)
             return
 
-        rssi = packet.dBm  # if hasattr(packet, "dBm") else None
-
         if notification.switch_state == SwitchState.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
             self._logger.debug("process_enocean_message - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
-        message = self._create_json_message(notification.switch_state, None, rssi)
+        message = self._create_json_message(notification.switch_state, None)
         self._publish_mqtt(message)
 
     @classmethod
@@ -75,17 +93,3 @@ class Sin22Actor(BaseRockerActor):
             switch_state = SwitchState.ERROR
 
         return _Notification(channel=int(data.get("IO")), switch_state=switch_state)
-
-    def get_teach_print_message(self):
-        return "Nodon SIN-2-2-01: 1 channel per configured device (no parameters)!"
-
-    def send_teach_telegram(self, cli_arg):
-        command = SwitchCommand.ON
-
-        if cli_arg:
-            try:
-                command = SwitchCommand.parse(cli_arg)
-            except ValueError:
-                raise ValueError("could not interprete teach argument ({})!".format(cli_arg))
-
-        self._execute_actor_command(command, learn=False)

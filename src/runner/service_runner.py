@@ -5,9 +5,8 @@ from enum import IntEnum
 from typing import List
 
 from src.config import ConfSectionKey
-from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_device import BaseDevice
-from src.device.base.base_mqtt import BaseMqtt
+from src.device.base.cyclic_device import CheckCyclicTask
+from src.device.base.device import Device
 from src.device.device_exception import DeviceException
 from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher
@@ -29,9 +28,9 @@ class ServiceRunner(Runner):
     def __init__(self):
         super().__init__()
 
-        self._enocean_ids = {}  # type: dict[int, List[BaseDevice]]
-        self._mqtt_last_will_channels = {}  # type: dict[str, BaseDevice]
-        self._mqtt_channels_subscriptions = {}  # type: dict[str, set[BaseDevice]]
+        self._enocean_ids = {}  # type: dict[int, List[Device]]
+        self._mqtt_last_will_channels = {}  # type: dict[str, Device]
+        self._mqtt_channels_subscriptions = {}  # type: dict[str, set[Device]]
 
         self._devices_check_cyclic = set()
 
@@ -120,8 +119,7 @@ class ServiceRunner(Runner):
 
                     for _, devices in self._enocean_ids.items():
                         for device in devices:
-                            if isinstance(device, BaseMqtt):
-                                device.open_mqtt()
+                            device.open_mqtt()
 
                     self._mqtt_state = _MqttState.CONNECTED
                     break
@@ -188,15 +186,14 @@ class ServiceRunner(Runner):
             else:
                 self._enocean_ids[enocean_id] = [device_instance]
 
-        if isinstance(device_instance, BaseCyclic):
+        if isinstance(device_instance, CheckCyclicTask):
             self._devices_check_cyclic.add(device_instance)
 
-        if isinstance(device_instance, BaseMqtt):
-            device_instance.set_mqtt_publisher(self._mqtt_publisher)
-            channel = device_instance.get_mqtt_last_will_channel()
-            if channel:
-                # former last wills could be overwritten, no matter
-                self._mqtt_last_will_channels[channel] = device_instance
+        device_instance.set_mqtt_publisher(self._mqtt_publisher)
+        channel = device_instance.get_mqtt_last_will_channel()
+        if channel:
+            # former last wills could be overwritten, no matter
+            self._mqtt_last_will_channels[channel] = device_instance
 
     def _connect_enocean(self):
         super()._connect_enocean()
@@ -210,14 +207,13 @@ class ServiceRunner(Runner):
 
         for _, devices in self._enocean_ids.items():
             for device in devices:
-                if isinstance(device, BaseMqtt):
-                    channels = device.get_mqtt_channel_subscriptions()
-                    if channels:
-                        for channel in channels:
-                            if channel is None:
-                                continue
-                            devices = self._mqtt_channels_subscriptions.get(channel)
-                            if devices is None:
-                                devices = set()
-                                self._mqtt_channels_subscriptions[channel] = devices
-                            devices.add(device)
+                channels = device.get_mqtt_channel_subscriptions()
+                if channels:
+                    for channel in channels:
+                        if channel is None:
+                            continue
+                        devices = self._mqtt_channels_subscriptions.get(channel)
+                        if devices is None:
+                            devices = set()
+                            self._mqtt_channels_subscriptions[channel] = devices
+                        devices.add(device)

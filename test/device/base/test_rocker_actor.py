@@ -1,19 +1,17 @@
 import unittest
 
-from src.device.base.base_rocker_actor import RockerSwitchAction, BaseRockerActor
+from src.device.base.rocker_actor import RockerSwitchAction, RockerActor
 from src.device.misc.rocker_switch_tools import RockerSwitchTools
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 
 
-class _MockDevice(BaseRockerActor):
+class _MockDevice(RockerActor):
 
     def __init__(self):
         self.now = None
 
         super().__init__("mock")
-
-        self._enocean_id = 0xffffffff
 
         self.messages = []
         self.packets = []

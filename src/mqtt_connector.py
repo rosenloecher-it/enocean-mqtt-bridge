@@ -5,12 +5,17 @@ from queue import Queue, Empty
 import paho.mqtt.client as mqtt
 
 from src.config import ConfMainKey, Config
-from src.constant import Constant
+
 
 _logger = logging.getLogger(__name__)
 
 
 class MqttConnector:
+
+    DEFAULT_MQTT_KEEPALIVE = 60
+    DEFAULT_MQTT_PORT = 1883
+    DEFAULT_MQTT_PORT_SSL = 8883
+    DEFAULT_MQTT_PROTOCOL = 4  # 5==MQTTv5, default: 4==MQTTv311, 3==MQTTv31
 
     def __init__(self, publisher):
         self._mqtt = None
@@ -26,8 +31,8 @@ class MqttConnector:
     def open(self, config):
         host = Config.get_str(config, ConfMainKey.MQTT_HOST)
         port = Config.get_int(config, ConfMainKey.MQTT_PORT)
-        protocol = Config.get_int(config, ConfMainKey.MQTT_PROTOCOL, Constant.DEFAULT_MQTT_PROTOCOL)
-        keepalive = Config.get_int(config, ConfMainKey.MQTT_KEEPALIVE, Constant.DEFAULT_MQTT_KEEPALIVE)
+        protocol = Config.get_int(config, ConfMainKey.MQTT_PROTOCOL, self.DEFAULT_MQTT_PROTOCOL)
+        keepalive = Config.get_int(config, ConfMainKey.MQTT_KEEPALIVE, self.DEFAULT_MQTT_KEEPALIVE)
         client_id = Config.get_str(config, ConfMainKey.MQTT_CLIENT_ID)
         ssl_ca_certs = Config.get_str(config, ConfMainKey.MQTT_SSL_CA_CERTS)
         ssl_certfile = Config.get_str(config, ConfMainKey.MQTT_SSL_CERTFILE)
@@ -38,7 +43,7 @@ class MqttConnector:
         user_pwd = Config.get_str(config, ConfMainKey.MQTT_USER_PWD)
 
         if not port:
-            port = Constant.DEFAULT_MQTT_PORT_SSL if is_ssl else Constant.DEFAULT_MQTT_PORT
+            port = self.DEFAULT_MQTT_PORT_SSL if is_ssl else self.DEFAULT_MQTT_PORT
 
         if not host or not client_id:
             raise RuntimeError("mandatory mqtt configuration not found ({}, {})'!".format(

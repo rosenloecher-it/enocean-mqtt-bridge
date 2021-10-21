@@ -4,19 +4,15 @@ import random
 from datetime import datetime
 from typing import Optional
 
-from enocean.protocol.constants import PACKET
-from enocean.protocol.packet import RadioPacket
 from paho.mqtt.client import MQTTMessage
 
+from enocean.protocol.constants import PACKET
+from enocean.protocol.packet import RadioPacket
 from src.command.switch_command import SwitchCommand
-from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
 from src.common.switch_state import SwitchState
-from src.config import Config
-from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_enocean import BaseEnocean
-from src.device.base.base_mqtt import BaseMqtt
-from src.device.device_exception import DeviceException
+from src.device.base.cyclic_device import CheckCyclicTask
+from src.device.base.scene_actor import SceneActor
 from src.device.eltako.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton
 from src.enocean_connector import EnoceanMessage
@@ -24,7 +20,7 @@ from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class Fsr61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
+class Fsr61Actor(SceneActor, CheckCyclicTask):
     """
     Specialized for: Eltako FSR61-230V (an ON/OFF relay switch)
     """
@@ -32,28 +28,11 @@ class Fsr61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
     DEFAULT_REFRESH_RATE = 300  # in seconds
 
     def __init__(self, name):
-        BaseEnocean.__init__(self, name)
-        BaseMqtt.__init__(self)
-        BaseCyclic.__init__(self)
+        SceneActor.__init__(self, name)
+        CheckCyclicTask.__init__(self)
 
-        self._mqtt_channel_cmd = None
-
+        self._current_switch_state = None  # type: Optional[SwitchState]
         self._last_status_request = None  # type: Optional[datetime]
-
-    def set_config(self, config):
-        BaseEnocean.set_config(self, config)
-        BaseMqtt.set_config(self, config)
-        BaseCyclic.set_config(self, config)
-
-        key = ConfDeviceKey.MQTT_CHANNEL_CMD
-        self._mqtt_channel_cmd = Config.get_str(config, key)
-        if not self._mqtt_channel_cmd:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self.name)
-            self._logger.error(message)
-            raise DeviceException(message)
-
-    def send_teach_telegram(self, cli_arg):
-        self._execute_actor_command(SwitchCommand.LEARN)
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload  # type: RadioPacket
@@ -65,40 +44,33 @@ class Fsr61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
             props = RockerSwitchTools.extract_props(packet)
             self._logger.debug("proceed_enocean - got=%s", props)
             action = RockerSwitchTools.extract_action(props)  # type: RockerAction
-            # action = RockerSwitchTools.extract_action_from_packet(packet)  # type: RockerAction
 
             if action.button == RockerButton.ROCK3:
-                switch_state = SwitchState.ON
+                self._current_switch_state = SwitchState.ON
             elif action.button == RockerButton.ROCK2:
-                switch_state = SwitchState.OFF
+                self._current_switch_state = SwitchState.OFF
             else:
-                switch_state = SwitchState.ERROR
+                self._current_switch_state = SwitchState.ERROR
         else:
-            switch_state = SwitchState.ERROR
+            self._current_switch_state = SwitchState.ERROR
 
-        if switch_state not in [SwitchState.ON, SwitchState.OFF]:
+        if self._current_switch_state not in [SwitchState.ON, SwitchState.OFF]:
             if self._logger.isEnabledFor(logging.DEBUG):
                 self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
-        self._logger.debug("proceed_enocean - switch_state=%s", switch_state)
+        self._logger.debug("proceed_enocean - switch_state=%s", self._current_switch_state)
 
         self._last_status_request = self._now()
-        self._reset_offline_message_counter()
+        self._reset_offline_refresh_timer()
 
-        message = self._create_json_message(switch_state, rssi=packet.dBm)
+        message = self._create_json_message(self._current_switch_state)
         self._publish_mqtt(message)
 
-    def get_mqtt_channel_subscriptions(self):
-        """signal ensor state, outbound channel"""
-        return [self._mqtt_channel_cmd]
-
-    def _create_json_message(self, switch_state: SwitchState, rssi: Optional[int] = None):
+    def _create_json_message(self, switch_state: SwitchState):
         data = {
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
             JsonAttributes.STATE: switch_state.value
         }
-        if rssi is not None:
-            data["rssi"] = rssi
 
         json_text = json.dumps(data)
         return json_text
@@ -113,6 +85,9 @@ class Fsr61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
             self._logger.error("cannot execute command! message: {}".format(message.payload))
 
     def _execute_actor_command(self, command: SwitchCommand):
+        if command.is_toggle:
+            command = SwitchCommand.OFF if self._current_switch_state == SwitchState.ON else SwitchCommand.ON
+
         if command.is_on_or_off:
             action = Fsr61Action(
                 command=Fsr61Command.SWITCHING,

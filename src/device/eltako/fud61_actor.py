@@ -10,21 +10,17 @@ from tzlocal import get_localzone
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 from src.command.dimmer_command import DimmerCommand, DimmerCommandType
-from src.common.conf_device_key import ConfDeviceKey
 from src.common.json_attributes import JsonAttributes
-from src.config import Config
-from src.device.base.base_cyclic import BaseCyclic
-from src.device.base.base_enocean import BaseEnocean
-from src.device.base.base_mqtt import BaseMqtt
-from src.device.base.base_rocker_actor import SwitchState
-from src.device.device_exception import DeviceException
+from src.device.base.cyclic_device import CheckCyclicTask
+from src.device.base.rocker_actor import SwitchState
+from src.device.base.scene_actor import SceneActor
 from src.device.eltako.fud61_eep import Fud61Eep, Fud61Action, Fud61Command
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 
-class Fud61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
+class Fud61Actor(SceneActor, CheckCyclicTask):
     """
     Specialized for: Eltako FUD61NP(N)-230V (dimmer)
 
@@ -51,10 +47,9 @@ class Fud61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
 
     MIN_DIM_STATE = 10
 
-    def __init__(self, name):
-        BaseEnocean.__init__(self, name)
-        BaseMqtt.__init__(self)
-        BaseCyclic.__init__(self)
+    def __init__(self, name: str):
+        SceneActor.__init__(self, name)
+        CheckCyclicTask.__init__(self)
 
         self._mqtt_channel_cmd = None
 
@@ -64,25 +59,17 @@ class Fud61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
 
         self._last_status_request = None  # type: Optional[datetime]
 
-    def set_config(self, config):
-        BaseEnocean.set_config(self, config)
-        BaseMqtt.set_config(self, config)
-        BaseCyclic.set_config(self, config)
-
-        key = ConfDeviceKey.MQTT_CHANNEL_CMD
-        self._mqtt_channel_cmd = Config.get_str(config, key)
-        if not self._mqtt_channel_cmd:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self.name)
-            self._logger.error(message)
-            raise DeviceException(message)
-
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload  # type: RadioPacket
         if packet.packet_type != PACKET.RADIO:
             self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
             return
 
-        self._process_actor_packet(packet)
+        rocker_scene = self.find_rocker_scene(packet)
+        if rocker_scene:
+            self.process_rocker_scene(rocker_scene)
+        else:
+            self._process_actor_packet(packet)
 
     def _process_actor_packet(self, packet: RadioPacket):
         if packet.rorg == 0xf6:
@@ -101,33 +88,21 @@ class Fud61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
         if isinstance(action.dim_state, int) and action.dim_state > self.MIN_DIM_STATE:
             self._last_dim_state = action.dim_state
 
-        self._reset_offline_message_counter()
+        self._reset_offline_refresh_timer()
         self._last_status_request = self._now()
 
-        self._publish_actor_result(action, packet.dBm)
+        self._publish_actor_result(action)
 
-    def _publish_actor_result(self, action: Fud61Action, rssi: int):
-        message = self._create_json_message(action.switch_state, action.dim_state, rssi=rssi)
+    def _publish_actor_result(self, action: Fud61Action):
+        message = self._create_json_message(action.switch_state, action.dim_state)
         self._publish_mqtt(message)
 
-    def get_teach_print_message(self):
-        return "FUD61: Set teach target to AUTO!"
-
-    def send_teach_telegram(self, cli_arg):
-        self._execute_actor_command(DimmerCommand(DimmerCommandType.LEARN))
-
-    def get_mqtt_channel_subscriptions(self):
-        """signal ensor state, outbound channel"""
-        return [self._mqtt_channel_cmd]
-
-    def _create_json_message(self, switch_state: SwitchState, dim_state: int, rssi: int):
+    def _create_json_message(self, switch_state: SwitchState, dim_state: int):
         data = {
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
             JsonAttributes.STATE: switch_state.value,
             JsonAttributes.DIM_STATE: dim_state
         }
-        if rssi is not None:
-            data["rssi"] = rssi
 
         json_text = json.dumps(data)
         return json_text
@@ -142,6 +117,9 @@ class Fud61Actor(BaseEnocean, BaseMqtt, BaseCyclic):
             self._logger.error("cannot execute command! message: {}".format(message.payload))
 
     def _execute_actor_command(self, command: DimmerCommand):
+        if command.is_toggle:
+            command = DimmerCommand(DimmerCommandType.OFF if self._current_switch_state == SwitchState.ON else DimmerCommandType.ON)
+
         if command.is_on:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,

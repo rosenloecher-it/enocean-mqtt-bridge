@@ -1,18 +1,13 @@
 import json
+import time
 from enum import Enum
 from typing import Optional
 
-import time
-
 from src.command.switch_command import SwitchCommand
-from src.config import Config
 from src.common.json_attributes import JsonAttributes
-from src.device.base.base_enocean import BaseEnocean
-from src.device.base.base_mqtt import BaseMqtt
-from src.common.conf_device_key import ConfDeviceKey
-from src.device.device_exception import DeviceException
-from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 from src.common.switch_state import SwitchState
+from src.device.base.device import Device
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 
 
 class RockerSwitchAction(Enum):
@@ -21,40 +16,22 @@ class RockerSwitchAction(Enum):
     RELEASE = "release"
 
 
-# noinspection PyAbstractClass
-class BaseRockerActor(BaseEnocean, BaseMqtt):
-    """Base class for actors based on rocker switches (EEP f6-02-02)"""
+class RockerActor(Device):
+    """Base class for actors who listen to rocker switches (EEP f6-02-02)."""
 
     def __init__(self, name):
-        BaseEnocean.__init__(self, name)
-        BaseMqtt.__init__(self)
-
-        self._mqtt_channel_cmd = None
+        super().__init__(name)
 
         self._time_between_rocker_commands = 0.05
 
-    def set_config(self, config):
-        BaseEnocean.set_config(self, config)
-        BaseMqtt.set_config(self, config)
+    # def _set_config(self, config, skip_require_fields: [str]):
+    #     super()._set_config(config, skip_require_fields)
 
-        key = ConfDeviceKey.MQTT_CHANNEL_CMD
-        self._mqtt_channel_cmd = Config.get_str(config, key)
-        if not self._mqtt_channel_cmd:
-            message = self.MISSING_CONFIG_FOR_NAME.format(key.value, self.name)
-            self._logger.error(message)
-            raise DeviceException(message)
-
-    def get_mqtt_channel_subscriptions(self):
-        """signal ensor state, outbound channel"""
-        return [self._mqtt_channel_cmd]
-
-    def _create_json_message(self, switch_state: SwitchState, dim_value: Optional[int], rssi: Optional[int] = None):
+    def _create_json_message(self, switch_state: SwitchState, dim_value: Optional[int]):
         data = {
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
             JsonAttributes.STATE: switch_state.value
         }
-        if rssi is not None:
-            data[JsonAttributes.RSSI] = rssi
         if dim_value is not None:
             data[JsonAttributes.DIM_STATE] = dim_value
 

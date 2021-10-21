@@ -5,8 +5,10 @@ from enum import Enum
 
 import yaml
 
-from src.constant import Constant
 from src.common.conf_main_key import ConfMainKey
+
+
+DEFAULT_CONFFILE = "/etc/enocean_mqtt_bridge.conf"
 
 
 class ConfSectionKey(Enum):
@@ -80,10 +82,8 @@ class Config:
             value = getattr(args, key, default_value)
             self._config[key] = value
 
-        handle_cli(ConfMainKey.CONF_FILE, Constant.DEFAULT_CONFFILE)
+        handle_cli(ConfMainKey.CONF_FILE, DEFAULT_CONFFILE)
         handle_cli(ConfMainKey.SYSTEMD)
-        handle_cli(ConfMainKey.TEACH)
-        handle_cli(ConfMainKey.TEACH_XTRA)
 
         handle_cli(ConfMainKey.LOG_LEVEL)
         handle_cli(ConfMainKey.LOG_FILE)
@@ -94,14 +94,14 @@ class Config:
     @classmethod
     def create_cli_parser(cls):
         parser = ArgumentParser(
-            description=Constant.APP_DESC,
+            description="Relay messages between Enocean (USB) and MQTT",
             add_help=True
         )
 
         parser.add_argument(
             "-c", "--" + ConfMainKey.CONF_FILE.value,
             help="config file path",
-            default=Constant.DEFAULT_CONFFILE
+            default=DEFAULT_CONFFILE
         )
         parser.add_argument(
             "-f", "--" + ConfMainKey.LOG_FILE.value,
@@ -123,20 +123,6 @@ class Config:
             action="store_true",
             default=None,
             help="systemd/journald integration (skip timestamp + prints to console)"
-        )
-        parser.add_argument(
-            "-t", "--" + ConfMainKey.TEACH.value,
-            help="teach in mode for 1 device (named after config key)"
-        )
-        parser.add_argument(
-            "-x", "--" + ConfMainKey.TEACH_XTRA.value,
-            default=None,
-            help="e(x)tra argument for teach (depends on device implementation)"
-        )
-        parser.add_argument(
-            "-v", "--version",
-            action="version",
-            version="{} v{}".format(Constant.APP_NAME, Constant.APP_VERSION)
         )
 
         return parser

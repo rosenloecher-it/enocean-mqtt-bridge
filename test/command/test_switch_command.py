@@ -8,10 +8,9 @@ class TestSwitchCommand(unittest.TestCase):
     def test_parse(self):
         self.assertEqual(SwitchCommand.parse(" On "), SwitchCommand.ON)
         self.assertEqual(SwitchCommand.parse(" 1 "), SwitchCommand.ON)
-        self.assertEqual(SwitchCommand.parse('{"state": " on "}'), SwitchCommand.ON)
         self.assertEqual(SwitchCommand.parse(" oFF "), SwitchCommand.OFF)
         self.assertEqual(SwitchCommand.parse(" 0 "), SwitchCommand.OFF)
-        self.assertEqual(SwitchCommand.parse('{"STATE": " ofF "}'), SwitchCommand.OFF)
+        self.assertEqual(SwitchCommand.parse('{"COMMAND": " ofF "}'), SwitchCommand.OFF)
         self.assertEqual(SwitchCommand.parse('{"command": " ofF "}'), SwitchCommand.OFF)
         self.assertEqual(SwitchCommand.parse('{"cmd": " ofF "}'), SwitchCommand.OFF)
 
@@ -20,6 +19,8 @@ class TestSwitchCommand(unittest.TestCase):
         self.assertEqual(SwitchCommand.parse(" teach-IN "), SwitchCommand.LEARN)
         self.assertEqual(SwitchCommand.parse(" Update "), SwitchCommand.UPDATE)
         self.assertEqual(SwitchCommand.parse(" refresh "), SwitchCommand.UPDATE)
+
+        self.assertEqual(SwitchCommand.parse(" toggle "), SwitchCommand.TOGGLE)
 
         with self.assertRaises(ValueError):
             SwitchCommand.parse("onnnnn")

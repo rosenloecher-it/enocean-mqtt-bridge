@@ -1,7 +1,8 @@
 import unittest
 
-from src.device.base.base_enocean import BaseEnocean
 from src.common.eep import Eep
+from src.device.base.device import Device
+from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
 
 PACKET_WIN_CLOSE = """
@@ -38,7 +39,7 @@ PACKET_WIN_OPEN = """
 """
 
 
-class _TestExtractPropsEnocean(BaseEnocean):
+class _TestExtractPropsEnocean(Device):
     def process_enocean_message(self, message):
         raise NotImplementedError()  # not used
 
@@ -46,27 +47,25 @@ class _TestExtractPropsEnocean(BaseEnocean):
 class TestBaseDeviceExtractProps(unittest.TestCase):
 
     def setUp(self):
-        self.device = _TestExtractPropsEnocean("test")
-        self.device._enocean_target = 0x0587854a
-        self.device._eep = Eep(rorg=0xf6, func=0x10, type=0x00)
+        self.eep = Eep(rorg=0xf6, func=0x10, type=0x00)
 
     def test_close(self):
         packet = PickleTools.unpickle(PACKET_WIN_CLOSE)
 
         comp = {'WIN': 3, 'T21': 1, 'NU': 0}
-        data = self.device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, self.eep)
         self.assertEqual(data, comp)
 
     def test_tilted(self):
         packet = PickleTools.unpickle(PACKET_WIN_TILTED)
 
         comp = {'WIN': 1, 'T21': 1, 'NU': 0}
-        data = self.device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, self.eep)
         self.assertEqual(data, comp)
 
     def test_open(self):
         packet = PickleTools.unpickle(PACKET_WIN_OPEN)
 
         comp = {'WIN': 2, 'T21': 1, 'NU': 0}
-        data = self.device._extract_packet_props(packet)
+        data = EnoceanTools.extract_packet_props(packet, self.eep)
         self.assertEqual(data, comp)
