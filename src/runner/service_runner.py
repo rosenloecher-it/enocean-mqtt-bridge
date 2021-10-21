@@ -7,11 +7,11 @@ from typing import List
 from src.config import ConfSectionKey
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.device import Device
+from src.runner.device_factory import DeviceFactory
 from src.device.device_exception import DeviceException
 from src.mqtt_connector import MqttConnector
 from src.mqtt_publisher import MqttPublisher
 from src.runner.runner import Runner
-
 
 _logger = logging.getLogger(__name__)
 
@@ -51,6 +51,8 @@ class ServiceRunner(Runner):
         self._loop()
 
     def close(self):
+        self._mqtt_channels_subscriptions = {}  # no command will be executed any more
+
         super().close()
 
         if self._mqtt_connector is not None:
@@ -79,21 +81,25 @@ class ServiceRunner(Runner):
 
         try:
             while not self._shutdown:
+                busy = False
+
                 if time_wait_for_refresh >= 30:
                     time_wait_for_refresh = 0
                     self._enocean_connector.assure_connection()
 
-                self._enocean_connector.handle_messages()
-
-                self._process_mqtt_messages()
+                if self._process_enocean_messages():
+                    busy = True
+                if self._process_mqtt_messages():
+                    busy = True
 
                 if time_check_offline >= 5:
                     time_check_offline = 0
                     self._check_cyclic_tasks()
 
-                time.sleep(time_step)
-                time_wait_for_refresh += time_step
-                time_check_offline += time_step
+                if not busy:
+                    time.sleep(time_step)
+                    time_wait_for_refresh += time_step
+                    time_check_offline += time_step
 
         except KeyboardInterrupt:
             # gets called without signal-handler
@@ -124,36 +130,43 @@ class ServiceRunner(Runner):
                     self._mqtt_state = _MqttState.CONNECTED
                     break
 
-    def _process_mqtt_messages(self):
+    def _process_mqtt_messages(self) -> bool:
+        busy = False
         messages = self._mqtt_connector.get_queued_messages()
         for message in messages:
             try:
                 devices = self._mqtt_channels_subscriptions.get(message.topic)
                 for device in devices:
                     device.process_mqtt_message(message)
+                    busy = True
             except Exception as ex:
                 _logger.exception(ex)
+
+        return busy
+
+    def _process_enocean_messages(self) -> bool:
+        busy = False
+
+        messages = self._enocean_connector.get_messages()
+        for message in messages:
+            try:
+                listener = self._enocean_ids.get(message.enocean_id) or []
+                if message.enocean_id is not None:
+                    none_listener = self._enocean_ids.get(None)
+                    if none_listener:
+                        listener.extend(none_listener)
+                if listener:
+                    for device in listener:
+                        device.process_enocean_message(message)
+            except Exception as ex:
+                _logger.exception(ex)
+            busy = True
+
+        return busy
 
     def _check_cyclic_tasks(self):
         for device in self._devices_check_cyclic:
             device.check_cyclic_tasks()
-
-    def _on_enocean_receive(self, message):
-        """
-        :param src.enocean_interface.EnoceanMessage message:
-        """
-        listener = self._enocean_ids.get(message.enocean_id) or []
-
-        if message.enocean_id is not None:
-            none_listener = self._enocean_ids.get(None)
-            if none_listener:
-                listener.extend(none_listener)
-
-        if listener:
-            for device in listener:
-                device.process_enocean_message(message)
-        # else:
-        #     _logger.debug("enocean receiver not found - cannot proceed message '%s'", message)
 
     def _on_mqtt_connect(self, rc):
         """Notify MQTT connection state; callback from MQTT network thread"""
@@ -173,7 +186,7 @@ class ServiceRunner(Runner):
                 _logger.error(ex)
 
     def _init_device(self, name, config):
-        device_instance = self._create_device(name, config)
+        device_instance = DeviceFactory.create_device(name, config)
 
         enocean_ids = device_instance.enocean_targets
         if enocean_ids is None:

@@ -22,9 +22,6 @@ class EnoceanConnector:
         self._port = port
         self._enocean = None
         self._cached_base_id = None
-        self.on_receive = None  # type: callable(EnoceanMessage)
-
-        # TODO LOCK
 
     def open(self):
         self._enocean = SerialCommunicator(self._port)
@@ -50,32 +47,22 @@ class EnoceanConnector:
                 self.close()
                 self.open()
 
-    def handle_messages(self, block: bool = False):
+    def get_messages(self) -> [EnoceanMessage]:
+        messages = []  # type[EnoceanMessage]
         loop = 0
         while self._enocean.is_alive() and loop < 50:
             loop += 1
 
-            # loop to empty the queue...
             try:
-                # get next packet
-                packet = self._enocean.receive.get(block=block)
-
-                if hasattr(packet, "sender_int"):
-                    try:
-                        message = EnoceanMessage(
-                            payload=packet,
-                            enocean_id=packet.sender_int
-                        )
-                        self.on_receive(message)
-                    except Exception as ex:
-                        _logger.exception(ex)
-                # else:
-                #     _logger.debug("packet without sender_int?!\n%s", packet)
-
-                continue
-
+                packet = self._enocean.receive.get(block=False)
             except queue.Empty:
-                break
+                break  # loop untile the queue is empty...
+
+            if hasattr(packet, "sender_int"):
+                message = EnoceanMessage(payload=packet, enocean_id=packet.sender_int)
+                messages.append(message)
+
+        return messages
 
     @property
     def base_id(self):
