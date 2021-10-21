@@ -130,6 +130,7 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
 
         sent_data = json.loads(device.sent_message)
         self.assertEqual(sent_data, {
+            'device': 'mock',
             'timestamp': time_1.isoformat(),
             'since': time_1.isoformat(),
             'state': 'tilted'

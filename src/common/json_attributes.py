@@ -12,3 +12,5 @@ class JsonAttributes:
     BUTTON = "button"
 
     SINCE = "since"
+
+    DEVICE = "device"

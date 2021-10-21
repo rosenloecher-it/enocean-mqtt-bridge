@@ -99,9 +99,10 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
 
     def _create_json_message(self, switch_state: SwitchState, dim_state: int):
         data = {
-            JsonAttributes.TIMESTAMP: self._now().isoformat(),
+            JsonAttributes.DEVICE: self.name,
+            JsonAttributes.DIM_STATE: dim_state,
             JsonAttributes.STATE: switch_state.value,
-            JsonAttributes.DIM_STATE: dim_state
+            JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
 
         json_text = json.dumps(data)

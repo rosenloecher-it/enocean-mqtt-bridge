@@ -233,8 +233,9 @@ class Device:
     @property
     def _generated_mqtt_last_will(self):
         data = {
-            JsonAttributes.TIMESTAMP: self._now().isoformat(),
+            JsonAttributes.DEVICE: self.name,
             JsonAttributes.STATE: "offline",
+            JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
         return json.dumps(data)
 

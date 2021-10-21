@@ -127,8 +127,9 @@ class RockerSwitch(Device):
 
     def _create_mqtt_message(self, message_data: _MessageData):
         data = {
-            JsonAttributes.STATE: message_data.state,
             JsonAttributes.BUTTON: message_data.button,  # type: int
+            JsonAttributes.DEVICE: self.name,
+            JsonAttributes.STATE: message_data.state,
             JsonAttributes.TIMESTAMP: self._now().isoformat()
         }
 

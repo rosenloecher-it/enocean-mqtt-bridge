@@ -68,8 +68,9 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
 
     def _create_json_message(self, switch_state: SwitchState):
         data = {
+            JsonAttributes.DEVICE: self.name,
+            JsonAttributes.STATE: switch_state.value,
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
-            JsonAttributes.STATE: switch_state.value
         }
 
         json_text = json.dumps(data)

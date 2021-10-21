@@ -145,8 +145,9 @@ class FFG7BSensor(Device, CheckCyclicTask):
             timestamp = self._now()
 
         data = {
+            JsonAttributes.DEVICE: self.name,
+            JsonAttributes.STATE: value.value,
             JsonAttributes.TIMESTAMP: timestamp.isoformat(),
-            JsonAttributes.STATE: value.value
         }
         if since is not None:
             data[JsonAttributes.SINCE] = since.isoformat()

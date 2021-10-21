@@ -150,8 +150,9 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
 
     def _create_json_message(self, state: Fsb61State, position: Optional[float], since: Optional[datetime]):
         data = {
-            JsonAttributes.TIMESTAMP: self._now().isoformat(),
+            JsonAttributes.DEVICE: self.name,
             JsonAttributes.STATE: state.value,
+            JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
         if position is not None:
             data[JsonAttributes.VALUE] = int(round(position))
