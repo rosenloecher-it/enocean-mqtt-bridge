@@ -5,7 +5,7 @@ import sys
 import logging.handlers
 
 from src.config import ConfMainKey, Config
-from src.runner.service_runner import ServiceRunner
+from src.runner.runner import Runner
 
 
 _logger = logging.getLogger(__name__)
@@ -58,8 +58,7 @@ def main():
 
         init_logging(config)
 
-        runner = ServiceRunner()
-
+        runner = Runner()
         runner.open(config)
         runner.run()
 

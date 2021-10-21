@@ -1,7 +1,6 @@
 import logging
 import os
 from argparse import ArgumentParser
-from enum import Enum
 
 import yaml
 
@@ -11,18 +10,10 @@ from src.common.conf_main_key import ConfMainKey
 DEFAULT_CONFFILE = "/etc/enocean_mqtt_bridge.conf"
 
 
-class ConfSectionKey(Enum):
-    MAIN = "main"
-    DEVICES = "devices"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return '{}'.format(self.name)
+CONFKEY_DEVICES = "devices"
+CONFKEY_MAIN = "main"
 
 
-# noinspection PyCompatibility
 class Config:
 
     CLI_KEYS_ONLY = [ConfMainKey.CONF_FILE, ConfMainKey.LOG_PRINT, ConfMainKey.SYSTEMD]
@@ -30,7 +21,7 @@ class Config:
     def __init__(self, config):
         self._config = config
         self._devices = {}  # type: dict[str, dict]
-        self._config[ConfSectionKey.DEVICES.value] = self._devices
+        self._config[CONFKEY_DEVICES] = self._devices
 
     @classmethod
     def load(cls, config):
@@ -53,7 +44,7 @@ class Config:
                 value_file = current_section.get(item_name)
                 self._config[item_name] = value_file
 
-        key = ConfSectionKey.MAIN.value
+        key = CONFKEY_MAIN
         section = data.get(key)
         if not section:
             raise RuntimeError("No configuration section '{}' found!".format(key))
@@ -64,8 +55,8 @@ class Config:
                 update_main(section, e)
 
         # devices section
-        key = ConfSectionKey.DEVICES.value
-        section = data.get(ConfSectionKey.DEVICES.value)
+        key = CONFKEY_DEVICES
+        section = data.get(key)
         if not section:
             raise RuntimeError("No configuration section '{}' found!".format(key))
         if not isinstance(section, dict):
