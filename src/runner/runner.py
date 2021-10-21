@@ -7,7 +7,7 @@ from enum import IntEnum
 
 from enocean import utils as enocean_utils
 
-from src.config import ConfMainKey, CONFKEY_DEVICES
+from src.config import CONFKEY_DEVICES, CONFKEY_ENOCEAN_PORT
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.device import Device
 from src.device.device_exception import DeviceException
@@ -132,10 +132,7 @@ class Runner(abc.ABC):
             self.close()
 
     def _connect_enocean(self):
-        key = ConfMainKey.ENOCEAN_PORT.value
-        port = self._config.get(key)
-        if not port:
-            raise RuntimeError("no '{}' configured!".format(key))
+        port = self._config[CONFKEY_ENOCEAN_PORT]
         self._enocean_connector = EnoceanConnector(port)
         self._enocean_connector.open()
 

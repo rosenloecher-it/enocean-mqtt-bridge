@@ -4,7 +4,8 @@ import logging
 import sys
 import logging.handlers
 
-from src.config import ConfMainKey, Config
+from src.config import Config, CONFKEY_LOG_FILE, CONFKEY_SYSTEMD, CONFKEY_LOG_PRINT, CONFKEY_LOG_LEVEL, CONFKEY_LOG_MAX_BYTES, \
+    CONFKEY_LOG_MAX_COUNT
 from src.runner.runner import Runner
 
 
@@ -17,14 +18,14 @@ def init_logging(config):
     format_with_ts = '%(asctime)s [%(levelname)8s] %(name)s: %(message)s'
     format_no_ts = '[%(levelname)8s] %(name)s: %(message)s'
 
-    log_file = Config.get_str(config, ConfMainKey.LOG_FILE)
-    log_level = Config.get_loglevel(config, ConfMainKey.LOG_LEVEL, logging.INFO)
-    print_console = Config.get_bool(config, ConfMainKey.LOG_PRINT, False)
-    runs_as_systemd = Config.get_bool(config, ConfMainKey.SYSTEMD, False)
+    log_file = Config.get_str(config, CONFKEY_LOG_FILE)
+    log_level = Config.get_loglevel(config, CONFKEY_LOG_LEVEL, logging.INFO)
+    print_console = Config.get_bool(config, CONFKEY_LOG_PRINT, False)
+    runs_as_systemd = Config.get_bool(config, CONFKEY_SYSTEMD, False)
 
     if log_file:
-        max_bytes = Config.get_int(config, ConfMainKey.LOG_MAX_BYTES, 1048576)
-        max_count = Config.get_int(config, ConfMainKey.LOG_MAX_COUNT, 5)
+        max_bytes = Config.get_int(config, CONFKEY_LOG_MAX_BYTES, 1048576)
+        max_count = Config.get_int(config, CONFKEY_LOG_MAX_COUNT, 5)
         handler = logging.handlers.RotatingFileHandler(
             log_file,
             maxBytes=int(max_bytes),
@@ -53,8 +54,7 @@ def main():
     runner = None
 
     try:
-        config = {}
-        Config.load(config)
+        config = Config.load()
 
         init_logging(config)
 

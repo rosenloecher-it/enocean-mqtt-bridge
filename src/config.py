@@ -3,84 +3,90 @@ import os
 from argparse import ArgumentParser
 
 import yaml
-
-from src.common.conf_main_key import ConfMainKey
-
+from jsonschema import validate
 
 DEFAULT_CONFFILE = "/etc/enocean_mqtt_bridge.conf"
 
-
+CONFKEY_CONF_FILE = "conf_file"
 CONFKEY_DEVICES = "devices"
+CONFKEY_DEVICE_TYPE = "device_type"
+CONFKEY_ENOCEAN_PORT = "enocean_port"
+CONFKEY_LOG_FILE = "log_file"
+CONFKEY_LOG_LEVEL = "log_level"
+CONFKEY_LOG_MAX_BYTES = "log_max_bytes"
+CONFKEY_LOG_MAX_COUNT = "log_max_count"
+CONFKEY_LOG_PRINT = "log_print"
 CONFKEY_MAIN = "main"
+CONFKEY_SYSTEMD = "systemd"
+
+
+CONFIG_MAIN_JSONSCHEMA = {
+    "type": "object",
+    "properties": {
+        CONFKEY_ENOCEAN_PORT: {"type": "string", "minLength": 1},
+    },
+    "required": [
+        CONFKEY_ENOCEAN_PORT
+    ],
+}
 
 
 class Config:
 
-    CLI_KEYS_ONLY = [ConfMainKey.CONF_FILE, ConfMainKey.LOG_PRINT, ConfMainKey.SYSTEMD]
-
-    def __init__(self, config):
-        self._config = config
-        self._devices = {}  # type: dict[str, dict]
-        self._config[CONFKEY_DEVICES] = self._devices
+    def __init__(self):
+        self.config = {}
 
     @classmethod
-    def load(cls, config):
-        instance = Config(config)
+    def load(cls):
+        instance = Config()
         instance._parse_cli()
         instance._load_conf_file()
 
+        return instance.config
+
     def _load_conf_file(self):
-        conf_file = self._config[ConfMainKey.CONF_FILE.value]
+        conf_file = self.config[CONFKEY_CONF_FILE]
         if not os.path.isfile(conf_file):
             raise FileNotFoundError('config file ({}) does not exist!'.format(conf_file))
         with open(conf_file, 'r') as stream:
-            data = yaml.unsafe_load(stream)
+            file_data = yaml.unsafe_load(stream)
+
+        def get_section(key):
+            section = file_data.get(key)
+            if not section:
+                raise AttributeError("No configuration section '{}' found!".format(key))
+            if not isinstance(section, dict):
+                raise AttributeError("Configuration section '{}' expected to be a dictionary!".format(key))
+            return section
 
         # main section
-        def update_main(current_section, item_enum):
-            item_name = item_enum.value
-            value_cli = self._config.get(item_name)
-            if value_cli is None:
-                value_file = current_section.get(item_name)
-                self._config[item_name] = value_file
-
-        key = CONFKEY_MAIN
-        section = data.get(key)
-        if not section:
-            raise RuntimeError("No configuration section '{}' found!".format(key))
-        if not isinstance(section, dict):
-            raise RuntimeError("configuration section '{}' expected to be a dictionary!".format(key))
-        for e in ConfMainKey:
-            if e != self.CLI_KEYS_ONLY:
-                update_main(section, e)
+        main_section = get_section(CONFKEY_MAIN)
+        validate(main_section, CONFIG_MAIN_JSONSCHEMA)
+        self.config = {**main_section, **self.config}
 
         # devices section
-        key = CONFKEY_DEVICES
-        section = data.get(key)
-        if not section:
-            raise RuntimeError("No configuration section '{}' found!".format(key))
-        if not isinstance(section, dict):
-            raise RuntimeError("configuration section '{}' expected to be a dictionary!".format(key))
-        for device_name, device_section in section.items():
-            self._devices[device_name] = device_section
+        device_section = get_section(CONFKEY_DEVICES)
+        devices = {}
+        for device_name, device_config in device_section.items():
+            devices[device_name] = device_config
+        self.config[CONFKEY_DEVICES] = devices
 
     def _parse_cli(self):
         parser = self.create_cli_parser()
         args = parser.parse_args()
 
-        def handle_cli(key_enum, default_value=None):
-            key = key_enum.value
+        def handle_cli(key, default_value=None):
             value = getattr(args, key, default_value)
-            self._config[key] = value
+            if value is not None:
+                self.config[key] = value
 
-        handle_cli(ConfMainKey.CONF_FILE, DEFAULT_CONFFILE)
-        handle_cli(ConfMainKey.SYSTEMD)
-
-        handle_cli(ConfMainKey.LOG_LEVEL)
-        handle_cli(ConfMainKey.LOG_FILE)
-        handle_cli(ConfMainKey.LOG_MAX_BYTES)
-        handle_cli(ConfMainKey.LOG_MAX_COUNT)
-        handle_cli(ConfMainKey.LOG_PRINT)
+        handle_cli(CONFKEY_CONF_FILE, DEFAULT_CONFFILE)
+        handle_cli(CONFKEY_SYSTEMD)
+        handle_cli(CONFKEY_LOG_LEVEL)
+        handle_cli(CONFKEY_LOG_FILE)
+        handle_cli(CONFKEY_LOG_MAX_BYTES)
+        handle_cli(CONFKEY_LOG_MAX_COUNT)
+        handle_cli(CONFKEY_LOG_PRINT)
 
     @classmethod
     def create_cli_parser(cls):
@@ -90,27 +96,27 @@ class Config:
         )
 
         parser.add_argument(
-            "-c", "--" + ConfMainKey.CONF_FILE.value,
+            "-c", "--" + CONFKEY_CONF_FILE,
             help="config file path",
             default=DEFAULT_CONFFILE
         )
         parser.add_argument(
-            "-f", "--" + ConfMainKey.LOG_FILE.value,
+            "-f", "--" + CONFKEY_LOG_FILE,
             help="log file (if stated journal logging ist disabled)"
         )
         parser.add_argument(
-            "-l", "--" + ConfMainKey.LOG_LEVEL.value,
+            "-l", "--" + CONFKEY_LOG_LEVEL,
             choices=["debug", "info", "warning", "error"],
             help="set log level"
         )
         parser.add_argument(
-            "-p", "--" + ConfMainKey.LOG_PRINT.value,
+            "-p", "--" + CONFKEY_LOG_PRINT,
             action="store_true",
             default=None,
             help="print log output to console too"
         )
         parser.add_argument(
-            "-s", "--" + ConfMainKey.SYSTEMD.value,
+            "-s", "--" + CONFKEY_SYSTEMD,
             action="store_true",
             default=None,
             help="systemd/journald integration (skip timestamp + prints to console)"
@@ -119,13 +125,7 @@ class Config:
         return parser
 
     @classmethod
-    def get(cls, config, key_enum, default=None):
-        key = key_enum.value
-        return config.get(key, default)
-
-    @classmethod
-    def get_str(cls, config, key_enum, default=None):
-        key = key_enum.value
+    def get_str(cls, config, key, default=None):
         value = config.get(key)
         if value is None:  # value could be inserted by CLI as None so dict.default doesn't work
             value = default
@@ -136,8 +136,7 @@ class Config:
         return value
 
     @classmethod
-    def get_bool(cls, config, key_enum, default=None):
-        key = key_enum.value
+    def get_bool(cls, config, key, default=None):
         value = config.get(key)
 
         if not isinstance(value, bool):
@@ -156,8 +155,7 @@ class Config:
         return value
 
     @classmethod
-    def get_int(cls, config, key_enum, default=None):
-        key = key_enum.value
+    def get_int(cls, config, key, default=None):
         value = config.get(key)
 
         if not isinstance(value, int):
@@ -175,8 +173,7 @@ class Config:
         return value
 
     @classmethod
-    def get_loglevel(cls, config, key_enum, default=logging.INFO):
-        key = key_enum.value
+    def get_loglevel(cls, config, key, default=logging.INFO):
         value = config.get(key)
 
         if not isinstance(value, type(logging.INFO)):

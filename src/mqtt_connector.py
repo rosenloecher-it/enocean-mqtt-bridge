@@ -3,11 +3,46 @@ from typing import List
 from queue import Queue, Empty
 
 import paho.mqtt.client as mqtt
-
-from src.config import ConfMainKey, Config
+from jsonschema import validate
 
 
 _logger = logging.getLogger(__name__)
+
+
+CONFKEY_MQTT_CLIENT_ID = "mqtt_client_id"
+CONFKEY_MQTT_HOST = "mqtt_host"
+CONFKEY_MQTT_KEEPALIVE = "mqtt_keepalive"
+CONFKEY_MQTT_PORT = "mqtt_port"
+CONFKEY_MQTT_PROTOCOL = "mqtt_protocol"
+CONFKEY_MQTT_SSL_CA_CERTS = "mqtt_ssl_ca_certs"
+CONFKEY_MQTT_SSL_CERTFILE = "mqtt_ssl_certfile"
+CONFKEY_MQTT_SSL_INSECURE = "mqtt_ssl_insecure"
+CONFKEY_MQTT_SSL_KEYFILE = "mqtt_ssl_keyfile"
+CONFKEY_MQTT_USER_NAME = "mqtt_user_name"
+CONFKEY_MQTT_USER_PWD = "mqtt_user_pwd"
+
+
+MQTT_MAIN_JSONSCHEMA = {
+    "type": "object",
+    "properties": {
+        CONFKEY_MQTT_CLIENT_ID: {"type": "string", "minLength": 1},
+        CONFKEY_MQTT_HOST: {"type": "string", "minLength": 1},
+        CONFKEY_MQTT_KEEPALIVE: {"type": "integer", "minimum": 1},
+        CONFKEY_MQTT_PORT: {"type": "integer"},
+        CONFKEY_MQTT_PROTOCOL: {"type": "integer", "enum": [3, 4, 5]},
+        CONFKEY_MQTT_SSL_CA_CERTS: {"type": "string", "minLength": 1},
+        CONFKEY_MQTT_SSL_CERTFILE: {"type": "string", "minLength": 1},
+        CONFKEY_MQTT_SSL_INSECURE: {"type": "boolean"},
+        CONFKEY_MQTT_SSL_KEYFILE: {"type": "string", "minLength": 1},
+        CONFKEY_MQTT_USER_NAME: {"type": "string", "minLength": 1},
+        CONFKEY_MQTT_USER_PWD: {"type": "string"},
+    },
+    "required": [
+        CONFKEY_MQTT_CLIENT_ID,
+        CONFKEY_MQTT_HOST,
+        CONFKEY_MQTT_PORT,
+    ],
+}
 
 
 class MqttConnector:
@@ -29,26 +64,25 @@ class MqttConnector:
         self._message_queue = Queue()  # synchronized
 
     def open(self, config):
-        host = Config.get_str(config, ConfMainKey.MQTT_HOST)
-        port = Config.get_int(config, ConfMainKey.MQTT_PORT)
-        protocol = Config.get_int(config, ConfMainKey.MQTT_PROTOCOL, self.DEFAULT_MQTT_PROTOCOL)
-        keepalive = Config.get_int(config, ConfMainKey.MQTT_KEEPALIVE, self.DEFAULT_MQTT_KEEPALIVE)
-        client_id = Config.get_str(config, ConfMainKey.MQTT_CLIENT_ID)
-        ssl_ca_certs = Config.get_str(config, ConfMainKey.MQTT_SSL_CA_CERTS)
-        ssl_certfile = Config.get_str(config, ConfMainKey.MQTT_SSL_CERTFILE)
-        ssl_keyfile = Config.get_str(config, ConfMainKey.MQTT_SSL_KEYFILE)
-        ssl_insecure = Config.get_bool(config, ConfMainKey.MQTT_SSL_INSECURE, False)
+        validate(instance=config, schema=MQTT_MAIN_JSONSCHEMA)
+
+        client_id = config[CONFKEY_MQTT_CLIENT_ID]
+        host = config[CONFKEY_MQTT_HOST]
+        port = config[CONFKEY_MQTT_PORT]
+
+        keepalive = config.get(CONFKEY_MQTT_KEEPALIVE, self.DEFAULT_MQTT_KEEPALIVE)
+        protocol = config.get(CONFKEY_MQTT_PROTOCOL, self.DEFAULT_MQTT_PROTOCOL)
+        ssl_ca_certs = config.get(CONFKEY_MQTT_SSL_CA_CERTS)
+        ssl_certfile = config.get(CONFKEY_MQTT_SSL_CERTFILE)
+        ssl_insecure = config.get(CONFKEY_MQTT_SSL_INSECURE, False)
+        ssl_keyfile = config.get(CONFKEY_MQTT_SSL_KEYFILE)
+        user_name = config.get(CONFKEY_MQTT_USER_NAME)
+        user_pwd = config.get(CONFKEY_MQTT_USER_PWD)
+
         is_ssl = ssl_ca_certs or ssl_certfile or ssl_keyfile
-        user_name = Config.get_str(config, ConfMainKey.MQTT_USER_NAME)
-        user_pwd = Config.get_str(config, ConfMainKey.MQTT_USER_PWD)
 
         if not port:
             port = self.DEFAULT_MQTT_PORT_SSL if is_ssl else self.DEFAULT_MQTT_PORT
-
-        if not host or not client_id:
-            raise RuntimeError("mandatory mqtt configuration not found ({}, {})'!".format(
-                ConfMainKey.MQTT_HOST.value, ConfMainKey.MQTT_CLIENT_ID.value
-            ))
 
         self._mqtt = mqtt.Client(client_id=client_id, protocol=protocol)
 
