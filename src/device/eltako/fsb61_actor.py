@@ -179,7 +179,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         packet = Fsb61CommandConverter.create_packet(device_command1)
         self._send_enocean_packet(packet)
 
-        self._logger.debug('_process_device_command1: "%s"', device_commands)
+        self._logger.debug('process_device_command1: "%s"', device_commands)
 
         if len(device_commands) == 2:
             self._stored_device_commands = device_commands
@@ -206,7 +206,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
             if change.type == Fsb61StatusType.OPENED and device_command1.type == Fsb61CommandType.OPEN \
                     and change.type == Fsb61StatusType.CLOSED and device_command1.type == Fsb61CommandType.CLOSE:
                 self._logger.info(
-                    "_process_device_command2 - wrong directions, abort 2. operation - change: %s; command: %s",
+                    "process_device_command2 - wrong directions, abort 2. operation - change: %s; command: %s",
                     change.type, device_command1.type
                 )
                 break
@@ -224,7 +224,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
                 break
 
             device_command2 = self._stored_device_commands[1]
-            self._logger.debug('_process_device_command2: "%s"', device_command2)
+            self._logger.debug('process_device_command2: "%s"', device_command2)
             packet = Fsb61CommandConverter.create_packet(device_command2)
             self._send_enocean_packet(packet)
 
@@ -307,11 +307,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
 
     def open_mqtt(self):
         super().open_mqtt()
-
-        # if self._storage.last_value() is not None:
-        #     self._logger.info("old state '%s' (%s) restored.", last_handle_value, last_observation)
-        #     message = self._create_message(last_handle_value, last_since, timestamp=last_observation)
-        #     self._publish_mqtt(message)
+        # TODO publish state, but race condition with initialisation
 
     def close_mqtt(self):
         super().close_mqtt()
