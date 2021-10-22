@@ -7,7 +7,7 @@ from enum import IntEnum
 
 from enocean import utils as enocean_utils
 
-from src.config import CONFKEY_DEVICES, CONFKEY_ENOCEAN_PORT
+from src.config import CONFKEY_DEVICES, CONFKEY_ENOCEAN_PORT, CONFKEY_MAIN
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.device import Device
 from src.device.device_exception import DeviceException
@@ -62,6 +62,11 @@ class Runner(abc.ABC):
         #     pretty = json.dumps(self._config, indent=4, sort_keys=True)
         #     _logger.debug("config: %s", pretty)
 
+        self._init_devices()
+        self._collect_mqtt_subscriptions()
+        self._mqtt_connector.open(self._config[CONFKEY_MAIN])
+        self._connect_enocean()
+
     def close(self):
         self._mqtt_channels_subscriptions = {}  # no commands will be executed any more
 
@@ -86,16 +91,7 @@ class Runner(abc.ABC):
             _logger.debug("mqtt closed.")
 
     def run(self):
-        self._init_devices()
-        self._collect_mqtt_subscriptions()
-
-        self._mqtt_connector.open(self._config)
-
-        self._connect_enocean()
-
-        self._loop()
-
-    def _loop(self):
+        """endless loop"""
         time_step = 0.05
         time_wait_for_refresh = 0
         time_check_offline = 0
@@ -132,7 +128,7 @@ class Runner(abc.ABC):
             self.close()
 
     def _connect_enocean(self):
-        port = self._config[CONFKEY_ENOCEAN_PORT]
+        port = self._config[CONFKEY_MAIN][CONFKEY_ENOCEAN_PORT]  # validated
         self._enocean_connector = EnoceanConnector(port)
         self._enocean_connector.open()
 

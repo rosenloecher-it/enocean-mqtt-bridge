@@ -34,6 +34,7 @@ CONFIG_MAIN_JSONSCHEMA = {
 class Config:
 
     def __init__(self):
+        self.cli = {}
         self.config = {}
 
     @classmethod
@@ -45,7 +46,7 @@ class Config:
         return instance.config
 
     def _load_conf_file(self):
-        conf_file = self.config[CONFKEY_CONF_FILE]
+        conf_file = self.cli[CONFKEY_CONF_FILE]
         if not os.path.isfile(conf_file):
             raise FileNotFoundError('config file ({}) does not exist!'.format(conf_file))
         with open(conf_file, 'r') as stream:
@@ -62,14 +63,10 @@ class Config:
         # main section
         main_section = get_section(CONFKEY_MAIN)
         validate(main_section, CONFIG_MAIN_JSONSCHEMA)
-        self.config = {**main_section, **self.config}
+        self.config[CONFKEY_MAIN] = {**main_section, **self.cli}
 
         # devices section
-        device_section = get_section(CONFKEY_DEVICES)
-        devices = {}
-        for device_name, device_config in device_section.items():
-            devices[device_name] = device_config
-        self.config[CONFKEY_DEVICES] = devices
+        self.config[CONFKEY_DEVICES] = get_section(CONFKEY_DEVICES)
 
     def _parse_cli(self):
         parser = self.create_cli_parser()
@@ -78,7 +75,7 @@ class Config:
         def handle_cli(key, default_value=None):
             value = getattr(args, key, default_value)
             if value is not None:
-                self.config[key] = value
+                self.cli[key] = value
 
         handle_cli(CONFKEY_CONF_FILE, DEFAULT_CONFFILE)
         handle_cli(CONFKEY_SYSTEMD)
@@ -126,6 +123,9 @@ class Config:
 
     @classmethod
     def get_str(cls, config, key, default=None):
+        if not config:
+            return default
+
         value = config.get(key)
         if value is None:  # value could be inserted by CLI as None so dict.default doesn't work
             value = default
@@ -137,6 +137,9 @@ class Config:
 
     @classmethod
     def get_bool(cls, config, key, default=None):
+        if not config:
+            return default
+
         value = config.get(key)
 
         if not isinstance(value, bool):
@@ -156,6 +159,9 @@ class Config:
 
     @classmethod
     def get_int(cls, config, key, default=None):
+        if not config:
+            return default
+
         value = config.get(key)
 
         if not isinstance(value, int):
@@ -174,6 +180,9 @@ class Config:
 
     @classmethod
     def get_loglevel(cls, config, key, default=logging.INFO):
+        if not config:
+            return default
+
         value = config.get(key)
 
         if not isinstance(value, type(logging.INFO)):
