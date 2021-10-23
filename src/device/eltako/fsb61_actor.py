@@ -82,6 +82,9 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._stored_device_commands = None  # type: Optional[List[Fsb61Command]]
         self._stored_device_commands_time = None  # type Optional[datetime]
 
+        # needed to re-interpretet STOPPED as 0% or 100% (via prio OPENING, CLOSING) (all Fsb61StatusType)
+        self._last_drive_direction = None  # type: Optional[Fsb61StatusType]  # Fsb61StatusType.CLOSING or Fsb61StatusType.OPENING
+
     def _set_config(self, config, skip_require_fields: [str]):
         super()._set_config(config, skip_require_fields)
 
@@ -127,13 +130,12 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
             EnoceanTools.log_pickled_enocean_packet(self._logger.warning, packet, "process_enocean_fsb61_message - unknown packet type")
             return
 
+        self._logger.debug("process_enocean_fsb61_message: %s", status)
+
         # # DEBUG
         # EnoceanTools.log_pickled_enocean_packet(self._logger.debug, packet, 'process_enocean_fsb61_message')
 
-        self._shutter_position.update(status)
-        self._storage.save_value(self._shutter_position.value, self._now())
-
-        self._logger.debug("process_enocean_message: %s", status)
+        self._update_position(status)
 
         self._publish_actor_result()
 
@@ -142,6 +144,21 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         # prevent offline message
         self._reset_offline_refresh_timer()
         self._last_status_request_time = self._now()
+
+    def _update_position(self, status: Fsb61Status):
+        update_status = status
+
+        if status.type == Fsb61StatusType.STOPPED and self._last_drive_direction is not None:
+            position = 100 if self._last_drive_direction == Fsb61StatusType.CLOSING else 0
+            update_status = Fsb61Status(type=Fsb61StatusType.POSITION, position=position)
+
+        if status.type in [Fsb61StatusType.CLOSING, Fsb61StatusType.OPENING]:
+            self._last_drive_direction = status.type
+        else:
+            self._last_drive_direction = None
+
+        self._shutter_position.update(update_status)
+        self._storage.save_value(self._shutter_position.value, self._now())
 
     def _publish_actor_result(self):
         state = Fsb61State.READY if self._shutter_position.state == Fsb61ShutterState.READY else Fsb61State.NOT_CALIBRATED

@@ -82,6 +82,21 @@ class TestFsb61StatusConverter(unittest.TestCase):
         status = Fsb61StatusConverter.extract_packet(packet)
         self.assertEqual(status.type, Fsb61StatusType.UNKNOWN)
 
+    def test_create_packet(self):
+        dest = 0xffffffff
+        sender = 0x0594f8e9
+
+        items = [
+            Fsb61Status(type=Fsb61StatusType.CLOSING, destination=dest, sender=sender, rssi=-61),
+            Fsb61Status(type=Fsb61StatusType.OPENING, destination=dest, sender=sender, rssi=-62),
+            Fsb61Status(type=Fsb61StatusType.STOPPED, destination=dest, sender=sender, rssi=-63),
+        ]
+
+        for predefined_status in items:
+            packet = Fsb61StatusConverter.create_packet(predefined_status)
+            status = Fsb61StatusConverter.extract_packet(packet)
+            self.assertEqual(status, predefined_status)
+
     # def test_unknown(self):
     #     packet = PickleTools.unpickle_packet(PACKET_UNKNOWN_1)
     #

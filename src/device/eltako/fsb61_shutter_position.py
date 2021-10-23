@@ -75,12 +75,16 @@ class Fsb61ShutterPosition:
             self._value = float_value
 
     def update(self, change: Fsb61Status):
-        if change and change.time:
-            change_time = change.time * (-1 if change.type == Fsb61StatusType.OPENED else 1.0)
-            if self._value is None:
-                self._calibrate(change_time)
-            else:
-                self._seek(change_time)
+        if change:
+            if change.type in [Fsb61StatusType.OPENED, Fsb61StatusType.CLOSED]:
+                change_time = (change.time or 0) * (-1 if change.type == Fsb61StatusType.OPENED else 1.0)
+                if self._value is None:
+                    self._calibrate(change_time)
+                else:
+                    self._seek(change_time)
+            elif change.type == Fsb61StatusType.POSITION:
+                if self.validate_value(change.position):
+                    self._value = change.position
 
     def _calibrate(self, move_time: float):
         if self._calibration_time is None:

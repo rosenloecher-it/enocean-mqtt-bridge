@@ -166,7 +166,9 @@ class Fsb61StatusType(IntEnum):
     OPENING = 3  # started moving, no new position yet
     CLOSING = 4  # started moving, no new position yet
 
-    STOPPED = 5  # status no movement
+    STOPPED = 5  # signaled when the shutter stops at the device (hardware) time setting => interpreted via last OPENING, CLOSING
+
+    POSITION = 6  # re-interpretet STOPPED as 0% or 100% (via prio OPENING, CLOSING)
 
     def __str__(self):
         return self.name
@@ -179,6 +181,8 @@ class Fsb61StatusType(IntEnum):
 class Fsb61Status(_Fsb61BaseAction):
     type = attr.ib(default=None)  # type: Optional[Fsb61StatusType]
 
+    position = attr.ib(default=None)  # type: Optional[int]
+
 
 class Fsb61StatusConverter:
 
@@ -190,6 +194,7 @@ class Fsb61StatusConverter:
         status = Fsb61Status()
 
         status.rssi = packet.dBm
+
         status.sender = packet.sender_int
         status.destination = packet.destination_int
 
@@ -230,3 +235,27 @@ class Fsb61StatusConverter:
             status.type = Fsb61StatusType.UNKNOWN
 
         return status
+
+    @classmethod
+    def create_packet(cls, status: Fsb61Status) -> RadioPacket:
+        """needed for test only, so not complete!"""
+        if status.type in [Fsb61StatusType.CLOSING, Fsb61StatusType.OPENING, Fsb61StatusType.STOPPED]:
+            if status.type == Fsb61StatusType.CLOSING:
+                r2 = 1
+                sa = 1
+            elif status.type == Fsb61StatusType.OPENING:
+                r2 = 0
+                sa = 1
+            elif status.type == Fsb61StatusType.STOPPED:
+                r2 = 0
+                sa = 0
+
+            props = {'R1': 0, 'EB': 0, 'R2': r2, 'SA': sa, 'T21': 1, 'NU': 1}
+
+            packet = EnoceanPacketFactory.create_packet(
+                eep=cls._EEP, destination=status.destination, sender=status.sender, learn=False, **props
+            )
+            packet.dBm = status.rssi
+            return packet
+        else:
+            return None

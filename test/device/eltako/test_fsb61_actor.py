@@ -7,7 +7,8 @@ from paho.mqtt.client import MQTTMessage
 from src.device.device_exception import DeviceException
 from src.device.eltako.fsb61_actor import Fsb61Actor
 from src.device.eltako import fsb61_actor
-from src.device.eltako.fsb61_eep import Fsb61CommandConverter, Fsb61Command, Fsb61CommandType
+from src.device.eltako.fsb61_eep import Fsb61CommandConverter, Fsb61Command, Fsb61CommandType, Fsb61Status, Fsb61StatusType, \
+    Fsb61StatusConverter
 from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition
 from src.enocean_connector import EnoceanMessage
 from test.setup_test import SetupTest
@@ -110,7 +111,7 @@ class TestFsb61Actor(unittest.TestCase):
         expected_time = TIME_DOWN_DRIVING + TIME_DOWN_ROLLING + Fsb61Actor.POSITION_RESERVE_TIME
         self.assertEqual(command.time, expected_time)
 
-    def test_roundtrip(self):
+    def test_seek_by_mqtt(self):
         device = self.device
 
         def process_mqtt_command(mqtt_command: str):
@@ -158,6 +159,24 @@ class TestFsb61Actor(unittest.TestCase):
         self.assertEqual(packet_command_3.type, Fsb61CommandType.OPEN)
         expected_time = round(TIME_UP_DRIVING * (position1 - position2) / Fsb61ShutterPosition.ROLLING, 1)
         self.assertEqual(packet_command_3.time, expected_time)
+
+    def test_seek_by_rocker_switches(self):
+        """when moved via external rocker switches and only driving between end positions, tthese commands are sent."""
+        device = self.device
+
+        def simulate_status_packet(status_type):
+            command = Fsb61Status(type=status_type)
+            packet = Fsb61StatusConverter.create_packet(command)
+            message = EnoceanMessage(enocean_id=device._enocean_target, payload=packet)
+            device.process_enocean_message(message)
+
+        simulate_status_packet(Fsb61StatusType.CLOSING)
+        simulate_status_packet(Fsb61StatusType.STOPPED)
+        self.assertEqual(device.position, 100)
+
+        simulate_status_packet(Fsb61StatusType.OPENING)
+        simulate_status_packet(Fsb61StatusType.STOPPED)
+        self.assertEqual(device.position, 0)
 
 
 class TestFsb61Validation(unittest.TestCase):
