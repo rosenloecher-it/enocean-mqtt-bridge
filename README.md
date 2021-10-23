@@ -26,6 +26,9 @@ In the end you could degrade your smarthome system to a pure GUI tool and switch
 - Not supported:
   - Nodon SIN-2-RS-01: Not reliable to pair. Questions were not answered by Nodon.
 
+## Release notes
+
+[See here](./docs/release_notes.md)
 
 ## Requirements
 

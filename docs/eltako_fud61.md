@@ -17,7 +17,7 @@ Eltako FUD61NP(N)-230V is a dimmer.
     }
     ```
 - Activates predefined "rocker scenes". The bridge listen to separate rocker switches and execute 
-  the predefiend commands. 
+  the predefiend commands. The switches do not have to be teached in.
 
 ## MQTT Commands
 

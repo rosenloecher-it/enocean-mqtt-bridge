@@ -13,7 +13,7 @@ The Eltako FSB61NB-230V is a roller shutter relais.
   - 0% - 90%: This range is called "driving". See configuration.
   - 90% - 100%: This range is called "rolling". See configuration.
 - Activates predefined "rocker scenes". The bridge listen to separate rocker switches and execute 
-  the predefiend commands. 
+  the predefiend commands. The switches do not have to be teached in.
 
 ## MQTT commands
 
