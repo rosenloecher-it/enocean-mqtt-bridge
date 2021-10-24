@@ -1,6 +1,6 @@
 # Release notes
 
-## v3.1 (2021-10-22)
+## v3.1 (2021-10-24)
 
 - lot of refactoring
   - configuration changes (now via JSON Schema)
