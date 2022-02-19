@@ -1,6 +1,6 @@
 import unittest
 
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.eltako.fud61_eep import Fud61Action, Fud61Command, Fud61Eep
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
@@ -59,11 +59,11 @@ class TestFud61Eep(unittest.TestCase):
             ),
             Fud61Action(
                 command=Fud61Command.DIMMING,
-                switch_state=SwitchState.ON,
+                switch_state=SwitchStatus.ON,
             ),
             Fud61Action(
                 command=Fud61Command.DIMMING,
-                switch_state=SwitchState.OFF,
+                switch_state=SwitchStatus.OFF,
             ),
             Fud61Action(
                 command=Fud61Command.DIMMING,
@@ -106,7 +106,7 @@ class TestFud61Eep(unittest.TestCase):
         self.assertEqual(data, {'CMD': 2, 'EDIM': 100, 'RMP': 0, 'EDIMR': 0, 'STR': 0, 'SW': 1})
 
     def test_switch_on(self):
-        action = Fud61Action(command=Fud61Command.DIMMING, switch_state=SwitchState.ON)
+        action = Fud61Action(command=Fud61Command.DIMMING, switch_state=SwitchStatus.ON)
         packet = Fud61Eep.create_packet(action)
 
         self.assertEqual(packet.data[1], 0x02)
@@ -117,7 +117,7 @@ class TestFud61Eep(unittest.TestCase):
         pass
 
     def test_switch_off(self):
-        action = Fud61Action(command=Fud61Command.DIMMING, switch_state=SwitchState.OFF)
+        action = Fud61Action(command=Fud61Command.DIMMING, switch_state=SwitchStatus.OFF)
         packet = Fud61Eep.create_packet(action)
 
         self.assertEqual(packet.data[1], 0x02)

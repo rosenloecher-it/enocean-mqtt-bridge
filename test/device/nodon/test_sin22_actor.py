@@ -1,6 +1,6 @@
 import unittest
 
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.nodon.sin22_actor import Sin22Actor
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
@@ -53,7 +53,7 @@ class TestSin22Actor(unittest.TestCase):
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 0)
-        self.assertEqual(notification.switch_state, SwitchState.ON)
+        self.assertEqual(notification.switch_state, SwitchStatus.ON)
 
     def test_extract_0_off(self):
         packet = PickleTools.unpickle_packet(_PACKET_0_OFF)
@@ -63,7 +63,7 @@ class TestSin22Actor(unittest.TestCase):
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 0)
-        self.assertEqual(notification.switch_state, SwitchState.OFF)
+        self.assertEqual(notification.switch_state, SwitchStatus.OFF)
 
     def test_extract_1_on(self):
         packet = PickleTools.unpickle_packet(_PACKET_1_ON)
@@ -73,7 +73,7 @@ class TestSin22Actor(unittest.TestCase):
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 1)
-        self.assertEqual(notification.switch_state, SwitchState.ON)
+        self.assertEqual(notification.switch_state, SwitchStatus.ON)
 
     def test_extract_1_off(self):
         packet = PickleTools.unpickle_packet(_PACKET_1_OFF)
@@ -83,4 +83,4 @@ class TestSin22Actor(unittest.TestCase):
 
         notification = device.extract_notification(data)
         self.assertEqual(notification.channel, 1)
-        self.assertEqual(notification.switch_state, SwitchState.OFF)
+        self.assertEqual(notification.switch_state, SwitchStatus.OFF)

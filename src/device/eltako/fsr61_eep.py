@@ -6,7 +6,7 @@ from enocean.protocol.packet import RadioPacket
 
 
 from src.common.eep import Eep
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.enocean_packet_factory import EnoceanPacketFactory
 from src.common.eep_prop_exception import EepPropException
 from src.tools.enocean_tools import EnoceanTools
@@ -33,7 +33,7 @@ class Fsr61Action:
     def __init__(self,
                  command: Fsr61Command = Fsr61Command.STATUS_REQUEST,
                  learn=False,
-                 switch_state: SwitchState = None,
+                 switch_state: SwitchStatus = None,
                  sender: int = None,
                  destination: int = None
                  ):
@@ -116,9 +116,9 @@ class Fsr61Eep:
         props = {
             Fsr61Prop.CMD.value: Fsr61Command.SWITCHING.value,
         }
-        if action.switch_state == SwitchState.ON:
+        if action.switch_state == SwitchStatus.ON:
             props[Fsr61Prop.SW.value] = 1
-        elif action.switch_state == SwitchState.OFF:
+        elif action.switch_state == SwitchStatus.OFF:
             props[Fsr61Prop.SW.value] = 0
         else:
             raise ValueError("Wrong SwitchState!")
@@ -168,10 +168,10 @@ class Fsr61Eep:
         if action.command == Fsr61Command.SWITCHING:
             prop = props.get(Fsr61Prop.SW.value)
             if prop == 0:
-                action.switch_state = SwitchState.OFF
+                action.switch_state = SwitchStatus.OFF
             elif prop == 1:
-                action.switch_state = SwitchState.ON
+                action.switch_state = SwitchStatus.ON
             else:
-                action.switch_state = SwitchState.ERROR
+                action.switch_state = SwitchStatus.ERROR
 
         return action

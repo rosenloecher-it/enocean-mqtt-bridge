@@ -5,7 +5,7 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
 from src.common.eep import Eep
-from src.device.base.rocker_actor import RockerActor, SwitchState
+from src.device.base.rocker_actor import RockerActor, SwitchStatus
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
@@ -70,7 +70,7 @@ class Sin22Actor(RockerActor):
             self._logger.debug("skip channel (%s, awaiting=%s)", notification.channel, self._actor_channel)
             return
 
-        if notification.switch_state == SwitchState.ERROR and self._logger.isEnabledFor(logging.DEBUG):
+        if notification.switch_state == SwitchStatus.ERROR and self._logger.isEnabledFor(logging.DEBUG):
             # write ascii representation to reproduce in tests
             self._logger.debug("process_enocean_message - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
@@ -86,10 +86,10 @@ class Sin22Actor(RockerActor):
         value = int(data.get("OV"))
 
         if value == 0:
-            switch_state = SwitchState.OFF
+            switch_state = SwitchStatus.OFF
         elif 0 < value <= 100:
-            switch_state = SwitchState.ON
+            switch_state = SwitchStatus.ON
         else:
-            switch_state = SwitchState.ERROR
+            switch_state = SwitchStatus.ERROR
 
         return _Notification(channel=int(data.get("IO")), switch_state=switch_state)

@@ -7,7 +7,7 @@ from enocean.protocol.packet import RadioPacket
 
 
 from src.common.eep import Eep
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.enocean_packet_factory import EnoceanPacketFactory
 from src.common.eep_prop_exception import EepPropException
 from src.tools.enocean_tools import EnoceanTools
@@ -33,7 +33,7 @@ class Fud61Action:
     def __init__(self,
                  command: Fud61Command = None,
                  learn=False,
-                 switch_state: SwitchState = None,
+                 switch_state: SwitchStatus = None,
                  dim_state: int = None,
                  sender: int = None,
                  destination: int = None,
@@ -158,16 +158,16 @@ class Fud61Eep:
 
         # handle switch state
         if action.switch_state is None and action.dim_state is not None:
-            action.switch_state = SwitchState.ON if action.dim_state else SwitchState.ON
-        if action.switch_state not in [SwitchState.ON, SwitchState.OFF]:
+            action.switch_state = SwitchStatus.ON if action.dim_state else SwitchStatus.ON
+        if action.switch_state not in [SwitchStatus.ON, SwitchStatus.OFF]:
             raise ValueError("invalid switch_state!")
 
         # handle dim state
         if action.dim_state is None:
-            action.dim_state = 0 if action.switch_state == SwitchState.OFF else cls.DEFAULT_DIM_STATE
+            action.dim_state = 0 if action.switch_state == SwitchStatus.OFF else cls.DEFAULT_DIM_STATE
 
         # is consistent
-        if (action.switch_state == SwitchState.ON) != (action.dim_state > 0):
+        if (action.switch_state == SwitchStatus.ON) != (action.dim_state > 0):
             raise ValueError("invalid dim_state/switch_state combination!")
 
         props = {
@@ -178,7 +178,7 @@ class Fud61Eep:
             Fud61Prop.EDIMR.value: 0,
             Fud61Prop.STR.value: store_final_value,
 
-            Fud61Prop.SW.value: 1 if action.switch_state == SwitchState.ON else 0,
+            Fud61Prop.SW.value: 1 if action.switch_state == SwitchStatus.ON else 0,
         }
 
         return props
@@ -224,18 +224,18 @@ class Fud61Eep:
         if action.command == Fud61Command.DIMMING:
             prop = props.get(Fud61Prop.SW.value)
             if prop == 0:
-                action.switch_state = SwitchState.OFF
+                action.switch_state = SwitchStatus.OFF
             elif prop == 1:
-                action.switch_state = SwitchState.ON
+                action.switch_state = SwitchStatus.ON
             else:
-                action.switch_state = SwitchState.ERROR
+                action.switch_state = SwitchStatus.ERROR
 
             edim = props.get(Fud61Prop.EDIM.value)
             edimr = props.get(Fud61Prop.EDIMR.value)
             action.dim_state = cls.extract_dim_value(edim, edimr)
 
         else:
-            action.switch_state = SwitchState.ERROR
+            action.switch_state = SwitchStatus.ERROR
 
         return action
 

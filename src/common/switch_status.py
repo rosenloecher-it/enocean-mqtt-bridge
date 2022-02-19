@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class SwitchState(Enum):
+class SwitchStatus(Enum):
     ERROR = "error"
     OFF = "off"
     ON = "on"

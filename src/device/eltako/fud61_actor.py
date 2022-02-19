@@ -12,7 +12,7 @@ from enocean.protocol.packet import RadioPacket
 from src.command.dimmer_command import DimmerCommand, DimmerCommandType
 from src.common.json_attributes import JsonAttributes
 from src.device.base.cyclic_device import CheckCyclicTask
-from src.device.base.rocker_actor import SwitchState
+from src.device.base.rocker_actor import SwitchStatus
 from src.device.base.scene_actor import SceneActor
 from src.device.eltako.fud61_eep import Fud61Eep, Fud61Action, Fud61Command
 from src.enocean_connector import EnoceanMessage
@@ -55,7 +55,7 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
 
         self._default_dim_state = Fud61Eep.DEFAULT_DIM_STATE
         self._last_dim_state = Fud61Eep.DEFAULT_DIM_STATE
-        self._current_switch_state = None  # type: Optional[SwitchState]
+        self._current_switch_state = None  # type: Optional[SwitchStatus]
 
         self._last_status_request = None  # type: Optional[datetime]
 
@@ -79,7 +79,7 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
         self._logger.debug("process actor message: %s", props)
         action = Fud61Eep.get_action_from_props(props)  # type: Fud61Action
 
-        if action.switch_state not in [SwitchState.ON, SwitchState.OFF] or action.dim_state is None:
+        if action.switch_state not in [SwitchStatus.ON, SwitchStatus.OFF] or action.dim_state is None:
             if self._logger.isEnabledFor(logging.DEBUG):
                 # write ascii representation to reproduce in tests
                 self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
@@ -97,7 +97,7 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
         message = self._create_json_message(action.switch_state, action.dim_state)
         self._publish_mqtt(message)
 
-    def _create_json_message(self, switch_state: SwitchState, dim_state: int):
+    def _create_json_message(self, switch_state: SwitchStatus, dim_state: int):
         data = {
             JsonAttributes.DEVICE: self.name,
             JsonAttributes.DIM_STATE: dim_state,
@@ -119,18 +119,18 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
 
     def _execute_actor_command(self, command: DimmerCommand):
         if command.is_toggle:
-            command = DimmerCommand(DimmerCommandType.OFF if self._current_switch_state == SwitchState.ON else DimmerCommandType.ON)
+            command = DimmerCommand(DimmerCommandType.OFF if self._current_switch_state == SwitchStatus.ON else DimmerCommandType.ON)
 
         if command.is_on:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,
-                switch_state=SwitchState.ON,
+                switch_state=SwitchStatus.ON,
                 dim_state=self._last_dim_state
             )
         elif command.is_off:
             action = Fud61Action(
                 command=Fud61Command.DIMMING,
-                switch_state=SwitchState.OFF
+                switch_state=SwitchStatus.OFF
             )
         elif command.is_dim:
             action = Fud61Action(

@@ -5,7 +5,7 @@ from typing import Optional
 
 from src.command.switch_command import SwitchCommand
 from src.common.json_attributes import JsonAttributes
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.base.device import Device
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 
@@ -27,7 +27,7 @@ class RockerActor(Device):
     # def _set_config(self, config, skip_require_fields: [str]):
     #     super()._set_config(config, skip_require_fields)
 
-    def _create_json_message(self, switch_state: SwitchState, dim_value: Optional[int]):
+    def _create_json_message(self, switch_state: SwitchStatus, dim_value: Optional[int]):
         data = {
             JsonAttributes.DEVICE: self.name,
             JsonAttributes.STATUS: switch_state.value,

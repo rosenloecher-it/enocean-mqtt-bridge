@@ -10,7 +10,7 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 from src.command.switch_command import SwitchCommand
 from src.common.json_attributes import JsonAttributes
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.scene_actor import SceneActor
 from src.device.eltako.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
@@ -31,7 +31,7 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
         SceneActor.__init__(self, name)
         CheckCyclicTask.__init__(self)
 
-        self._current_switch_state = None  # type: Optional[SwitchState]
+        self._current_switch_state = None  # type: Optional[SwitchStatus]
         self._last_status_request = None  # type: Optional[datetime]
 
     def process_enocean_message(self, message: EnoceanMessage):
@@ -46,15 +46,15 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
             action = RockerSwitchTools.extract_action(props)  # type: RockerAction
 
             if action.button == RockerButton.ROCK3:
-                self._current_switch_state = SwitchState.ON
+                self._current_switch_state = SwitchStatus.ON
             elif action.button == RockerButton.ROCK2:
-                self._current_switch_state = SwitchState.OFF
+                self._current_switch_state = SwitchStatus.OFF
             else:
-                self._current_switch_state = SwitchState.ERROR
+                self._current_switch_state = SwitchStatus.ERROR
         else:
-            self._current_switch_state = SwitchState.ERROR
+            self._current_switch_state = SwitchStatus.ERROR
 
-        if self._current_switch_state not in [SwitchState.ON, SwitchState.OFF]:
+        if self._current_switch_state not in [SwitchStatus.ON, SwitchStatus.OFF]:
             if self._logger.isEnabledFor(logging.DEBUG):
                 self._logger.debug("proceed_enocean - pickled error packet:\n%s", PickleTools.pickle_packet(packet))
 
@@ -66,7 +66,7 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
         message = self._create_json_message(self._current_switch_state)
         self._publish_mqtt(message)
 
-    def _create_json_message(self, switch_state: SwitchState):
+    def _create_json_message(self, switch_state: SwitchStatus):
         data = {
             JsonAttributes.DEVICE: self.name,
             JsonAttributes.STATUS: switch_state.value,
@@ -87,17 +87,17 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
 
     def _execute_actor_command(self, command: SwitchCommand):
         if command.is_toggle:
-            command = SwitchCommand.OFF if self._current_switch_state == SwitchState.ON else SwitchCommand.ON
+            command = SwitchCommand.OFF if self._current_switch_state == SwitchStatus.ON else SwitchCommand.ON
 
         if command.is_on_or_off:
             action = Fsr61Action(
                 command=Fsr61Command.SWITCHING,
-                switch_state=SwitchState.ON if command.is_on else SwitchState.OFF,
+                switch_state=SwitchStatus.ON if command.is_on else SwitchStatus.OFF,
             )
         elif command.is_update:
             action = Fsr61Action(command=Fsr61Command.STATUS_REQUEST)
         elif command.is_learn:
-            action = Fsr61Action(command=Fsr61Command.SWITCHING, switch_state=SwitchState.ON, learn=True)
+            action = Fsr61Action(command=Fsr61Command.SWITCHING, switch_state=SwitchStatus.ON, learn=True)
         else:
             raise ValueError("SwitchCommand ({}) not supported!".format(command))
 

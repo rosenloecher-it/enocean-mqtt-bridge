@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from paho.mqtt.client import MQTTMessage
 
 from src.command.switch_command import SwitchCommand
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.eltako.fsr61_actor import Fsr61Actor
 from src.device.eltako.fsr61_eep import Fsr61Action, Fsr61Eep, Fsr61Command
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton, RockerPress
@@ -87,11 +87,11 @@ class TestFsr61Actor(unittest.TestCase):
         # loop 1 - init with 100
         action = process_mqtt_message_to_action(b"on")
         self.assertEqual(action.command, Fsr61Command.SWITCHING)
-        self.assertEqual(action.switch_state, SwitchState.ON)
+        self.assertEqual(action.switch_state, SwitchStatus.ON)
 
         action = process_mqtt_message_to_action(b"off")
         self.assertEqual(action.command, Fsr61Command.SWITCHING)
-        self.assertEqual(action.switch_state, SwitchState.OFF)
+        self.assertEqual(action.switch_state, SwitchStatus.OFF)
 
         action = process_mqtt_message_to_action(b"update")
         self.assertEqual(action.command, Fsr61Command.STATUS_REQUEST)

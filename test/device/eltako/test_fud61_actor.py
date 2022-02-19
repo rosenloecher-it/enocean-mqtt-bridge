@@ -5,7 +5,7 @@ import unittest
 from paho.mqtt.client import MQTTMessage
 
 from src.command.dimmer_command import DimmerCommandType, DimmerCommand
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.eltako.fud61_actor import Fud61Actor
 from src.device.eltako.fud61_eep import Fud61Action, Fud61Eep, Fud61Command
 from src.enocean_connector import EnoceanMessage
@@ -105,13 +105,13 @@ class TestFud61Actor(unittest.TestCase):
         # loop 1 - init with 100
         action = process_mqtt_message_to_action(b"100")
         self.assertEqual(action.command, Fud61Command.DIMMING)
-        self.assertEqual(action.switch_state, SwitchState.ON)
+        self.assertEqual(action.switch_state, SwitchStatus.ON)
         self.assertEqual(action.dim_state, 100)
 
         # loop 2 - set dim value
         action = process_mqtt_message_to_action(b"50")
         self.assertEqual(action.command, Fud61Command.DIMMING)
-        self.assertEqual(action.switch_state, SwitchState.ON)
+        self.assertEqual(action.switch_state, SwitchStatus.ON)
         self.assertEqual(action.dim_state, 50)
 
         # simulate state
@@ -124,13 +124,13 @@ class TestFud61Actor(unittest.TestCase):
         # loop 4 - off
         action = process_mqtt_message_to_action(b"off")
         self.assertEqual(action.command, Fud61Command.DIMMING)
-        self.assertEqual(action.switch_state, SwitchState.OFF)
+        self.assertEqual(action.switch_state, SwitchStatus.OFF)
         self.assertEqual(action.dim_state, 0)
 
         # loop 5 - on with old dim state
         action = process_mqtt_message_to_action(b"on")
         self.assertEqual(action.command, Fud61Command.DIMMING)
-        self.assertEqual(action.switch_state, SwitchState.ON)
+        self.assertEqual(action.switch_state, SwitchStatus.ON)
         self.assertEqual(action.dim_state, 50)
 
         # loop 6 - request update
@@ -139,14 +139,14 @@ class TestFud61Actor(unittest.TestCase):
 
         # loop 7 - toggle off
         action = process_mqtt_message_to_action(b"toggle")
-        self.assertEqual(action.switch_state, SwitchState.OFF)
+        self.assertEqual(action.switch_state, SwitchStatus.OFF)
         self.assertEqual(action.dim_state, 0)
 
         # loop 7 - toggle on
-        device._current_switch_state = SwitchState.OFF  # missing enocean update (process_enocean_message)
+        device._current_switch_state = SwitchStatus.OFF  # missing enocean update (process_enocean_message)
         action = process_mqtt_message_to_action(b"toggle")
         self.assertEqual(action.command, Fud61Command.DIMMING)
-        self.assertEqual(action.switch_state, SwitchState.ON)
+        self.assertEqual(action.switch_state, SwitchStatus.ON)
         self.assertEqual(action.dim_state, 50)
 
     def test_cyclic_status_requests(self):

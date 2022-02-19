@@ -1,6 +1,6 @@
 import unittest
 
-from src.common.switch_state import SwitchState
+from src.common.switch_status import SwitchStatus
 from src.device.eltako.fsr61_eep import Fsr61Action, Fsr61Command, Fsr61Eep
 
 
@@ -13,11 +13,11 @@ class TestFsr61Eep(unittest.TestCase):
             ),
             Fsr61Action(
                 command=Fsr61Command.SWITCHING,
-                switch_state=SwitchState.ON,
+                switch_state=SwitchStatus.ON,
             ),
             Fsr61Action(
                 command=Fsr61Command.SWITCHING,
-                switch_state=SwitchState.OFF,
+                switch_state=SwitchStatus.OFF,
             ),
         ]
 
