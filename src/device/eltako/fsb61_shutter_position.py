@@ -39,7 +39,7 @@ class Fsb61ShutterPosition:
         return self.__logger
 
     @property
-    def state(self) -> Fsb61ShutterState:
+    def status(self) -> Fsb61ShutterState:
         return Fsb61ShutterState.READY if self.validate_value(self._value) else Fsb61ShutterState.NOT_CALIBRATED
 
     @classmethod

@@ -67,7 +67,7 @@ class TestFsr61Actor(unittest.TestCase):
             self.assertEqual(len(device.messages), 1)
             result = json.loads(device.messages[0])
 
-            compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'state': scenario.expected_state, 'device': 'mock'}
+            compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'status': scenario.expected_state, 'device': 'mock'}
             self.assertEqual(result, compare)
 
     def test_mqtt_command(self):

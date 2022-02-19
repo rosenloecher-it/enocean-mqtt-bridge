@@ -101,11 +101,11 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
         data = {
             JsonAttributes.DEVICE: self.name,
             JsonAttributes.DIM_STATE: dim_state,
-            JsonAttributes.STATE: switch_state.value,
+            JsonAttributes.STATUS: switch_state.value,
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
 
-        json_text = json.dumps(data)
+        json_text = json.dumps(data, sort_keys=True)
         return json_text
 
     def process_mqtt_message(self, message: MQTTMessage):

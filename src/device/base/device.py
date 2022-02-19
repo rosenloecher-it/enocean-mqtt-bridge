@@ -234,10 +234,10 @@ class Device:
     def _generated_mqtt_last_will(self):
         data = {
             JsonAttributes.DEVICE: self.name,
-            JsonAttributes.STATE: "offline",
+            JsonAttributes.STATUS: "offline",
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
-        return json.dumps(data)
+        return json.dumps(data, sort_keys=True)
 
     @classmethod
     def filter_required_fields(cls, schema, skip_require_fields):

@@ -162,10 +162,10 @@ class MqttConnector:
         """MQTT callback is called when client connects to MQTT server."""
         if rc == 0:
             self._is_connected = True
-            self._publisher.open(self)
-            _logger.info("successfully connected to MQTT: flags=%s, rc=%s", flags, rc)
+            self._publisher.open(self)  # ???
+            _logger.info("successfully connected to MQTT")
         else:
-            _logger.error("connect to MQTT failed: flags=%s, rc=%s", flags, rc)
+            _logger.error("connect to MQTT failed: rc=%s", rc)
 
         if self.on_connect:
             self.on_connect(rc)
@@ -174,7 +174,7 @@ class MqttConnector:
         """MQTT callback for when the client disconnects from the MQTT server."""
         self._is_connected = False
         if rc == 0:
-            _logger.info("disconnected from MQTT: rc=%s", rc)
+            _logger.info("disconnected from MQTT")
         else:
             _logger.error("Unexpectedly disconnected from MQTT broker: rc=%s", rc)
 

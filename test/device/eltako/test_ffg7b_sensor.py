@@ -133,5 +133,5 @@ class TestEltakoFFG7BDevice(unittest.TestCase):
             'device': 'mock',
             'timestamp': time_1.isoformat(),
             'since': time_1.isoformat(),
-            'state': 'tilted'
+            'status': 'tilted'
         })

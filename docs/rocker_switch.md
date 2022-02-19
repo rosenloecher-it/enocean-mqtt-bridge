@@ -8,8 +8,8 @@ is sent to an MQTT channel.
 - Outputs JSON
     ```json
     {
-      "state": "SHORT", 
-      "button": 3, 
+      "status": "SHORT",
+      "button": 3,
       "timestamp": "2021-10-21T10:49:42.010918+02:00"
     }
     ```

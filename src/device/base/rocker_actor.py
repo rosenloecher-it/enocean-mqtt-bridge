@@ -30,13 +30,13 @@ class RockerActor(Device):
     def _create_json_message(self, switch_state: SwitchState, dim_value: Optional[int]):
         data = {
             JsonAttributes.DEVICE: self.name,
-            JsonAttributes.STATE: switch_state.value,
+            JsonAttributes.STATUS: switch_state.value,
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
         if dim_value is not None:
             data[JsonAttributes.DIM_STATE] = dim_value
 
-        json_text = json.dumps(data)
+        json_text = json.dumps(data, sort_keys=True)
         return json_text
 
     def _create_switch_packet(self, switch_action, learn=False, destination=None):

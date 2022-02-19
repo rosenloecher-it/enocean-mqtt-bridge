@@ -43,6 +43,8 @@ class Runner(abc.ABC):
         self._mqtt_publisher = MqttPublisher()
         self._mqtt_connector = MqttConnector(self._mqtt_publisher)
         self._mqtt_connector.on_connect = self._on_mqtt_connect
+        self._mqtt_connector.on_disconnect = self._on_mqtt_disconnect
+
         self._mqtt_state = _MqttState.UNINITIALED
         self._mqtt_lock = threading.Lock()
 
@@ -225,6 +227,9 @@ class Runner(abc.ABC):
                     self._mqtt_state = _MqttState.INITIALISING
             else:
                 self._mqtt_state = _MqttState.DISCONNECTED
+
+    def _on_mqtt_disconnect(self, rc):
+        pass
 
     def _init_devices(self):
         items = self._config[CONFKEY_DEVICES]

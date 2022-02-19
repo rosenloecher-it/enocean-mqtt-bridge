@@ -19,7 +19,7 @@ class _TestTimeoutDevice(Device):
         self.now = datetime.datetime.now(tz=get_localzone()) - datetime.timedelta(minutes=10)
         super().__init__("_TestTimeoutDevice")
 
-        self._mqtt_last_will = '{"STATE": "OFFLINE", "INFO": "last will"}'
+        self._mqtt_last_will = '{"status": "offline", "info": "last will"}'
 
     def process_enocean_message(self, message):
         self._last_refresh = self._now()

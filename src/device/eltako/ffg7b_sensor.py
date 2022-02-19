@@ -146,13 +146,13 @@ class FFG7BSensor(Device, CheckCyclicTask):
 
         data = {
             JsonAttributes.DEVICE: self.name,
-            JsonAttributes.STATE: value.value,
+            JsonAttributes.STATUS: value.value,
             JsonAttributes.TIMESTAMP: timestamp.isoformat(),
         }
         if since is not None:
             data[JsonAttributes.SINCE] = since.isoformat()
 
-        json_text = json.dumps(data)
+        json_text = json.dumps(data, sort_keys=True)
         return json_text
 
     def check_cyclic_tasks(self):

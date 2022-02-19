@@ -161,14 +161,14 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._storage.save_value(self._shutter_position.value, self._now())
 
     def _publish_actor_result(self):
-        state = Fsb61State.READY if self._shutter_position.state == Fsb61ShutterState.READY else Fsb61State.NOT_CALIBRATED
-        message = self._create_json_message(state, self._storage.value, self._storage.since)
+        status = Fsb61State.READY if self._shutter_position.status == Fsb61ShutterState.READY else Fsb61State.NOT_CALIBRATED
+        message = self._create_json_message(status, self._storage.value, self._storage.since)
         self._publish_mqtt(message)
 
     def _create_json_message(self, state: Fsb61State, position: Optional[float], since: Optional[datetime]):
         data = {
             JsonAttributes.DEVICE: self.name,
-            JsonAttributes.STATE: state.value,
+            JsonAttributes.STATUS: state.value,
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
         if position is not None:
@@ -176,7 +176,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         if since is not None:
             data[JsonAttributes.SINCE] = since.isoformat()
 
-        json_text = json.dumps(data)
+        json_text = json.dumps(data, sort_keys=True)
         return json_text
 
     def process_mqtt_message(self, message: MQTTMessage):
@@ -294,7 +294,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
                 append_device_command(order, device_command)
 
             elif not order.force_calibration and self._shutter_position.jumps_without_calibration < self.CALIBRATION_AFTER_JUMPS and \
-                    self._shutter_position.state == Fsb61ShutterState.READY:
+                    self._shutter_position.status == Fsb61ShutterState.READY:
 
                 command_type = Fsb61CommandType.CLOSE if value > self._shutter_position.value else Fsb61CommandType.OPEN
                 device_command = create_action(command_type)

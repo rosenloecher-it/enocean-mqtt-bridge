@@ -10,8 +10,8 @@ The Eltako FSR61-230V is an ON/OFF relay switch.
 - Outputs JSON:
     ```json
     {
-      "timestamp": "2021-10-21T10:30:51.409471+02:00", 
-      "state": "on", 
+      "timestamp": "2021-10-21T10:30:51.409471+02:00",
+      "status": "on",
       "rssi": -49
     }
     ```

@@ -3,7 +3,7 @@ class JsonAttributes:
 
     TIMESTAMP = "timestamp"
 
-    STATE = "state"
+    STATUS = "status"
     DIM_STATE = "dim_state"
     SWITCH_STATE = "switch_state"
 

@@ -25,19 +25,19 @@ class TestFsb61ShutterPosition(unittest.TestCase):
         self.assertTrue(Fsb61ShutterPosition.validate_value(100.0))
 
     def test_calibrate(self):
-        self.assertEqual(self.sp.state, Fsb61ShutterState.NOT_CALIBRATED)
+        self.assertEqual(self.sp.status, Fsb61ShutterState.NOT_CALIBRATED)
         self.assertEqual(self.sp.value, None)
 
         change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=8)
         self.sp.update(change)
 
-        self.assertEqual(self.sp.state, Fsb61ShutterState.NOT_CALIBRATED)
+        self.assertEqual(self.sp.status, Fsb61ShutterState.NOT_CALIBRATED)
         self.assertEqual(self.sp.value, None)
 
         change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=14)
         self.sp.update(change)
 
-        self.assertEqual(self.sp.state, Fsb61ShutterState.READY)
+        self.assertEqual(self.sp.status, Fsb61ShutterState.READY)
         self.assertEqual(self.sp.value, 100)
 
     def test_seek_up(self):

@@ -118,7 +118,7 @@ class TestRockerSwitch(unittest.TestCase):
         self.assertEqual(message[1], channel)
 
         data = json.loads(message[0])
-        self.assertEqual(data[attr.STATE], action.press.value)
+        self.assertEqual(data[attr.STATUS], action.press.value)
         self.assertEqual(data[attr.BUTTON], action.button.value if action.button is not None else None)  # RELEASE
         self.assertEqual(data[attr.TIMESTAMP], device.now.isoformat())
 

@@ -36,7 +36,7 @@ ROCKER_SWITCH_JSONSCHEMA = {
 }
 
 
-_MessageData = namedtuple("_MessageData", ["channel", "state", "button"])
+_MessageData = namedtuple("_MessageData", ["channel", "status", "button"])
 
 
 class RockerSwitch(Device):
@@ -118,22 +118,22 @@ class RockerSwitch(Device):
             else:
                 raise ValueError("unknown rocker press action!")
 
-            return _MessageData(channel=channel, state=action.press.value, button=button)
+            return _MessageData(channel=channel, status=action.press.value, button=button)
 
         except (AttributeError, ValueError) as ex:  # TODO handle index errors
             self._logger.error("cannot evaluate data!")
             self._logger.exception(ex)
-            return _MessageData(channel=self._mqtt_channel_state, state="ERROR", button=None)
+            return _MessageData(channel=self._mqtt_channel_state, status="ERROR", button=None)
 
     def _create_mqtt_message(self, message_data: _MessageData):
         data = {
             JsonAttributes.BUTTON: message_data.button,  # type: int
             JsonAttributes.DEVICE: self.name,
-            JsonAttributes.STATE: message_data.state,
+            JsonAttributes.STATUS: message_data.status,
             JsonAttributes.TIMESTAMP: self._now().isoformat()
         }
 
-        json_text = json.dumps(data)
+        json_text = json.dumps(data, sort_keys=True)
         return json_text
 
     def process_mqtt_message(self, message):
