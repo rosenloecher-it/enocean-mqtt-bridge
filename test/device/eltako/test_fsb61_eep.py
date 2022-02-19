@@ -1,7 +1,7 @@
 import unittest
 
-from src.device.eltako.fsb61_eep import Fsb61CommandType, Fsb61Command, Fsb61CommandConverter, Fsb61Status, \
-    Fsb61StatusConverter, Fsb61StatusType
+from src.device.eltako.fsb61_eep import Fsb61CommandType, Fsb61Command, Fsb61CommandConverter, Fsb61State, \
+    Fsb61StateConverter, Fsb61StateType
 from src.tools.pickle_tools import PickleTools
 from test.setup_test import SetupTest
 
@@ -66,35 +66,35 @@ class TestFsb61StatusConverter(unittest.TestCase):
         sender = 0x0594f8e9
 
         test_items = [
-            (PACKET_1, Fsb61Status(type=Fsb61StatusType.CLOSED, time=4.2, destination=dest, sender=sender, rssi=-74)),
-            (PACKET_2, Fsb61Status(type=Fsb61StatusType.OPENING, destination=dest, sender=sender, rssi=-58)),
-            (PACKET_3, Fsb61Status(type=Fsb61StatusType.OPENED, time=2.6, destination=dest, sender=sender, rssi=-64)),
-            (PACKET_4, Fsb61Status(type=Fsb61StatusType.STOPPED, destination=dest, sender=sender, rssi=-61)),
-            (PACKET_5, Fsb61Status(type=Fsb61StatusType.CLOSING, destination=dest, sender=sender, rssi=-57)),
+            (PACKET_1, Fsb61State(type=Fsb61StateType.CLOSED, time=4.2, destination=dest, sender=sender, rssi=-74)),
+            (PACKET_2, Fsb61State(type=Fsb61StateType.OPENING, destination=dest, sender=sender, rssi=-58)),
+            (PACKET_3, Fsb61State(type=Fsb61StateType.OPENED, time=2.6, destination=dest, sender=sender, rssi=-64)),
+            (PACKET_4, Fsb61State(type=Fsb61StateType.STOPPED, destination=dest, sender=sender, rssi=-61)),
+            (PACKET_5, Fsb61State(type=Fsb61StateType.CLOSING, destination=dest, sender=sender, rssi=-57)),
         ]
         for pickeled_packet, expected_status in test_items:
             packet = PickleTools.unpickle_packet(pickeled_packet)
-            status = Fsb61StatusConverter.extract_packet(packet)
+            status = Fsb61StateConverter.extract_packet(packet)
             self.assertEqual(status, expected_status)
 
     def test_ignore_unknown(self):
         packet = PickleTools.unpickle_packet(PACKET_UNKNOWN_1)
-        status = Fsb61StatusConverter.extract_packet(packet)
-        self.assertEqual(status.type, Fsb61StatusType.UNKNOWN)
+        status = Fsb61StateConverter.extract_packet(packet)
+        self.assertEqual(status.type, Fsb61StateType.UNKNOWN)
 
     def test_create_packet(self):
         dest = 0xffffffff
         sender = 0x0594f8e9
 
         items = [
-            Fsb61Status(type=Fsb61StatusType.CLOSING, destination=dest, sender=sender, rssi=-61),
-            Fsb61Status(type=Fsb61StatusType.OPENING, destination=dest, sender=sender, rssi=-62),
-            Fsb61Status(type=Fsb61StatusType.STOPPED, destination=dest, sender=sender, rssi=-63),
+            Fsb61State(type=Fsb61StateType.CLOSING, destination=dest, sender=sender, rssi=-61),
+            Fsb61State(type=Fsb61StateType.OPENING, destination=dest, sender=sender, rssi=-62),
+            Fsb61State(type=Fsb61StateType.STOPPED, destination=dest, sender=sender, rssi=-63),
         ]
 
         for predefined_status in items:
-            packet = Fsb61StatusConverter.create_packet(predefined_status)
-            status = Fsb61StatusConverter.extract_packet(packet)
+            packet = Fsb61StateConverter.create_packet(predefined_status)
+            status = Fsb61StateConverter.extract_packet(packet)
             self.assertEqual(status, predefined_status)
 
     # def test_unknown(self):
@@ -113,4 +113,4 @@ class TestFsb61StatusConverter(unittest.TestCase):
     #                 ))
     #
     #     status = Fsb61StatusConverter.extract_packet(packet)
-    #     self.assertEqual(status.type, Fsb61StatusType.UNKNOWN)
+    #     self.assertEqual(status.type, Fsb61StateType.UNKNOWN)

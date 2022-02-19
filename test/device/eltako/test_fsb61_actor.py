@@ -7,8 +7,8 @@ from paho.mqtt.client import MQTTMessage
 from src.device.device_exception import DeviceException
 from src.device.eltako.fsb61_actor import Fsb61Actor
 from src.device.eltako import fsb61_actor
-from src.device.eltako.fsb61_eep import Fsb61CommandConverter, Fsb61Command, Fsb61CommandType, Fsb61Status, Fsb61StatusType, \
-    Fsb61StatusConverter
+from src.device.eltako.fsb61_eep import Fsb61CommandConverter, Fsb61Command, Fsb61CommandType, Fsb61State, Fsb61StateType, \
+    Fsb61StateConverter
 from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition
 from src.enocean_connector import EnoceanMessage
 from test.setup_test import SetupTest
@@ -165,17 +165,17 @@ class TestFsb61Actor(unittest.TestCase):
         device = self.device
 
         def simulate_status_packet(status_type):
-            command = Fsb61Status(type=status_type)
-            packet = Fsb61StatusConverter.create_packet(command)
+            command = Fsb61State(type=status_type)
+            packet = Fsb61StateConverter.create_packet(command)
             message = EnoceanMessage(enocean_id=device._enocean_target, payload=packet)
             device.process_enocean_message(message)
 
-        simulate_status_packet(Fsb61StatusType.CLOSING)
-        simulate_status_packet(Fsb61StatusType.STOPPED)
+        simulate_status_packet(Fsb61StateType.CLOSING)
+        simulate_status_packet(Fsb61StateType.STOPPED)
         self.assertEqual(device.position, 100)
 
-        simulate_status_packet(Fsb61StatusType.OPENING)
-        simulate_status_packet(Fsb61StatusType.STOPPED)
+        simulate_status_packet(Fsb61StateType.OPENING)
+        simulate_status_packet(Fsb61StateType.STOPPED)
         self.assertEqual(device.position, 0)
 
 

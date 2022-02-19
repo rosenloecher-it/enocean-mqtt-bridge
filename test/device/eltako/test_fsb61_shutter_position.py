@@ -1,6 +1,6 @@
 import unittest
 
-from src.device.eltako.fsb61_eep import Fsb61Status, Fsb61StatusType
+from src.device.eltako.fsb61_eep import Fsb61State, Fsb61StateType
 from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition, Fsb61ShutterState
 
 
@@ -28,13 +28,13 @@ class TestFsb61ShutterPosition(unittest.TestCase):
         self.assertEqual(self.sp.status, Fsb61ShutterState.NOT_CALIBRATED)
         self.assertEqual(self.sp.value, None)
 
-        change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=8)
+        change = Fsb61State(type=Fsb61StateType.CLOSED, time=8)
         self.sp.update(change)
 
         self.assertEqual(self.sp.status, Fsb61ShutterState.NOT_CALIBRATED)
         self.assertEqual(self.sp.value, None)
 
-        change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=14)
+        change = Fsb61State(type=Fsb61StateType.CLOSED, time=14)
         self.sp.update(change)
 
         self.assertEqual(self.sp.status, Fsb61ShutterState.READY)
@@ -43,34 +43,34 @@ class TestFsb61ShutterPosition(unittest.TestCase):
     def test_seek_up(self):
 
         self.sp.value = 100
-        change = Fsb61Status(type=Fsb61StatusType.OPENED, time=self.sp.time_up_rolling)
+        change = Fsb61State(type=Fsb61StateType.OPENED, time=self.sp.time_up_rolling)
         self.sp.update(change)
         self.assertEqual(self.sp.value, Fsb61ShutterPosition.ROLLING)
 
         self.sp.value = 100
-        change = Fsb61Status(type=Fsb61StatusType.OPENED, time=self.sp.time_up_rolling + self.sp.time_up_driving / 2)
+        change = Fsb61State(type=Fsb61StateType.OPENED, time=self.sp.time_up_rolling + self.sp.time_up_driving / 2)
         self.sp.update(change)
         self.assertEqual(self.sp.value, 45)
 
         self.sp.value = 100
-        change = Fsb61Status(type=Fsb61StatusType.OPENED, time=self.sp.time_up_rolling / 2)
+        change = Fsb61State(type=Fsb61StateType.OPENED, time=self.sp.time_up_rolling / 2)
         self.sp.update(change)
         self.assertEqual(self.sp.value, 95)
 
     def test_seek_down(self):
 
         self.sp.value = 0
-        change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=self.sp.time_down_driving + self.sp.time_down_rolling / 2)
+        change = Fsb61State(type=Fsb61StateType.CLOSED, time=self.sp.time_down_driving + self.sp.time_down_rolling / 2)
         self.sp.update(change)
         self.assertEqual(self.sp.value, 95)
 
         self.sp.value = 0
-        change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=self.sp.time_down_driving / 2)
+        change = Fsb61State(type=Fsb61StateType.CLOSED, time=self.sp.time_down_driving / 2)
         self.sp.update(change)
         self.assertEqual(self.sp.value, 45)
 
         self.sp.value = 0
-        change = Fsb61Status(type=Fsb61StatusType.CLOSED, time=self.sp.time_down_driving)
+        change = Fsb61State(type=Fsb61StateType.CLOSED, time=self.sp.time_down_driving)
         self.sp.update(change)
         self.assertEqual(self.sp.value, 90.0)
 

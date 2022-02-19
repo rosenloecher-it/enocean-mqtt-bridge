@@ -2,7 +2,7 @@ import logging
 from enum import Enum
 from typing import Optional
 
-from src.device.eltako.fsb61_eep import Fsb61Status, Fsb61StatusType
+from src.device.eltako.fsb61_eep import Fsb61State, Fsb61StateType
 
 
 class Fsb61ShutterState(Enum):
@@ -74,15 +74,15 @@ class Fsb61ShutterPosition:
 
             self._value = float_value
 
-    def update(self, change: Fsb61Status):
+    def update(self, change: Fsb61State):
         if change:
-            if change.type in [Fsb61StatusType.OPENED, Fsb61StatusType.CLOSED]:
-                change_time = (change.time or 0) * (-1 if change.type == Fsb61StatusType.OPENED else 1.0)
+            if change.type in [Fsb61StateType.OPENED, Fsb61StateType.CLOSED]:
+                change_time = (change.time or 0) * (-1 if change.type == Fsb61StateType.OPENED else 1.0)
                 if self._value is None:
                     self._calibrate(change_time)
                 else:
                     self._seek(change_time)
-            elif change.type == Fsb61StatusType.POSITION:
+            elif change.type == Fsb61StateType.POSITION:
                 if self.validate_value(change.position):
                     self._value = change.position
 

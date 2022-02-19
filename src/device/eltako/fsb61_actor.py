@@ -15,8 +15,8 @@ from src.common.json_attributes import JsonAttributes
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.scene_actor import SceneActor
 from src.device.device_exception import DeviceException
-from src.device.eltako.fsb61_eep import Fsb61StatusConverter, Fsb61Command, Fsb61CommandType, Fsb61CommandConverter, \
-    Fsb61StatusType, Fsb61Status
+from src.device.eltako.fsb61_eep import Fsb61StateConverter, Fsb61Command, Fsb61CommandType, Fsb61CommandConverter, \
+    Fsb61StateType, Fsb61State
 from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition, Fsb61ShutterState
 from src.device.eltako.fsb61_storage import Fsb61Storage
 from src.enocean_connector import EnoceanMessage
@@ -50,7 +50,7 @@ FSB61_JSONSCHEMA = {
 }
 
 
-class Fsb61State(Enum):
+class Fsb61Status(Enum):
     OFFLINE = "offline"
     READY = "ready"
     NOT_CALIBRATED = "not-calibrated"
@@ -83,7 +83,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._stored_device_commands_time = None  # type Optional[datetime]
 
         # needed to re-interpretet STOPPED as 0% or 100% (via prio OPENING, CLOSING) (all Fsb61StatusType)
-        self._last_drive_direction = None  # type: Optional[Fsb61StatusType]  # Fsb61StatusType.CLOSING or Fsb61StatusType.OPENING
+        self._last_drive_direction = None  # type: Optional[Fsb61StateType]  # Fsb61StateType.CLOSING or Fsb61StateType.OPENING
 
     def _set_config(self, config, skip_require_fields: [str]):
         super()._set_config(config, skip_require_fields)
@@ -120,13 +120,13 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
 
         try:
             packet.parse()
-            status = Fsb61StatusConverter.extract_packet(packet)
+            status = Fsb61StateConverter.extract_packet(packet)
         except Exception as ex:
             self._logger.exception(ex)
             EnoceanTools.log_pickled_enocean_packet(self._logger.error, packet, "process_enocean_fsb61_message - {}".format(str(ex)))
             return
 
-        if status.type == Fsb61StatusType.UNKNOWN:
+        if status.type == Fsb61StateType.UNKNOWN:
             EnoceanTools.log_pickled_enocean_packet(self._logger.warning, packet, "process_enocean_fsb61_message - unknown packet type")
             return
 
@@ -145,14 +145,14 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._reset_offline_refresh_timer()
         self._last_status_request_time = self._now()
 
-    def _update_position(self, status: Fsb61Status):
+    def _update_position(self, status: Fsb61State):
         update_status = status
 
-        if status.type == Fsb61StatusType.STOPPED and self._last_drive_direction is not None:
-            position = 100 if self._last_drive_direction == Fsb61StatusType.CLOSING else 0
-            update_status = Fsb61Status(type=Fsb61StatusType.POSITION, position=position)
+        if status.type == Fsb61StateType.STOPPED and self._last_drive_direction is not None:
+            position = 100 if self._last_drive_direction == Fsb61StateType.CLOSING else 0
+            update_status = Fsb61State(type=Fsb61StateType.POSITION, position=position)
 
-        if status.type in [Fsb61StatusType.CLOSING, Fsb61StatusType.OPENING]:
+        if status.type in [Fsb61StateType.CLOSING, Fsb61StateType.OPENING]:
             self._last_drive_direction = status.type
         else:
             self._last_drive_direction = None
@@ -161,11 +161,11 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._storage.save_value(self._shutter_position.value, self._now())
 
     def _publish_actor_result(self):
-        status = Fsb61State.READY if self._shutter_position.status == Fsb61ShutterState.READY else Fsb61State.NOT_CALIBRATED
+        status = Fsb61Status.READY if self._shutter_position.status == Fsb61ShutterState.READY else Fsb61Status.NOT_CALIBRATED
         message = self._create_json_message(status, self._storage.value, self._storage.since)
         self._publish_mqtt(message)
 
-    def _create_json_message(self, state: Fsb61State, position: Optional[float], since: Optional[datetime]):
+    def _create_json_message(self, state: Fsb61Status, position: Optional[float], since: Optional[datetime]):
         data = {
             JsonAttributes.DEVICE: self.name,
             JsonAttributes.STATUS: state.value,
@@ -204,10 +204,10 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         elif len(device_commands) > 3:
             raise DeviceException("Invalid command sequence (len > 2)!")
 
-    def _process_device_command2(self, change: Fsb61Status):
+    def _process_device_command2(self, change: Fsb61State):
         """
         """
-        if change.type not in [Fsb61StatusType.OPENED, Fsb61StatusType.CLOSED]:
+        if change.type not in [Fsb61StateType.OPENED, Fsb61StateType.CLOSED]:
             return
 
         # self._logger.info("_process_device_command2 - change: %s, stored: %s", change, self._device_commands)
@@ -220,8 +220,8 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
 
             device_command1 = self._stored_device_commands[0]
 
-            if change.type == Fsb61StatusType.OPENED and device_command1.type == Fsb61CommandType.OPEN \
-                    and change.type == Fsb61StatusType.CLOSED and device_command1.type == Fsb61CommandType.CLOSE:
+            if change.type == Fsb61StateType.OPENED and device_command1.type == Fsb61CommandType.OPEN \
+                    and change.type == Fsb61StateType.CLOSED and device_command1.type == Fsb61CommandType.CLOSE:
                 self._logger.info(
                     "process_device_command2 - wrong directions, abort 2. operation - change: %s; command: %s",
                     change.type, device_command1.type

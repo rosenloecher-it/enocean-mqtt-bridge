@@ -157,7 +157,7 @@ class Fsb61CommandConverter:
         return props
 
 
-class Fsb61StatusType(IntEnum):
+class Fsb61StateType(IntEnum):
     UNKNOWN = 0
 
     OPENED = 1  # just stopped, but drove x seconds
@@ -178,20 +178,20 @@ class Fsb61StatusType(IntEnum):
 
 
 @attr.s
-class Fsb61Status(_Fsb61BaseAction):
-    type = attr.ib(default=None)  # type: Optional[Fsb61StatusType]
+class Fsb61State(_Fsb61BaseAction):
+    type = attr.ib(default=None)  # type: Optional[Fsb61StateType]
 
     position = attr.ib(default=None)  # type: Optional[int]
 
 
-class Fsb61StatusConverter:
+class Fsb61StateConverter:
 
     _EEP = Eep(rorg=0xF6, func=0x02, type=0x02)
 
     @classmethod
-    def extract_packet(cls, packet: RadioPacket) -> Fsb61Status:
+    def extract_packet(cls, packet: RadioPacket) -> Fsb61State:
 
-        status = Fsb61Status()
+        status = Fsb61State()
 
         status.rssi = packet.dBm
 
@@ -201,13 +201,13 @@ class Fsb61StatusConverter:
         if Fsb61CommandConverter.is_command_packet(packet):  # packet.rorg == 0xa5
             command = Fsb61CommandConverter.extract_packet(packet)
             if command.type == Fsb61CommandType.CLOSE:
-                status.type = Fsb61StatusType.CLOSED
+                status.type = Fsb61StateType.CLOSED
                 status.time = command.time
             elif command.type == Fsb61CommandType.OPEN:
-                status.type = Fsb61StatusType.OPENED
+                status.type = Fsb61StateType.OPENED
                 status.time = command.time
             elif command.type == Fsb61CommandType.STOP:
-                status.type = Fsb61StatusType.STOPPED
+                status.type = Fsb61StateType.STOPPED
                 status.time = 0
             else:
                 raise EepPropException("Invalid command type!")
@@ -218,35 +218,35 @@ class Fsb61StatusConverter:
             sa = props["SA"]  # 2nd action valid
             if sa == 1:
                 if r2 == 0:  # 0: Button AI: "Switch light on" or "Dim light up" or "Move blind open"
-                    status.type = Fsb61StatusType.OPENING
+                    status.type = Fsb61StateType.OPENING
                 elif r2 == 1:  # 1: Button A0: "switch light off" or "Dim light down" or "Move blind closed"
-                    status.type = Fsb61StatusType.CLOSING
+                    status.type = Fsb61StateType.CLOSING
 
             elif sa == 0:
                 if r2 == 1:  # 1: Button A0: "switch light off" or "Dim light down" or "Move blind closed"
-                    status.type = Fsb61StatusType.CLOSING
+                    status.type = Fsb61StateType.CLOSING
                 else:
-                    status.type = Fsb61StatusType.STOPPED
+                    status.type = Fsb61StateType.STOPPED
 
             if status.type is None:
                 raise EepPropException("Invalid data ({})!".format(props))
 
         else:
-            status.type = Fsb61StatusType.UNKNOWN
+            status.type = Fsb61StateType.UNKNOWN
 
         return status
 
     @classmethod
-    def create_packet(cls, status: Fsb61Status) -> RadioPacket:
+    def create_packet(cls, status: Fsb61State) -> RadioPacket:
         """needed for test only, so not complete!"""
-        if status.type in [Fsb61StatusType.CLOSING, Fsb61StatusType.OPENING, Fsb61StatusType.STOPPED]:
-            if status.type == Fsb61StatusType.CLOSING:
+        if status.type in [Fsb61StateType.CLOSING, Fsb61StateType.OPENING, Fsb61StateType.STOPPED]:
+            if status.type == Fsb61StateType.CLOSING:
                 r2 = 1
                 sa = 1
-            elif status.type == Fsb61StatusType.OPENING:
+            elif status.type == Fsb61StateType.OPENING:
                 r2 = 0
                 sa = 1
-            elif status.type == Fsb61StatusType.STOPPED:
+            elif status.type == Fsb61StateType.STOPPED:
                 r2 = 0
                 sa = 0
 
