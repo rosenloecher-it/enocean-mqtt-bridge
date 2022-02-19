@@ -6,6 +6,7 @@ class Eep:
     EnOcean Equipment Profiles (EEP)
     """
 
+    # noinspection PyShadowingBuiltins
     def __init__(self, rorg=None, func=None, type=None, direction=None, command=None):
         self.rorg = rorg
         self.func = func
