@@ -148,9 +148,6 @@ class Device:
 
     @abc.abstractmethod
     def process_enocean_message(self, message: EnoceanMessage):
-        """
-        :param src.enocean_interface.EnoceanMessage message:
-        """
         raise NotImplementedError()
 
     def get_mqtt_last_will_channel(self):
@@ -161,10 +158,7 @@ class Device:
         """outbound mqtt channels"""
         return [self._mqtt_channel_cmd] if self._mqtt_channel_cmd else []
 
-    def set_mqtt_publisher(self, mqtt_publisher):
-        """
-        :param src.mqtt_publisher.MqttPublisher mqtt_publisher:
-        """
+    def set_mqtt_publisher(self, mqtt_publisher: MqttPublisher):
         self._mqtt_publisher = mqtt_publisher
 
     def open_mqtt(self):

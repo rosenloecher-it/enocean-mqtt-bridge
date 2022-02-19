@@ -158,7 +158,7 @@ class MqttConnector:
 
             _logger.info("subscripted to MQTT channels (%s)", channels)
 
-    def _on_connect(self, _mqtt_client, _userdata, flags, rc):
+    def _on_connect(self, _mqtt_client, _userdata, _flags, rc):
         """MQTT callback is called when client connects to MQTT server."""
         if rc == 0:
             self._is_connected = True

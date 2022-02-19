@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Optional
 
@@ -43,11 +45,7 @@ class ShutterCommand:
         return self.type == ShutterCommandType.UPDATE
 
     @classmethod
-    def parse(cls, text: str):
-        """
-        :param str text:
-        :rtype: ShutterCommand
-        """
+    def parse(cls, text: str) -> ShutterCommand:
         orig_text = text
 
         if isinstance(text, bytes):

@@ -131,7 +131,7 @@ class TestFud61Eep(unittest.TestCase):
         action = Fud61Action(command=Fud61Command.DIMMING, learn=True)
         packet = Fud61Eep.create_packet(action)
 
-        # Teach-in telegram BD3..DB0 must look like this: 0xE0, 0x40, 0x0D, 0x80
+        # Teach-in telegram BD3...DB0 must look like this: 0xE0, 0x40, 0x0D, 0x80
         self.assertEqual(packet.data[1], 0xE0)
         self.assertEqual(packet.data[2], 0x40)
         self.assertEqual(packet.data[3], 0x0D)

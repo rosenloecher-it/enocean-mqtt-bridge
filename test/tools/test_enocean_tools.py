@@ -1,6 +1,6 @@
 import unittest
 
-import enocean
+import enocean.utils
 from enocean.protocol.constants import PACKET
 
 from src.common.eep import Eep

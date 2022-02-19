@@ -65,7 +65,7 @@ class HandleValue(Enum):
 
 class FFG7BSensor(Device, CheckCyclicTask):
     """Specialized class to forward notfications of Eltako FFG7B-rw (similar to Eltako TF-FGB) windows/door handles.
-    Output is a json dict with values of `HandleValues`. Additionally there is a `SINCE` field (JSON) which indicates
+    Output is a json dict with values of `HandleValues`. Additionally, there is a `SINCE` field (JSON) which indicates
     the last change time.
 
     No information is sent back to the device! Not supported by device.

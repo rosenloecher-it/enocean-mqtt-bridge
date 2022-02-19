@@ -72,7 +72,7 @@ class Fud61Eep:
     """
     Handles conversions for EEP A5-38-08 command 0 + 2 (status request + dimming)
 
-    Teach-in telegram BD3..DB0 must look like this: 0xE0, 0x40, 0x0D, 0x80
+    Teach-in telegram BD3...DB0 must look like this: 0xE0, 0x40, 0x0D, 0x80
     | RORG | Data                        | Sender                      | Status   |
     | [a5] | [DB-3] [DB-2] [DB-1] [DB-0] | [ID-3] [ID-2] [ID-1] [ID-0] | [1 Byte] |
     |      |  0xE0   0x40   0x0D   0x80  |                             |          |

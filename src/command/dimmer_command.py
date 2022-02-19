@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
+from typing import Optional
 
 import attr
 
@@ -64,11 +67,7 @@ class DimmerCommand:
         return self.type == DimmerCommandType.UPDATE
 
     @classmethod
-    def parse(cls, text: str):
-        """
-        :param str text:
-        :rtype: (Command, Optional(int))
-        """
+    def parse(cls, text: Optional[str]) -> DimmerCommand:
         orig_text = text
 
         if isinstance(text, bytes):

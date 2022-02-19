@@ -2,6 +2,7 @@ import json
 import unittest
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from paho.mqtt.client import MQTTMessage
 
@@ -81,8 +82,7 @@ class TestFsr61Actor(unittest.TestCase):
             device.process_mqtt_message(message)
 
             self.assertEqual(len(device.packets), 1)
-            action = Fsr61Eep.extract_packet(device.packets[0])
-            return action
+            return Fsr61Eep.extract_packet(device.packets[0])
 
         # loop 1 - init with 100
         action = process_mqtt_message_to_action(b"on")
@@ -98,13 +98,13 @@ class TestFsr61Actor(unittest.TestCase):
 
     def test_cyclic_status_requests(self):
         d = self.device
-        last_command = None  # type: SwitchCommand
+        last_command = None  # type: Optional[SwitchCommand]
 
         def mock_execute_actor_command(command: SwitchCommand):
             nonlocal last_command
             last_command = command
 
-        def check_check_cyclic_tasks(now: datetime) -> SwitchCommand:
+        def check_check_cyclic_tasks(now: datetime) -> Optional[SwitchCommand]:
             nonlocal last_command
             last_command = None
             d.now = now

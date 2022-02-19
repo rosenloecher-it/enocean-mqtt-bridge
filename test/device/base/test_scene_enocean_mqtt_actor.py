@@ -1,6 +1,6 @@
 import logging
 import unittest
-
+from typing import List
 from paho.mqtt.client import MQTTMessage
 
 from enocean.protocol.packet import RadioPacket
@@ -21,7 +21,7 @@ class _TestRockerSceneActor(SceneActor):
         # self._enocean_target = 9
 
         self.mqtt_commands = []
-        self.not_handled_messages = []  # type: EnoceanMessage
+        self.not_handled_messages = []  # type: List[EnoceanMessage]
 
     def clear(self):
         self.mqtt_commands = []
@@ -69,9 +69,10 @@ class TestBaseRockerSceneMqttCommand(unittest.TestCase):
 
     def test_enocean_targets(self):
         self.device._enocean_target = 9
-        self.assertEqual(set(self.device.enocean_targets), set([9, 1, 2]))
+        self.assertEqual(set(self.device.enocean_targets), {9, 1, 2})
 
     def test_rocker_actions(self):
+        # noinspection PyShadowingNames
         device = self.device
 
         def prepare(press, button, sender):

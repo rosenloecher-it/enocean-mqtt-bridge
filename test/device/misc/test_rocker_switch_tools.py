@@ -40,7 +40,7 @@ class TestRockerButton(unittest.TestCase):
 class TestRockerAction(unittest.TestCase):
 
     @classmethod
-    def get_actions(self):
+    def get_actions(cls):
         actions = [
             RockerAction(RockerPress.RELEASE, None)
         ]

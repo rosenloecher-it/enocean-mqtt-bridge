@@ -28,7 +28,7 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
         shortcut 	description 	            values
         COM 	    Command ID 	                0-13 - Command ID
         EDIM 	    Dimming value               absolute [0...255]
-                                                relative [0...100])
+                                                relative [0...100]
         RMP 	    Ramping time in seconds     0 = no ramping,
                                                 1...255 = seconds to 100%
         EDIMR 	    Dimming Range 	            0 - Absolute value

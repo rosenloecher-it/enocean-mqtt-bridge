@@ -8,7 +8,7 @@ The Eltako FSB61NB-230V is a roller shutter relais.
 - Calulates postions based on driving times. 
 - Seeks to concrete position. When no position is known, the shutter calibates itself  
   via long drives to the upper or lower end.
-- 90% is es special position: The lower shutter edge is hiding the window/door, but the it is not really shut down,
+- 90% is es special position: The lower shutter edge is hiding the window/door, but it is not really shut down,
   so that there are still gaps between the blades.
   - 0% - 90%: This range is called "driving". See configuration.
   - 90% - 100%: This range is called "rolling". See configuration.

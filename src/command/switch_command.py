@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
+from typing import Optional
 
 from src.command.base_command import BaseCommand
 
@@ -46,11 +49,7 @@ class SwitchCommand(Enum):
         return self == self.UPDATE
 
     @classmethod
-    def parse(cls, text: str):
-        """
-        :param str text:
-        :rtype: SwitchCommand
-        """
+    def parse(cls, text: Optional[str]) -> SwitchCommand:
         orig_text = text
 
         if isinstance(text, bytes):

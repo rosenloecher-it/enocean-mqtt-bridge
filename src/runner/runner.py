@@ -70,7 +70,7 @@ class Runner(abc.ABC):
         self._connect_enocean()
 
     def close(self):
-        self._mqtt_channels_subscriptions = {}  # no commands will be executed any more
+        self._mqtt_channels_subscriptions = {}  # no commands will be executed anymore
 
         if self._enocean_connector is not None:  # and self._enocean.is_alive():
             self._enocean_connector.close()

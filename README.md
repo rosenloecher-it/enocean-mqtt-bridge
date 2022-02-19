@@ -7,7 +7,7 @@ The MQTT messages can be further processed with other smarthome systems (e.g. Op
 These smarthome systems may support the listed devices directly.
 But decoupling the systems and use a separated MQTT message broker has some advantages.
 You can access the smarthome state via generic MQTT clients and don't have to use proprietary APIs.
-(Useful, when you want to write your own rules independently from a dedicated smarthome system.)
+(Useful, when you want to write your own rules independently of a dedicated smarthome system.)
 In the end you could degrade your smarthome system to a pure GUI tool and switch easily between different ones.
 
 ## Features
@@ -92,9 +92,14 @@ Edit your `enocean-mqtt-bridge.yaml`. See comments there.
 
 **Enocean Base ID**
 
-Your USB gateway has an internal Enocean ID (== **Base** ID). Enocean IDs are used to identify devices and link device to each other by a teach in process. If you want to manage different devices by **one** USB gateway, then you have to use different Enocean **sender** IDs! Otherwise multiple actors will react on each command, which might not what you want. (If you don't configure an Enocean **sender** ID, the Gateway Enocean **Base** ID is used at teaching in.) 
+Your USB gateway has an internal Enocean ID (== **Base** ID). Enocean IDs are used to identify devices and link device to each other by a 
+teaching in process. If you want to manage different devices by **one** USB gateway, then you have to use different Enocean **sender** IDs! 
+Otherwise multiple actors will react on each command, which might not what you want. (If you don't configure an Enocean **sender** ID, 
+the Gateway Enocean **Base** ID is used at teaching in.) 
 
-For each control channel you have to define your own Enocean **sender** IDs. You can free choose the IDs, but have to stay within the range [Enocean **Base** ID + 1, Enocean **Base** ID + X]. The Enocean **Base** ID is different for every individual gateway. It gets logged out at service start in the log file or to the console. The possible count of individual sender IDs is supposed about 128. 
+For each control channel you have to define your own Enocean **sender** IDs. You can free choose the IDs, but have to stay within the range 
+[Enocean **Base** ID + 1, Enocean **Base** ID + X]. The Enocean **Base** ID is different for every individual gateway. It gets logged out 
+at service start in the log file or to the console. The possible count of individual sender IDs is supposed about 128. 
 
 ### Run
 
@@ -134,8 +139,8 @@ sudo systemctl enable enocean-mqtt-bridge.service
 ## Troubleshooting
 
 There happened some very quick connects/disconnects from/to MQTT broker (Mosquitto) on a Raspberry Pi. The connection
-was secured only by certificate. The problem went away after configuring user name and password for the MQTT broker.
-On a Ubuntu system all was working fine even without user and password.
+was secured only by certificate. The problem went away after configuring username and password for the MQTT broker.
+On an Ubuntu system all was working fine even without user and password.
 
 `sudo service enocean-mqtt-bridge status`
 

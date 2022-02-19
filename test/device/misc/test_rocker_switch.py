@@ -110,7 +110,7 @@ class TestRockerSwitch(unittest.TestCase):
         message = EnoceanMessage(packet, device._enocean_target)
         device.process_enocean_message(message)
 
-    def check_messages_for_process_enocean_message(self, device: RockerSwitch, action: RockerAction, channel):
+    def check_messages_for_process_enocean_message(self, device: _MockDevice, action: RockerAction, channel):
         attr = JsonAttributes
         self.assertEqual(len(device.mqtt_messages), 1)
         message = device.mqtt_messages[0]

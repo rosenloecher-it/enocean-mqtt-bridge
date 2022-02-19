@@ -237,7 +237,7 @@ class Fsb61StateConverter:
         return status
 
     @classmethod
-    def create_packet(cls, status: Fsb61State) -> RadioPacket:
+    def create_packet(cls, status: Fsb61State) -> Optional[RadioPacket]:
         """needed for test only, so not complete!"""
         if status.type in [Fsb61StateType.CLOSING, Fsb61StateType.OPENING, Fsb61StateType.STOPPED]:
             if status.type == Fsb61StateType.CLOSING:
@@ -249,6 +249,8 @@ class Fsb61StateConverter:
             elif status.type == Fsb61StateType.STOPPED:
                 r2 = 0
                 sa = 0
+            else:
+                raise EepPropException("Wrong Fsb61StateType  ({})!".format(status.type))
 
             props = {'R1': 0, 'EB': 0, 'R2': r2, 'SA': sa, 'T21': 1, 'NU': 1}
 

@@ -8,6 +8,7 @@ from src.common.json_attributes import JsonAttributes
 from src.common.switch_status import SwitchStatus
 from src.device.base.device import Device
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
+from src.enocean_connector import EnoceanMessage
 
 
 class RockerSwitchAction(Enum):
@@ -74,10 +75,7 @@ class RockerActor(Device):
         else:
             self._logger.info("command '{}' not supported!".format(command))
 
-    def process_mqtt_message(self, message):
-        """
-        :param src.enocean_interface.EnoceanMessage message:
-        """
+    def process_mqtt_message(self, message: EnoceanMessage):
         self._logger.debug('process_mqtt_message: "%s"', message.payload)
 
         try:

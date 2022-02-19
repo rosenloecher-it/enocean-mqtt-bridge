@@ -1,6 +1,7 @@
 import datetime
 import json
 import unittest
+from typing import Optional
 
 from paho.mqtt.client import MQTTMessage
 
@@ -99,8 +100,7 @@ class TestFud61Actor(unittest.TestCase):
             device.process_mqtt_message(message)
 
             self.assertEqual(len(device.packets), 1)
-            action = Fud61Eep.extract_packet(device.packets[0])
-            return action
+            return Fud61Eep.extract_packet(device.packets[0])
 
         # loop 1 - init with 100
         action = process_mqtt_message_to_action(b"100")
@@ -151,13 +151,13 @@ class TestFud61Actor(unittest.TestCase):
 
     def test_cyclic_status_requests(self):
         d = self.device
-        last_command = None  # type: DimmerCommand
+        last_command = None  # type: Optional[DimmerCommand]
 
         def mock_execute_actor_command(command: DimmerCommand):
             nonlocal last_command
             last_command = command
 
-        def check_check_cyclic_tasks(now: datetime) -> DimmerCommand:
+        def check_check_cyclic_tasks(now: datetime) -> Optional[DimmerCommand]:
             nonlocal last_command
             last_command = None
             d.now = now
