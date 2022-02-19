@@ -1,7 +1,7 @@
 import unittest
 
 from src.device.eltako.fsb61_eep import Fsb61State, Fsb61StateType
-from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition, Fsb61ShutterState
+from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition, Fsb61ShutterStatus
 
 
 class TestFsb61ShutterPosition(unittest.TestCase):
@@ -25,19 +25,19 @@ class TestFsb61ShutterPosition(unittest.TestCase):
         self.assertTrue(Fsb61ShutterPosition.validate_value(100.0))
 
     def test_calibrate(self):
-        self.assertEqual(self.sp.status, Fsb61ShutterState.NOT_CALIBRATED)
+        self.assertEqual(self.sp.status, Fsb61ShutterStatus.NOT_CALIBRATED)
         self.assertEqual(self.sp.value, None)
 
         change = Fsb61State(type=Fsb61StateType.CLOSED, time=8)
         self.sp.update(change)
 
-        self.assertEqual(self.sp.status, Fsb61ShutterState.NOT_CALIBRATED)
+        self.assertEqual(self.sp.status, Fsb61ShutterStatus.NOT_CALIBRATED)
         self.assertEqual(self.sp.value, None)
 
         change = Fsb61State(type=Fsb61StateType.CLOSED, time=14)
         self.sp.update(change)
 
-        self.assertEqual(self.sp.status, Fsb61ShutterState.READY)
+        self.assertEqual(self.sp.status, Fsb61ShutterStatus.OK)
         self.assertEqual(self.sp.value, 100)
 
     def test_seek_up(self):

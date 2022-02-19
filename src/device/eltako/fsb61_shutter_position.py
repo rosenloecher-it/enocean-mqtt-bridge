@@ -5,8 +5,8 @@ from typing import Optional
 from src.device.eltako.fsb61_eep import Fsb61State, Fsb61StateType
 
 
-class Fsb61ShutterState(Enum):
-    READY = "ready"
+class Fsb61ShutterStatus(Enum):
+    OK = "ok"
     NOT_CALIBRATED = "not-calibrated"
 
 
@@ -39,8 +39,8 @@ class Fsb61ShutterPosition:
         return self.__logger
 
     @property
-    def status(self) -> Fsb61ShutterState:
-        return Fsb61ShutterState.READY if self.validate_value(self._value) else Fsb61ShutterState.NOT_CALIBRATED
+    def status(self) -> Fsb61ShutterStatus:
+        return Fsb61ShutterStatus.OK if self.validate_value(self._value) else Fsb61ShutterStatus.NOT_CALIBRATED
 
     @classmethod
     def validate_value(cls, value):

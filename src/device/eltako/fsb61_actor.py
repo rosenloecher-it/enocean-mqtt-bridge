@@ -17,7 +17,7 @@ from src.device.base.scene_actor import SceneActor
 from src.device.device_exception import DeviceException
 from src.device.eltako.fsb61_eep import Fsb61StateConverter, Fsb61Command, Fsb61CommandType, Fsb61CommandConverter, \
     Fsb61StateType, Fsb61State
-from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition, Fsb61ShutterState
+from src.device.eltako.fsb61_shutter_position import Fsb61ShutterPosition, Fsb61ShutterStatus
 from src.device.eltako.fsb61_storage import Fsb61Storage
 from src.enocean_connector import EnoceanMessage
 from src.storage import CONFKEY_STORAGE_FILE, CONFKEY_STORAGE_MAX_AGE_SECS
@@ -52,7 +52,7 @@ FSB61_JSONSCHEMA = {
 
 class Fsb61Status(Enum):
     OFFLINE = "offline"
-    READY = "ready"
+    OK = "ok"
     NOT_CALIBRATED = "not-calibrated"
     ERROR = "error"
 
@@ -161,7 +161,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._storage.save_value(self._shutter_position.value, self._now())
 
     def _publish_actor_result(self):
-        status = Fsb61Status.READY if self._shutter_position.status == Fsb61ShutterState.READY else Fsb61Status.NOT_CALIBRATED
+        status = Fsb61Status.OK if self._shutter_position.status == Fsb61ShutterStatus.OK else Fsb61Status.NOT_CALIBRATED
         message = self._create_json_message(status, self._storage.value, self._storage.since)
         self._publish_mqtt(message)
 
@@ -294,7 +294,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
                 append_device_command(order, device_command)
 
             elif not order.force_calibration and self._shutter_position.jumps_without_calibration < self.CALIBRATION_AFTER_JUMPS and \
-                    self._shutter_position.status == Fsb61ShutterState.READY:
+                    self._shutter_position.status == Fsb61ShutterStatus.OK:
 
                 command_type = Fsb61CommandType.CLOSE if value > self._shutter_position.value else Fsb61CommandType.OPEN
                 device_command = create_action(command_type)
