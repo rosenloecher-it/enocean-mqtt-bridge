@@ -94,7 +94,7 @@ Edit your `enocean-mqtt-bridge.yaml`. See comments there.
 
 Your USB gateway has an internal Enocean ID (== **Base** ID). Enocean IDs are used to identify devices and link device to each other by a 
 teaching in process. If you want to manage different devices by **one** USB gateway, then you have to use different Enocean **sender** IDs! 
-Otherwise multiple actors will react on each command, which might not what you want. (If you don't configure an Enocean **sender** ID, 
+Otherwise, multiple actors will react on each command, which might not what you want. (If you don't configure an Enocean **sender** ID, 
 the Gateway Enocean **Base** ID is used at teaching in.) 
 
 For each control channel you have to define your own Enocean **sender** IDs. You can free choose the IDs, but have to stay within the range 
