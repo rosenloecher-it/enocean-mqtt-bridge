@@ -1,10 +1,9 @@
-import json
-from collections import namedtuple
-
+import attr
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
-from src.common.json_attributes import JsonAttributes
+
 from src.device.base.device import CONFKEY_MQTT_CHANNEL_STATE, CONFKEY_MQTT_CHANNEL_CMD, Device, CONFKEY_ENOCEAN_SENDER
+from src.device.device_exception import DeviceException
 from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
@@ -21,22 +20,44 @@ CONFKEY_MQTT_CHANNEL_BTN_LONG_2 = "mqtt_channel_long_2"
 CONFKEY_MQTT_CHANNEL_BTN_LONG_3 = "mqtt_channel_long_3"
 
 
+ROCKER_COMMAND = {
+    "type": "object",
+    "properties": {
+        "topic": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Command topic to which the message is sent."
+        },
+        "payload": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Payload to send."
+        },
+    },
+    "description": "Configure a MQTT message, which is sent each key press.",
+    "additionalProperties": False,
+    "required": ["topic", "payload"]
+}
+
 ROCKER_SWITCH_JSONSCHEMA = {
     "type": "object",
     "properties": {
-        CONFKEY_MQTT_CHANNEL_BTN_0: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_1: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_2: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_3: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_LONG_0: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_LONG_1: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_LONG_2: {"type": "string", "minLength": 1},
-        CONFKEY_MQTT_CHANNEL_BTN_LONG_3: {"type": "string", "minLength": 1},
-    },
+        CONFKEY_MQTT_CHANNEL_BTN_0: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_1: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_2: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_3: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_LONG_0: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_LONG_1: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_LONG_2: ROCKER_COMMAND,
+        CONFKEY_MQTT_CHANNEL_BTN_LONG_3: ROCKER_COMMAND,
+    }
 }
 
 
-_MessageData = namedtuple("_MessageData", ["channel", "status", "button"])
+@attr.frozen
+class _RockerCommand:
+    topic = attr.ib()  # type: str
+    payload = attr.ib()  # type: str
 
 
 class RockerSwitch(Device):
@@ -57,6 +78,9 @@ class RockerSwitch(Device):
         schema = self.filter_required_fields(ROCKER_SWITCH_JSONSCHEMA, skip_require_fields)
         self.validate_config(config, schema)
 
+        if self._mqtt_channel_state:
+            raise DeviceException(f"'{CONFKEY_MQTT_CHANNEL_STATE}' is not used here. Set the command topic for each key separately!")
+
         items = [
             (CONFKEY_MQTT_CHANNEL_BTN_LONG_0, 0),
             (CONFKEY_MQTT_CHANNEL_BTN_LONG_1, 1),
@@ -64,9 +88,9 @@ class RockerSwitch(Device):
             (CONFKEY_MQTT_CHANNEL_BTN_LONG_3, 3),
         ]
         for key, index in items:
-            channel = config.get(key)
-            if channel:
-                self._mqtt_channels_long[index] = channel
+            data = config.get(key)
+            if data:
+                self._mqtt_channels_long[index] = _RockerCommand(**data)
 
         items = [
             (CONFKEY_MQTT_CHANNEL_BTN_0, 0),
@@ -75,9 +99,9 @@ class RockerSwitch(Device):
             (CONFKEY_MQTT_CHANNEL_BTN_3, 3),
         ]
         for key, index in items:
-            channel = config.get(key)
-            if channel:
-                self._mqtt_channels[index] = channel
+            data = config.get(key)
+            if data:
+                self._mqtt_channels[index] = _RockerCommand(**data)
 
     @classmethod
     def is_valid_channel(cls, channel):
@@ -92,12 +116,11 @@ class RockerSwitch(Device):
             self._logger.debug("skipped packet with rorg=%s", hex(packet.rorg))
             return
 
-        message_data = self._prepare_message_data(packet)
-        if self.is_valid_channel(message_data.channel):
-            mqtt_message = self._create_mqtt_message(message_data)
-            self._publish_mqtt(mqtt_message, message_data.channel)
+        message_data = self._find_rocker_command(packet)
+        if message_data and message_data.topic:
+            self._publish_mqtt(message_data.payload, message_data.topic)
 
-    def _prepare_message_data(self, packet: RadioPacket) -> _MessageData:
+    def _find_rocker_command(self, packet: RadioPacket) -> _RockerCommand:
         # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
         # "{'R1': 1, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
         # "{'R1': 0, 'EB': 1, 'R2': 3, 'SA': 1, 'T21': 1, 'NU': 1}"
@@ -109,32 +132,20 @@ class RockerSwitch(Device):
 
             if action.press == RockerPress.PRESS_LONG:
                 # search "long" first, then "short==standard", then "generic default"
-                channel = self._mqtt_channels_long.get(button) or self._mqtt_channels.get(button) \
-                          or self._mqtt_channel_state
+                rocker_command = self._mqtt_channels_long.get(button) or self._mqtt_channels.get(button)
             elif action.press == RockerPress.PRESS_SHORT:
-                channel = self._mqtt_channels.get(button) or self._mqtt_channel_state
+                rocker_command = self._mqtt_channels.get(button) or self._mqtt_channel_state
             elif action.press == RockerPress.RELEASE:
-                channel = self._mqtt_channels.get(None) or self._mqtt_channel_state
+                rocker_command = None  # don't send anything
             else:
                 raise ValueError("unknown rocker press action!")
 
-            return _MessageData(channel=channel, status=action.press.value, button=button)
+            return rocker_command
 
         except (AttributeError, ValueError) as ex:  # TODO handle index errors
             self._logger.error("cannot evaluate data!")
             self._logger.exception(ex)
-            return _MessageData(channel=self._mqtt_channel_state, status="ERROR", button=None)
-
-    def _create_mqtt_message(self, message_data: _MessageData):
-        data = {
-            JsonAttributes.BUTTON: message_data.button,  # type: int
-            JsonAttributes.DEVICE: self.name,
-            JsonAttributes.STATUS: message_data.status,
-            JsonAttributes.TIMESTAMP: self._now().isoformat()
-        }
-
-        json_text = json.dumps(data, sort_keys=True)
-        return json_text
+            return _RockerCommand(channel=self._mqtt_channel_state, status="ERROR", button=None)
 
     def process_mqtt_message(self, message):
         """no message will be procressed!"""
