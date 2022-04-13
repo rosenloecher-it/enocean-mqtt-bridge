@@ -1,7 +1,11 @@
+import logging
 from collections import namedtuple
 from typing import Optional
 
 from src.mqtt_connector import MqttConnector
+
+
+_logger = logging.getLogger(__name__)
 
 
 LastWill = namedtuple("LastWill", ["channel", "message", "qos", "retain"])
@@ -27,6 +31,8 @@ class MqttPublisher:
                 qos=qos,
                 retain=retain
             )
+        else:
+            _logger.warning("MqttConnector not set! Message is not send: %s=%s", channel, message)
 
     def store_last_will(self, channel: str, message: str, qos: int = 0, retain: bool = False):
         self.stored_last_wills.append(LastWill(

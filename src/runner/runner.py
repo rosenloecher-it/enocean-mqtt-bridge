@@ -180,6 +180,8 @@ class Runner(abc.ABC):
                             device.open_mqtt()
 
                     self._mqtt_state = _MqttState.CONNECTED
+
+                    self._mqtt_publisher.open(self._mqtt_connector)
                     break
 
     def _process_mqtt_messages(self) -> bool:
