@@ -119,6 +119,7 @@ class Runner(abc.ABC):
                     self._check_cyclic_tasks()
 
                 if not busy:
+                    self._mqtt_connector.ensure_connection()
                     time.sleep(time_step)
                     time_wait_for_refresh += time_step
                     time_check_offline += time_step
@@ -166,7 +167,7 @@ class Runner(abc.ABC):
         while not self._shutdown:
             time.sleep(time_step)
             time_counter += time_step
-            if time_counter > 30:
+            if time_counter > 15:
                 raise RuntimeError("Couldn't connect to MQTT, callback was not called!?")
 
             with self._mqtt_lock:
@@ -228,8 +229,9 @@ class Runner(abc.ABC):
             else:
                 self._mqtt_state = _MqttState.DISCONNECTED
 
-    def _on_mqtt_disconnect(self, rc):
-        pass
+    def _on_mqtt_disconnect(self, _rc):
+        with self._mqtt_lock:
+            self._mqtt_state = _MqttState.DISCONNECTED
 
     def _init_devices(self):
         items = self._config[CONFKEY_DEVICES]

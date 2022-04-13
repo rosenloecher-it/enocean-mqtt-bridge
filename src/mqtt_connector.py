@@ -1,5 +1,6 @@
 import logging
-from typing import List
+import threading
+from typing import List, Optional
 from queue import Queue, Empty
 
 import paho.mqtt.client as mqtt
@@ -45,6 +46,10 @@ MQTT_MAIN_JSONSCHEMA = {
 }
 
 
+class MqttException(Exception):
+    pass
+
+
 class MqttConnector:
 
     DEFAULT_MQTT_KEEPALIVE = 60
@@ -56,6 +61,8 @@ class MqttConnector:
         self._mqtt = None
         self._publisher = publisher
         self._is_connected = False
+        self._connection_error_info = None  # type: Optional[str]
+        self._lock = threading.Lock()
 
         # public callbacks
         self.on_connect = None
@@ -113,6 +120,20 @@ class MqttConnector:
             self._mqtt = None
             _logger.debug("mqtt closed.")
 
+    def ensure_connection(self):
+        """
+        Check for rarely unexpected disconnects, but when happens, it's not clear how to heal. At least the loop has to be restarted.
+        Best to restart the whole app. Recognise a stopped service in system log.
+        """
+        with self._lock:
+            is_connected = self._is_connected
+            connection_error_info = self._connection_error_info
+
+        if connection_error_info:
+            raise MqttException(connection_error_info)  # leads to exit => restarted by systemd
+        if not is_connected:
+            raise MqttException("MQTT is not connected!")
+
     def get_queued_messages(self) -> List[mqtt.MQTTMessage]:
         messages = []
 
@@ -126,9 +147,6 @@ class MqttConnector:
         return messages
 
     def publish(self, channel: str, message: str, qos: int = 0, retain: bool = False):
-        if not self._is_connected:
-            raise RuntimeError("MQTT is not connected!")
-
         self._mqtt.publish(
             topic=channel,
             payload=message,
@@ -161,22 +179,34 @@ class MqttConnector:
     def _on_connect(self, _mqtt_client, _userdata, _flags, rc):
         """MQTT callback is called when client connects to MQTT server."""
         if rc == 0:
-            self._is_connected = True
-            self._publisher.open(self)  # ???
-            _logger.info("successfully connected to MQTT")
+            with self._lock:
+                self._is_connected = True
+            _logger.debug("connected")
         else:
-            _logger.error("connect to MQTT failed: rc=%s", rc)
+            connection_error_info = f"MQTT connection failed (#{rc}: {mqtt.error_string(rc)})!"
+            _logger.error(connection_error_info)
+            with self._lock:
+                self._is_connected = False
+                self._connection_error_info = connection_error_info
 
         if self.on_connect:
             self.on_connect(rc)
 
     def _on_disconnect(self, _mqtt_client, _userdata, rc):
         """MQTT callback for when the client disconnects from the MQTT server."""
-        self._is_connected = False
+        connection_error_info = None
+        if rc != 0:
+            connection_error_info = f"MQTT connection was lost (#{rc}: {mqtt.error_string(rc)}) => abort => restart!"
+
+        with self._lock:
+            self._is_connected = False
+            if connection_error_info and not self._connection_error_info:
+                self._connection_error_info = connection_error_info
+
         if rc == 0:
-            _logger.info("disconnected from MQTT")
+            _logger.debug("disconnected")
         else:
-            _logger.error("Unexpectedly disconnected from MQTT broker: rc=%s", rc)
+            _logger.error("unexpectedly disconnected: %s", connection_error_info or "???")
 
         if self.on_disconnect:
             self.on_disconnect(rc)
