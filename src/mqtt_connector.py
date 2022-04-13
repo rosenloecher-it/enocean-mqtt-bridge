@@ -39,7 +39,6 @@ MQTT_MAIN_JSONSCHEMA = {
         CONFKEY_MQTT_USER_PWD: {"type": "string"},
     },
     "required": [
-        CONFKEY_MQTT_CLIENT_ID,
         CONFKEY_MQTT_HOST,
         CONFKEY_MQTT_PORT,
     ],
@@ -73,7 +72,7 @@ class MqttConnector:
     def open(self, config):
         validate(instance=config, schema=MQTT_MAIN_JSONSCHEMA)
 
-        client_id = config[CONFKEY_MQTT_CLIENT_ID]
+        client_id = config.get(CONFKEY_MQTT_CLIENT_ID)
         host = config[CONFKEY_MQTT_HOST]
         port = config[CONFKEY_MQTT_PORT]
 
