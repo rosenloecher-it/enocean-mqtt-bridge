@@ -1,5 +1,5 @@
 attrs == 21.4.0
-git+git://github.com/rosenloecher-it/enocean@2021-10-20#egg=enocean
+git+https://github.com/rosenloecher-it/enocean@2021-10-20#egg=enocean
 jsonschema == 4.4.0
 paho-mqtt == 1.6.1
 py-dateutil == 2.2
