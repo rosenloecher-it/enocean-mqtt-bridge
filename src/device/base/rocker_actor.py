@@ -35,7 +35,7 @@ class RockerActor(Device):
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }
         if dim_value is not None:
-            data[JsonAttributes.DIM_STATE] = dim_value
+            data[JsonAttributes.DIM_STATUS] = dim_value
 
         json_text = json.dumps(data, sort_keys=True)
         return json_text

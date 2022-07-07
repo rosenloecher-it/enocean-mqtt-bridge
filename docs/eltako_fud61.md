@@ -12,7 +12,7 @@ Eltako FUD61NP(N)-230V is a dimmer.
     {
       "timestamp": "2021-10-21T10:25:37.438799+02:00", 
       "status": "on",
-      "dim_state": 77,
+      "dimStatus": 77,
       "rssi": -60
     }
     ```

@@ -100,7 +100,7 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
     def _create_json_message(self, switch_state: SwitchStatus, dim_state: int):
         data = {
             JsonAttributes.DEVICE: self.name,
-            JsonAttributes.DIM_STATE: dim_state,
+            JsonAttributes.DIM_STATUS: dim_state,
             JsonAttributes.STATUS: switch_state.value,
             JsonAttributes.TIMESTAMP: self._now().isoformat(),
         }

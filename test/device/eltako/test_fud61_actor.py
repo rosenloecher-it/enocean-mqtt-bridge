@@ -68,7 +68,7 @@ class TestFud61Actor(unittest.TestCase):
         self.assertEqual(len(device.messages), 1)
         result = json.loads(device.messages[0])
 
-        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'status': 'on', 'dim_state': 33, 'device': 'mock'}
+        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'status': 'on', 'dimStatus': 33, 'device': 'mock'}
         self.assertEqual(result, compare)
 
     def test_proceed_enocean_2(self):
@@ -86,7 +86,7 @@ class TestFud61Actor(unittest.TestCase):
         self.assertEqual(len(device.messages), 1)
         result = json.loads(device.messages[0])
 
-        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'status': 'on', 'dim_state': 90, 'device': 'mock'}
+        compare = {'timestamp': '2020-01-01T02:02:03+00:00', 'status': 'on', 'dimStatus': 90, 'device': 'mock'}
         self.assertEqual(result, compare)
 
     def test_mqtt_command(self):
