@@ -1,6 +1,6 @@
 attrs == 21.4.0
 git+https://github.com/rosenloecher-it/enocean@2021-10-20#egg=enocean
-jsonschema == 4.4.0
+jsonschema == 4.6.2
 paho-mqtt == 1.6.1
 py-dateutil == 2.2
 pyyaml == 6.0
