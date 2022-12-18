@@ -14,7 +14,7 @@ LastWill = namedtuple("LastWill", ["channel", "message", "qos", "retain"])
 class MqttPublisher:
 
     def __init__(self):
-        self._mqtt = None  # type: Optional[MqttConnector]
+        self._mqtt: Optional[MqttConnector] = None
         self.stored_last_wills = []
 
     def open(self, mqtt: MqttConnector):

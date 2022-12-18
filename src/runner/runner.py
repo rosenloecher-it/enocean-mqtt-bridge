@@ -34,9 +34,9 @@ class Runner(abc.ABC):
         self._enocean_connector = None
         self._shutdown = False
 
-        self._enocean_ids = {}  # type: dict[int, [Device]]
-        self._mqtt_last_will_channels = {}  # type: dict[str, Device]
-        self._mqtt_channels_subscriptions = {}  # type: dict[str, set[Device]]
+        self._enocean_ids: dict[int, [Device]] = {}  # type:
+        self._mqtt_last_will_channels: dict[str, Device] = {}
+        self._mqtt_channels_subscriptions: dict[str, set[Device]] = {}
 
         self._devices_check_cyclic = set()
 

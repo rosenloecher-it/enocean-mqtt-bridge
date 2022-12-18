@@ -21,7 +21,7 @@ class _TestRockerSceneActor(SceneActor):
         # self._enocean_target = 9
 
         self.mqtt_commands = []
-        self.not_handled_messages = []  # type: List[EnoceanMessage]
+        self.not_handled_messages: List[EnoceanMessage] = []
 
     def clear(self):
         self.mqtt_commands = []
@@ -41,7 +41,7 @@ class _TestRockerSceneActor(SceneActor):
         return _dummy_logger
 
     def process_enocean_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: RadioPacket
+        packet: RadioPacket = message.payload
 
         rocker_scene = self.find_rocker_scene(packet)
         if rocker_scene:

@@ -14,7 +14,7 @@ from src.common.switch_status import SwitchStatus
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.scene_actor import SceneActor
 from src.device.eltako.fsr61_eep import Fsr61Eep, Fsr61Action, Fsr61Command
-from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerButton
+from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerButton
 from src.enocean_connector import EnoceanMessage
 from src.tools.enocean_tools import EnoceanTools
 from src.tools.pickle_tools import PickleTools
@@ -31,11 +31,11 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
         SceneActor.__init__(self, name)
         CheckCyclicTask.__init__(self)
 
-        self._current_switch_state = None  # type: Optional[SwitchStatus]
-        self._last_status_request = None  # type: Optional[datetime]
+        self._current_switch_state: Optional[SwitchStatus] = None
+        self._last_status_request: Optional[datetime] = None
 
     def process_enocean_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: RadioPacket
+        packet: RadioPacket = message.payload
         if packet.packet_type != PACKET.RADIO:
             self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
             return
@@ -43,7 +43,7 @@ class Fsr61Actor(SceneActor, CheckCyclicTask):
         if packet.rorg == RockerSwitchTools.DEFAULT_EEP.rorg:
             props = RockerSwitchTools.extract_props(packet)
             self._logger.debug("proceed_enocean - got=%s", props)
-            action = RockerSwitchTools.extract_action(props)  # type: RockerAction
+            action = RockerSwitchTools.extract_action(props)
 
             if action.button == RockerButton.ROCK3:
                 self._current_switch_state = SwitchStatus.ON

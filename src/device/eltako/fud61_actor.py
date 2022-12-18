@@ -2,7 +2,7 @@ import json
 import logging
 import random
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Optional
 
 from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
@@ -55,9 +55,9 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
 
         self._default_dim_state = Fud61Eep.DEFAULT_DIM_STATE
         self._last_dim_state = Fud61Eep.DEFAULT_DIM_STATE
-        self._current_switch_state = None  # type: Optional[SwitchStatus]
+        self._current_switch_state: Optional[SwitchStatus] = None
 
-        self._last_status_request = None  # type: Optional[datetime]
+        self._last_status_request: Optional[datetime] = None
 
     def process_enocean_message(self, message: EnoceanMessage):
         packet = message.payload  # type: RadioPacket
@@ -75,9 +75,9 @@ class Fud61Actor(SceneActor, CheckCyclicTask):
         if packet.rorg == 0xf6:
             return  # unknown telegramm, not used
 
-        props = Fud61Eep.get_props_from_packet(packet)  # type: Dict
+        props = Fud61Eep.get_props_from_packet(packet)
         self._logger.debug("process actor message: %s", props)
-        action = Fud61Eep.get_action_from_props(props)  # type: Fud61Action
+        action = Fud61Eep.get_action_from_props(props)
 
         if action.switch_state not in [SwitchStatus.ON, SwitchStatus.OFF] or action.dim_state is None:
             if self._logger.isEnabledFor(logging.DEBUG):

@@ -67,7 +67,7 @@ class Device:
         if not name:
             raise RuntimeError("Device name required!")
         self._name = name  # type: str
-        self._logger_by_name = None  # type: Optional[logging.Logger]
+        self._logger_by_name: Optional[logging.Logger] = None
 
         self._log_sent_packets = False
         self._enocean_connector = None

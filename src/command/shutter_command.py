@@ -55,7 +55,7 @@ class ShutterCommand:
         if text and text[0] == "{":
             text = BaseCommand.extract_json(text)
 
-        result = None  # type: Optional[ShutterCommand]
+        result: Optional[ShutterCommand] = None
 
         if text:
 

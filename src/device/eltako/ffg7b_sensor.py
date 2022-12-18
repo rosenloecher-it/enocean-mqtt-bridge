@@ -170,7 +170,7 @@ class FFG7BSensor(Device, CheckCyclicTask):
             return HandleValue.ERROR
 
     def process_enocean_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: RadioPacket
+        packet: RadioPacket = message.payload
         if packet.packet_type != PACKET.RADIO:
             self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
             return

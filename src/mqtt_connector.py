@@ -60,7 +60,7 @@ class MqttConnector:
         self._mqtt = None
         self._publisher = publisher
         self._is_connected = False
-        self._connection_error_info = None  # type: Optional[str]
+        self._connection_error_info: Optional[str] = None
         self._lock = threading.Lock()
 
         # public callbacks

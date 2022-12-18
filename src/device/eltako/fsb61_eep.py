@@ -14,11 +14,11 @@ from src.tools.enocean_tools import EnoceanTools
 @attr.s
 class _Fsb61BaseAction:
 
-    time = attr.ib(default=None)  # type: Optional[Union[float,int]]  # time in seconds
+    time: Optional[Union[float, int]] = attr.ib(default=None)  # time in seconds
 
-    destination = attr.ib(default=None)  # type: Optional[int]
-    sender = attr.ib(default=None)  # type: Optional[int]
-    rssi = attr.ib(default=None)  # type: Optional[int]
+    destination: Optional[int] = attr.ib(default=None)
+    sender: Optional[int] = attr.ib(default=None)
+    rssi: Optional[int] = attr.ib(default=None)
 
 
 class Fsb61CommandType(IntEnum):
