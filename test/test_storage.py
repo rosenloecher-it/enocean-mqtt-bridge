@@ -3,7 +3,6 @@ import os
 import unittest
 
 import pickle
-from dateutil.tz import tzoffset
 
 from src.storage import Storage, StorageException
 from test.setup_test import SetupTest
@@ -23,7 +22,8 @@ class TestStorage(unittest.TestCase):
 
         data1 = {"abc": 123, "456": "rr", 'list': [1, 2, 3, "str"]}
         p.set("data1", data1)
-        data2 = datetime.datetime(2018, 12, 3, 13, 7, 45, tzinfo=tzoffset(None, 3600))
+        tz = datetime.timezone(datetime.timedelta(seconds=3600))
+        data2 = datetime.datetime(2018, 12, 3, 13, 7, 45, tzinfo=tz)
         p.set("data2", data2)
         data3 = 123
         p.set("data3", data3)
