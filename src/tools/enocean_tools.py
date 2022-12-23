@@ -4,7 +4,7 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
 from src.common.eep import Eep
-from src.device.device_exception import DeviceException
+from src.common.device_exception import DeviceException
 from src.tools.converter import Converter
 from src.tools.pickle_tools import PickleTools
 

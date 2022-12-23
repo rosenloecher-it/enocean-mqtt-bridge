@@ -7,8 +7,8 @@ from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
 
 from src.device.base.device import Device
-from src.device.device_exception import DeviceException
-from src.device.misc.rocker_switch_tools import RockerSwitchTools
+from src.common.device_exception import DeviceException
+from src.device.rocker_switch.rocker_switch_tools import RockerSwitchTools
 from src.tools.enocean_tools import EnoceanTools
 
 CONFKEY_ROCKER_SCENES = "rocker_scenes"

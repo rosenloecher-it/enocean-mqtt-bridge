@@ -1,13 +1,13 @@
 from typing import Optional
 
 from src.device.base.device import Device
-from src.device.eltako.ffg7b_sensor import FFG7BSensor
-from src.device.eltako.fsb61_actor import Fsb61Actor
-from src.device.eltako.fsr61_actor import Fsr61Actor
-from src.device.eltako.fud61_actor import Fud61Actor
-from src.device.misc.log_device import LogEnocean
-from src.device.misc.rocker_switch import RockerSwitch
-from src.device.nodon.sin22_actor import Sin22Actor
+from src.device.eltako_ffg7b.ffg7b_sensor import FFG7BSensor
+from src.device.eltako_fsb61.fsb61_actor import Fsb61Actor
+from src.device.eltako_fsr61.fsr61_actor import Fsr61Actor
+from src.device.eltako_fud61.fud61_actor import Fud61Actor
+from src.device.sniffer.sniffer import Sniffer
+from src.device.rocker_switch.rocker_switch import RockerSwitch
+from src.device.nodon_sin22.sin22_actor import Sin22Actor
 
 
 class DeviceRegistry:
@@ -52,4 +52,4 @@ DeviceRegistry.register('EltakoFsr61', Fsr61Actor)
 DeviceRegistry.register('EltakoFud61', Fud61Actor)
 DeviceRegistry.register('NodonSin22', Sin22Actor)
 DeviceRegistry.register('RockerSwitch', RockerSwitch)
-DeviceRegistry.register('Sniffer', LogEnocean)
+DeviceRegistry.register('Sniffer', Sniffer)

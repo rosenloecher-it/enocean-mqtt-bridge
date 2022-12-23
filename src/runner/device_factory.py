@@ -2,7 +2,7 @@ import logging
 
 from src.config import CONFKEY_DEVICE_TYPE
 from src.device.base.device import Device
-from src.device.device_exception import DeviceException
+from src.common.device_exception import DeviceException
 from src.runner.device_registry import DeviceRegistry
 
 _logger = logging.getLogger(__name__)

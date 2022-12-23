@@ -11,7 +11,7 @@ from paho.mqtt.client import MQTTMessage
 from tzlocal import get_localzone
 
 from src.common.json_attributes import JsonAttributes
-from src.device.device_exception import DeviceException
+from src.common.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
 from src.mqtt_publisher import MqttPublisher
 

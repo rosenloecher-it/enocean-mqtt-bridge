@@ -11,7 +11,7 @@ from enocean import utils as enocean_utils
 from src.config import CONFKEY_DEVICES, CONFKEY_ENOCEAN_PORT, CONFKEY_MAIN
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.device import Device
-from src.device.device_exception import DeviceException
+from src.common.device_exception import DeviceException
 from src.enocean_connector import EnoceanConnector
 from src.enocean_packet_factory import EnoceanPacketFactory
 from src.mqtt_connector import MqttConnector

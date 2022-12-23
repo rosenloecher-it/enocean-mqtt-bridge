@@ -6,8 +6,8 @@ from paho.mqtt.client import MQTTMessage
 from enocean.protocol.packet import RadioPacket
 from src.device.base import device
 from src.device.base.scene_actor import SceneActor, CONFKEY_ROCKER_SCENES
-from src.device.eltako.fsb61_eep import Fsb61Command, Fsb61CommandType, Fsb61CommandConverter
-from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerPress, RockerButton
+from src.device.eltako_fsb61.fsb61_eep import Fsb61Command, Fsb61CommandType, Fsb61CommandConverter
+from src.device.rocker_switch.rocker_switch_tools import RockerSwitchTools, RockerAction, RockerPress, RockerButton
 from src.enocean_connector import EnoceanMessage
 
 _logger = logging.getLogger(__name__)

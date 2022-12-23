@@ -7,7 +7,7 @@ from src.command.switch_command import SwitchCommand
 from src.common.json_attributes import JsonAttributes
 from src.common.switch_status import SwitchStatus
 from src.device.base.device import Device
-from src.device.misc.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
+from src.device.rocker_switch.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
 from src.enocean_connector import EnoceanMessage
 
 
