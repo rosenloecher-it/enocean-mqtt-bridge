@@ -21,6 +21,7 @@ CONFKEY_MQTT_SSL_INSECURE = "mqtt_ssl_insecure"
 CONFKEY_MQTT_SSL_KEYFILE = "mqtt_ssl_keyfile"
 CONFKEY_MQTT_USER_NAME = "mqtt_user_name"
 CONFKEY_MQTT_USER_PWD = "mqtt_user_pwd"
+CONFKEY_MQTT_DEBUG_SIMULATE_SENDING = "debug_simulate_sending"
 
 
 MQTT_MAIN_JSONSCHEMA = {
@@ -37,6 +38,7 @@ MQTT_MAIN_JSONSCHEMA = {
         CONFKEY_MQTT_SSL_KEYFILE: {"type": "string", "minLength": 1},
         CONFKEY_MQTT_USER_NAME: {"type": "string", "minLength": 1},
         CONFKEY_MQTT_USER_PWD: {"type": "string"},
+        CONFKEY_MQTT_DEBUG_SIMULATE_SENDING: {"type": "boolean", "description": "it True, no MQTT message is sent out!"},
     },
     "required": [
         CONFKEY_MQTT_HOST,
@@ -57,6 +59,7 @@ class MqttConnector:
     DEFAULT_MQTT_PROTOCOL = 4  # 5==MQTTv5, default: 4==MQTTv311, 3==MQTTv31
 
     def __init__(self, publisher):
+        self._debug_simulate_sending = False
         self._mqtt = None
         self._publisher = publisher
         self._is_connected = False
@@ -84,6 +87,8 @@ class MqttConnector:
         ssl_keyfile = config.get(CONFKEY_MQTT_SSL_KEYFILE)
         user_name = config.get(CONFKEY_MQTT_USER_NAME)
         user_pwd = config.get(CONFKEY_MQTT_USER_PWD)
+
+        self._debug_simulate_sending = config.get(CONFKEY_MQTT_DEBUG_SIMULATE_SENDING, False)
 
         is_ssl = ssl_ca_certs or ssl_certfile or ssl_keyfile
 
@@ -145,10 +150,14 @@ class MqttConnector:
 
         return messages
 
-    def publish(self, channel: str, message: str, qos: int = 0, retain: bool = False):
+    def publish(self, channel: str, payload: str, qos: int = 0, retain: bool = False):
+        if self._debug_simulate_sending:
+            _logger.info("simulated sent: topic='%s'; retain=%s; qos=%d; payload='%s'", channel, retain, qos, payload)
+            return
+
         self._mqtt.publish(
             topic=channel,
-            payload=message,
+            payload=payload,
             qos=qos,
             retain=retain
         )

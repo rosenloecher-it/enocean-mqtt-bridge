@@ -27,7 +27,7 @@ class MqttPublisher:
         if self._mqtt:
             self._mqtt.publish(
                 channel=channel,
-                message=message,
+                payload=message,
                 qos=qos,
                 retain=retain
             )
