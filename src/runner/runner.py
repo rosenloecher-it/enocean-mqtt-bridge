@@ -4,6 +4,7 @@ import signal
 import threading
 import time
 from enum import IntEnum
+from typing import Dict, List, Set
 
 from enocean import utils as enocean_utils
 
@@ -34,9 +35,9 @@ class Runner(abc.ABC):
         self._enocean_connector = None
         self._shutdown = False
 
-        self._enocean_ids: dict[int, [Device]] = {}  # type:
-        self._mqtt_last_will_channels: dict[str, Device] = {}
-        self._mqtt_channels_subscriptions: dict[str, set[Device]] = {}
+        self._enocean_ids: Dict[int, List[Device]] = {}
+        self._mqtt_last_will_channels: Dict[str, Device] = {}
+        self._mqtt_channels_subscriptions: Dict[str, Set[Device]] = {}
 
         self._devices_check_cyclic = set()
 
