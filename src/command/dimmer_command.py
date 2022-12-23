@@ -28,7 +28,7 @@ class DimmerCommandType(Enum):
 @attr.s
 class DimmerCommand:
     type = attr.ib()
-    value = attr.ib(default=None)  # type: int
+    value: Optional[int] = attr.ib(default=None)
 
     def __str__(self):
         if self.is_dim:

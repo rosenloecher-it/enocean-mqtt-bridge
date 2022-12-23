@@ -86,7 +86,7 @@ class FFG7BSensor(Device, CheckCyclicTask):
         # default config values
         self._eep = self.DEFAULT_EEP.clone()
 
-        self._storage_max_age = None  # type: Optional[int]  # age in seconds
+        self._storage_max_age: Optional[int] = None  # age in seconds
 
         self._storage = Storage()
 

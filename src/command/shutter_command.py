@@ -21,8 +21,8 @@ class ShutterCommandType(Enum):
 @attr.s
 class ShutterCommand:
     type = attr.ib()
-    value = attr.ib(default=None)  # type: int
-    force_calibration = attr.ib(default=False)  # type: bool
+    value: Optional[int] = attr.ib(default=None)
+    force_calibration: bool = attr.ib(default=False)
 
     def __str__(self):
         if self.is_pos:

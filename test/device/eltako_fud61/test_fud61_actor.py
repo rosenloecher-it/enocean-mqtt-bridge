@@ -151,7 +151,7 @@ class TestFud61Actor(unittest.TestCase):
 
     def test_cyclic_status_requests(self):
         d = self.device
-        last_command = None  # type: Optional[DimmerCommand]
+        last_command: Optional[DimmerCommand] = None
 
         def mock_execute_actor_command(command: DimmerCommand):
             nonlocal last_command

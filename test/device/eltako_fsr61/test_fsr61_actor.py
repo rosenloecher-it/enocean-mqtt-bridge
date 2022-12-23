@@ -98,7 +98,7 @@ class TestFsr61Actor(unittest.TestCase):
 
     def test_cyclic_status_requests(self):
         d = self.device
-        last_command = None  # type: Optional[SwitchCommand]
+        last_command: Optional[SwitchCommand] = None
 
         def mock_execute_actor_command(command: SwitchCommand):
             nonlocal last_command

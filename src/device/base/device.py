@@ -66,26 +66,26 @@ class Device:
     def __init__(self, name: str):
         if not name:
             raise RuntimeError("Device name required!")
-        self._name = name  # type: str
+        self._name = name
         self._logger_by_name: Optional[logging.Logger] = None
 
         self._log_sent_packets = False
         self._enocean_connector = None
 
-        self._enocean_target = None  # type: Optional[int]
-        self._enocean_sender = None  # type: Optional[int]  # to distinguish between different actors
+        self._enocean_target: Optional[int] = None
+        self._enocean_sender: Optional[int] = None  # to distinguish between different actors
 
-        self._mqtt_channel_cmd = None  # type: Optional[str]
-        self._mqtt_channel_state = None  # type: Optional[str]
-        self._mqtt_last_will = None  # type: Optional[str]
-        self._mqtt_qos = None  # type: Optional[int]
-        self._mqtt_retain = None  # type: Optional[bool]
+        self._mqtt_channel_cmd: Optional[str] = None
+        self._mqtt_channel_state: Optional[str] = None
+        self._mqtt_last_will: Optional[str] = None
+        self._mqtt_qos: Optional[int] = None
+        self._mqtt_retain: Optional[bool] = None
 
-        self._mqtt_time_offline = None  # type: Optional[int]  # seconds
+        self._mqtt_time_offline: Optional[int] = None  # seconds
         self._last_refresh_time = self._now()
-        self._last_will_sent_time = None  # type: Optional[datetime]
+        self._last_will_sent_time: Optional[datetime] = None
 
-        self._mqtt_publisher = None  # type: Optional[MqttPublisher]
+        self._mqtt_publisher: Optional[MqttPublisher] = None
 
     @property
     def _logger(self):

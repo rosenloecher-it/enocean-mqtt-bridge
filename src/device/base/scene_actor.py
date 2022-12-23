@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import attr
 from paho.mqtt.client import MQTTMessage
@@ -40,9 +40,9 @@ SCENE_ACTOR_JSONSCHEMA = {
 @attr.s
 class RockerScene:
     """Scenes are triggered by a rocker switches (EEP f6-02-02)"""
-    rocker_key = attr.ib()  # type: int
-    rocker_id = attr.ib()  # type: int
-    command = attr.ib()  # type: str
+    rocker_key: int = attr.ib()
+    rocker_id: int = attr.ib()
+    command: str = attr.ib()
 
 
 class SceneActor(Device):
@@ -50,7 +50,7 @@ class SceneActor(Device):
     def __init__(self, name: str):
         super().__init__(name)
 
-        self._scenes = []  # type: list[RockerScene]
+        self._scenes: List[RockerScene] = []
 
     def _set_config(self, config, skip_require_fields: [str]):
         super()._set_config(config, skip_require_fields)

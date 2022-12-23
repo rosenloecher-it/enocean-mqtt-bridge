@@ -20,8 +20,8 @@ class Fsb61Storage(Storage):
 
         self._name = device_name + ".storage"
 
-        self.storage_max_age = None  # type: Optional[int]  # age in seconds
-        self.__logger = None  # type: Optional[logging.Logger]
+        self.storage_max_age: Optional[int] = None  # age in seconds
+        self.__logger: Optional[logging.Logger] = None
 
     @property
     def _logger(self):

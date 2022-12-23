@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 
 from src.device.base.device import Device
 from src.device.eltako_ffg7b.ffg7b_sensor import FFG7BSensor
@@ -17,7 +17,7 @@ class DeviceRegistry:
     """
     __instance = None  # Here will be the instance stored.
 
-    registry = {}  # type: dict[str, Device.__class__]
+    registry: Dict[str, Device.__class__] = {}
 
     def __init__(self):
         """ Virtually private constructor. """

@@ -39,7 +39,7 @@ class Fsb61CommandType(IntEnum):
 @attr.s
 class Fsb61Command(_Fsb61BaseAction):
 
-    type = attr.ib(default=None)  # type: Optional[Fsb61CommandType]
+    type: Optional[Fsb61CommandType] = attr.ib(default=None)
 
     @property
     def is_learn(self) -> bool:
@@ -179,9 +179,9 @@ class Fsb61StateType(IntEnum):
 
 @attr.s
 class Fsb61State(_Fsb61BaseAction):
-    type = attr.ib(default=None)  # type: Optional[Fsb61StateType]
+    type: Optional[Fsb61StateType] = attr.ib(default=None)
 
-    position = attr.ib(default=None)  # type: Optional[int]
+    position: Optional[int] = attr.ib(default=None)
 
 
 class Fsb61StateConverter:

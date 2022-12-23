@@ -56,8 +56,8 @@ ROCKER_SWITCH_JSONSCHEMA = {
 
 @attr.frozen
 class _RockerCommand:
-    topic = attr.ib()  # type: str
-    payload = attr.ib()  # type: str
+    topic: str = attr.ib()
+    payload: str = attr.ib()
 
 
 class RockerSwitch(Device):
@@ -108,7 +108,7 @@ class RockerSwitch(Device):
         return channel and channel not in ["~", "-"]
 
     def process_enocean_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: RadioPacket
+        packet: RadioPacket = message.payload
         if packet.packet_type != PACKET.RADIO:
             self._logger.debug("skipped packet with packet_type=%s", EnoceanTools.packet_type_to_string(packet.rorg))
             return

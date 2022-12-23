@@ -19,16 +19,16 @@ class Fsb61ShutterPosition:
 
     def __init__(self, device_name):
         self._name = device_name + ".shutter-position"
-        self.__logger = None  # type: Optional[logging.Logger]
+        self.__logger: Optional[logging.Logger] = None
 
-        self._value = None  # type: Optional[float]
+        self._value: Optional[float] = None
         self._jumps_without_calibration = 0
-        self._calibration_time = None  # type: Optional[float]
+        self._calibration_time: Optional[float] = None
 
-        self.time_down_driving = None  # type: Optional[float]
-        self.time_down_rolling = None  # type: Optional[float]
-        self.time_up_driving = None  # type: Optional[float]
-        self.time_up_rolling = None  # type: Optional[float]
+        self.time_down_driving: Optional[float] = None
+        self.time_down_rolling: Optional[float] = None
+        self.time_up_driving: Optional[float] = None
+        self.time_up_rolling: Optional[float] = None
 
     @property
     def _logger(self):

@@ -72,18 +72,18 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         SceneActor.__init__(self, name)
         CheckCyclicTask.__init__(self)
 
-        self._last_status_request_time = None  # type: Optional[datetime]
+        self._last_status_request_time: Optional[datetime] = None
 
         self._storage = Fsb61Storage(name)
 
         self._shutter_position = Fsb61ShutterPosition(name)
         self._shutter_position.jumps_without_calibration = self.CALIBRATION_AFTER_JUMPS
 
-        self._stored_device_commands = None  # type: Optional[List[Fsb61Command]]
-        self._stored_device_commands_time = None  # type Optional[datetime]
+        self._stored_device_commands: Optional[List[Fsb61Command]] = None
+        self._stored_device_commands_time: Optional[datetime] = None
 
         # needed to re-interpretet STOPPED as 0% or 100% (via prio OPENING, CLOSING) (all Fsb61StatusType)
-        self._last_drive_direction = None  # type: Optional[Fsb61StateType]  # Fsb61StateType.CLOSING or Fsb61StateType.OPENING
+        self._last_drive_direction: Optional[Fsb61StateType] = None  # Fsb61StateType.CLOSING or Fsb61StateType.OPENING
 
     def _set_config(self, config, skip_require_fields: [str]):
         super()._set_config(config, skip_require_fields)
@@ -116,7 +116,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
             self.process_enocean_fsb61_message(message)
 
     def process_enocean_fsb61_message(self, message: EnoceanMessage):
-        packet = message.payload  # type: RadioPacket
+        packet: RadioPacket = message.payload
 
         try:
             packet.parse()
@@ -254,7 +254,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
         self._stored_device_commands_time = None
 
     def create_device_commands(self, order: ShutterCommand) -> List[Fsb61Command]:
-        device_commands = []  # type: List[Fsb61Command]
+        device_commands: List[Fsb61Command] = []
 
         def create_action(cmd_type: Optional[Fsb61CommandType]):
             action = Fsb61Command(type=cmd_type)
