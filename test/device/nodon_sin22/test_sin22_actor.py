@@ -51,7 +51,7 @@ class TestSin22Actor(unittest.TestCase):
         device = _MockDevice()
         data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
-        notification = device.extract_notification(data)
+        notification = device._extract_notification(data)
         self.assertEqual(notification.channel, 0)
         self.assertEqual(notification.switch_state, SwitchStatus.ON)
 
@@ -61,7 +61,7 @@ class TestSin22Actor(unittest.TestCase):
         device = _MockDevice()
         data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
-        notification = device.extract_notification(data)
+        notification = device._extract_notification(data)
         self.assertEqual(notification.channel, 0)
         self.assertEqual(notification.switch_state, SwitchStatus.OFF)
 
@@ -71,7 +71,7 @@ class TestSin22Actor(unittest.TestCase):
         device = _MockDevice()
         data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
-        notification = device.extract_notification(data)
+        notification = device._extract_notification(data)
         self.assertEqual(notification.channel, 1)
         self.assertEqual(notification.switch_state, SwitchStatus.ON)
 
@@ -81,6 +81,6 @@ class TestSin22Actor(unittest.TestCase):
         device = _MockDevice()
         data = EnoceanTools.extract_packet_props(packet, _MockDevice.DEFAULT_EEP)
 
-        notification = device.extract_notification(data)
+        notification = device._extract_notification(data)
         self.assertEqual(notification.channel, 1)
         self.assertEqual(notification.switch_state, SwitchStatus.OFF)

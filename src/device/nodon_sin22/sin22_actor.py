@@ -1,5 +1,6 @@
 import logging
 from collections import namedtuple
+from typing import Dict
 
 from enocean.protocol.constants import PACKET
 from enocean.protocol.packet import RadioPacket
@@ -65,7 +66,7 @@ class Sin22Actor(RockerActor):
         data = EnoceanTools.extract_packet_props(packet, self._eep)
         self._logger.debug("proceed_enocean - got: %s", data)
 
-        notification = self.extract_notification(data)
+        notification = self._extract_notification(data)
         if notification.channel != self._actor_channel:
             self._logger.debug("skip channel (%s, awaiting=%s)", notification.channel, self._actor_channel)
             return
@@ -78,7 +79,7 @@ class Sin22Actor(RockerActor):
         self._publish_mqtt(message)
 
     @classmethod
-    def extract_notification(cls, data):
+    def _extract_notification(cls, data: Dict[str, any]) -> _Notification:
         # {'PF': 0, 'PFD': 0, 'CMD': 4, 'OC': 0, 'EL': 3, 'IO': 1, 'LC': 1, 'OV': 0}
         # {'PF': 0, 'PFD': 0, 'CMD': 4, 'OC': 0, 'EL': 3, 'IO': 0, 'LC': 1, 'OV': 100}
         # {'PF': 0, 'PFD': 0, 'CMD': 4, 'OC': 0, 'EL': 3, 'IO': 1, 'LC': 1, 'OV': 100}
