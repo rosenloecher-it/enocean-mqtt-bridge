@@ -41,3 +41,28 @@ class TestEnoceanTools(unittest.TestCase):
         self.assertEqual(EnoceanTools.packet_type_to_string(PACKET.RADIO), "RADIO")
         self.assertEqual(EnoceanTools.packet_type_to_string(int(PACKET.RADIO)), "RADIO")
         self.assertEqual(EnoceanTools.packet_type_to_string(None), "None")
+
+    # def test_analyse_unknown_packet(self):
+    #     """
+    #     Try to find out a concrete EEP profile by iterating over all possible values
+    #     The logging output (in `venv/lib/python3.8/site-packages/enocean/protocol/eep.py`) should be disabled temporaryly.
+    #     """
+    #     from src.tools.pickle_tools import PickleTools
+    #     from src.tools.converter import Converter
+    #
+    #     packet_text = "gASVUQAAAAAAAAB9lCiMC3BhY2tldF90eXBllEsBjARkYXRhlF2UKEulS5dLoUsASwhLBUsiSxRL" + "\n" + \
+    #                   "50sAZYwIb3B0aW9uYWyUXZQoSwBL/0v/S/9L/0s1SwBldS4="
+    #     packet = PickleTools.unpickle_packet(packet_text)
+    #
+    #     for rorg_func in range(0, 0xff + 1):
+    #         for rorg_type in range(0, 0xff + 1):
+    #             eep = Eep(rorg=packet.rorg, func=rorg_func, type=rorg_type)
+    #
+    #             props = EnoceanTools.extract_props(packet, eep)
+    #             if (props):
+    #                 print("{}-{}-{}: {}".format(
+    #                     Converter.to_hex_string(packet.rorg),
+    #                     Converter.to_hex_string(rorg_func),
+    #                     Converter.to_hex_string(rorg_type),
+    #                     props
+    #                 ))

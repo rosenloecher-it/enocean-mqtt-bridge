@@ -96,21 +96,3 @@ class TestFsb61StatusConverter(unittest.TestCase):
             packet = Fsb61StateConverter.create_packet(predefined_status)
             status = Fsb61StateConverter.extract_packet(packet)
             self.assertEqual(status, predefined_status)
-
-    # def test_unknown(self):
-    #     packet = PickleTools.unpickle_packet(PACKET_UNKNOWN_1)
-    #
-    #     for rorg_func in range(0, 0xff + 1):
-    #         for rorg_type in range(0, 0xff + 1):
-    #             eep = Eep(rorg=packet.rorg, func=rorg_func, type=rorg_type)
-    #             props = EnoceanTools.extract_props(packet, eep)
-    #             if (props):
-    #                 print("{}-{}-{}: {}".format(
-    #                     Converter.to_hex_string(packet.rorg),
-    #                     Converter.to_hex_string(rorg_func),
-    #                     Converter.to_hex_string(rorg_type),
-    #                     props
-    #                 ))
-    #
-    #     status = Fsb61StatusConverter.extract_packet(packet)
-    #     self.assertEqual(status.type, Fsb61StateType.UNKNOWN)
