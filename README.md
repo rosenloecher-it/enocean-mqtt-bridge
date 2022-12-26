@@ -17,13 +17,16 @@ In the end you could degrade your smarthome system to a pure GUI tool and switch
 - Supported/tested Enocean gateways:
   - DOSMUNG Gateway USB Stick with SMA Port, chipset TCM 310
 - Supported/tested Enocean devices:
-  - [Eltako FFG7B-rw (nearly identical to Eltako TF-FGB; windows handle)](src/device/eltako_ffg7b/eltako_ffg7b.md)
+  - [Window/door handle/sensors/contacts](src/device/opening_sensor/opening_sensor.md), supported devices:
+    - Eltako FFG7B (nearly identical to Eltako TF-FGB; windows handle) 
+    - Eltako FTKB (magnetic contact)
+    - Nodon SDO-2-1-05 (magnetic contact)
   - [Eltako FSB61NB-230V (roller shutter)](src/device/eltako_fsb61/eltako_fsb61.md)
   - [Eltako FSR61-230V (ON/OFF relay switch)](src/device/eltako_fsr61/eltako_fsr61.md)
   - [Eltako FUD61NP(N)-230V (dimmer)](src/device/eltako_fud61/eltako_fud61.md)
   - [NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch)](src/device/nodon_sin22/nodon_sin22.md)
   - [RockerSwitch (manual wireless radio switch; forwards manual click events as MQTT commands)](src/device/rocker_switch/rocker_switch.md)
-- Not supported:
+- Will never be supported:
   - Nodon SIN-2-RS-01: Not reliable to pair. Questions were not answered by Nodon.
 
 ## Release notes

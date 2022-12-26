@@ -1,7 +1,7 @@
 from typing import Optional, Dict
 
 from src.device.base.device import Device
-from src.device.eltako_ffg7b.ffg7b_sensor import FFG7BSensor
+from src.device.opening_sensor.opening_sensor import OpeningSensor
 from src.device.eltako_fsb61.fsb61_actor import Fsb61Actor
 from src.device.eltako_fsr61.fsr61_actor import Fsr61Actor
 from src.device.eltako_fud61.fud61_actor import Fud61Actor
@@ -46,10 +46,11 @@ class DeviceRegistry:
         return instance.registry.get(key)
 
 
-DeviceRegistry.register('EltakoFFG7B', FFG7BSensor)
+DeviceRegistry.register('EltakoFFG7B', OpeningSensor)  # just for backwards compatibility
 DeviceRegistry.register('EltakoFsb61', Fsb61Actor)
 DeviceRegistry.register('EltakoFsr61', Fsr61Actor)
 DeviceRegistry.register('EltakoFud61', Fud61Actor)
 DeviceRegistry.register('NodonSin22', Sin22Actor)
+DeviceRegistry.register('OpeningSensor', OpeningSensor)
 DeviceRegistry.register('RockerSwitch', RockerSwitch)
 DeviceRegistry.register('Sniffer', Sniffer)

@@ -13,3 +13,5 @@ class JsonAttributes:
     SINCE = "since"
 
     DEVICE = "device"
+
+    RSSI = "rssi"
