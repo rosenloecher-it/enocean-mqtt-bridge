@@ -178,7 +178,6 @@ class Device:
                 qos=self._mqtt_qos,
                 retain=self._mqtt_retain
             )
-            self._logger.info("mqtt publish: {0}={1}".format(inner_mqtt_channel, message))
 
     @abc.abstractmethod
     def process_mqtt_message(self, message: MQTTMessage):
