@@ -59,12 +59,7 @@ class EnoceanTools:
         )
 
     @classmethod
-    def extract_packet_props(cls, packet, eep):
-        """
-        :param enocean.protocol.packet.RadioPacket packet:
-        :param Eep eep:
-        :rtype: dict{str, object}
-        """
+    def extract_packet_props(cls, packet: RadioPacket, eep: Eep) -> Dict[str, any]:
         if packet.rorg == eep.rorg:
             try:
                 data = EnoceanTools.extract_props(packet=packet, eep=eep)
