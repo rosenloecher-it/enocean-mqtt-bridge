@@ -176,13 +176,13 @@ class Runner(abc.ABC):
                     channels = [c for c in self._mqtt_channels_subscriptions]
                     self._mqtt_connector.subscribe(channels)
 
+                    self._mqtt_publisher.open(self._mqtt_connector)
+                    self._mqtt_state = _MqttState.CONNECTED
+
                     for _, devices in self._enocean_ids.items():
                         for device in devices:
                             device.open_mqtt()
 
-                    self._mqtt_state = _MqttState.CONNECTED
-
-                    self._mqtt_publisher.open(self._mqtt_connector)
                     break
 
     def _process_mqtt_messages(self) -> bool:
