@@ -244,9 +244,6 @@ class OpeningSensor(Device, CheckCyclicTask):
 
     def _restore_last_state(self):
         """restore old STATE when in time"""
-        if not self._storage.initilized:
-            return  # TODO race condition: MQTT conection or loaded configuration
-
         last_observation = self._storage.get(StorageKey.TIME_LAST_OBSERVATION.value)
         if not last_observation:
             return

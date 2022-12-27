@@ -14,17 +14,13 @@ class Storage:
 
     def __init__(self):
         self._file = None
-        self._data = None
+        self._data = {}
 
     def set_file(self, file):
         self._file = file
 
     def empty(self):
         self._data = {}
-
-    @property
-    def initilized(self):
-        return self._data is not None
 
     def load(self):
         try:
