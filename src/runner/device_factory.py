@@ -1,5 +1,6 @@
 import logging
 
+from src.common.config_exception import ConfigException
 from src.config import CONFKEY_DEVICE_TYPE
 from src.device.base.device import Device
 from src.common.device_exception import DeviceException
@@ -41,7 +42,10 @@ class DeviceFactory:
     def _load_class(cls, path: str) -> Device.__class__:
         delimiter = path.rfind(".")
         classname = path[delimiter + 1:len(path)]
-        module_path = __import__(path[0:delimiter], globals(), locals(), [classname])
+        try:
+            module_path = __import__(path[0:delimiter], globals(), locals(), [classname])
+        except ModuleNotFoundError as ex:
+            raise ConfigException(f"Device type or class/module path not found ('{path}')!") from ex
         return getattr(module_path, classname)
 
     @classmethod

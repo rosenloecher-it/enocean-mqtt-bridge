@@ -4,7 +4,7 @@ import signal
 import threading
 import time
 from enum import IntEnum
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 
 from enocean import utils as enocean_utils
 
@@ -42,9 +42,7 @@ class Runner(abc.ABC):
         self._devices_check_cyclic = set()
 
         self._mqtt_publisher = MqttPublisher()
-        self._mqtt_connector = MqttConnector(self._mqtt_publisher)
-        self._mqtt_connector.on_connect = self._on_mqtt_connect
-        self._mqtt_connector.on_disconnect = self._on_mqtt_disconnect
+        self._mqtt_connector: Optional[MqttConnector] = None
 
         self._mqtt_state = _MqttState.UNINITIALED
         self._mqtt_lock = threading.Lock()
@@ -66,8 +64,14 @@ class Runner(abc.ABC):
         #     _logger.debug("config: %s", pretty)
 
         self._init_devices()
+
+        self._mqtt_connector = MqttConnector(self._mqtt_publisher)
+        self._mqtt_connector.on_connect = self._on_mqtt_connect
+        self._mqtt_connector.on_disconnect = self._on_mqtt_disconnect
+
         self._collect_mqtt_subscriptions()
         self._mqtt_connector.open(self._config[CONFKEY_MAIN])
+
         self._connect_enocean()
 
     def close(self):
