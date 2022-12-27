@@ -1,4 +1,5 @@
 import datetime
+import os
 import unittest
 from collections import namedtuple
 from typing import Dict, Union
@@ -9,8 +10,10 @@ from src.device.base.device import CONFKEY_ENOCEAN_SENDER
 from src.device.base.device import CONFKEY_MQTT_CHANNEL_STATE, CONFKEY_ENOCEAN_TARGET
 from src.device.opening_sensor.opening_sensor import OpeningSensor, StorageKey, StateValue
 from src.enocean_connector import EnoceanMessage
+from src.storage import CONFKEY_STORAGE_FILE, CONFKEY_STORAGE_MAX_AGE_SECS
 from src.tools.pickle_tools import PickleTools
 from test.device.opening_sensor import sample_telegrams
+from test.setup_test import SetupTest
 
 TestItem = namedtuple("TestItem", ["packet", "expected_status", "expected_rssi"])
 
@@ -23,7 +26,6 @@ class MockedOpeningSensor(OpeningSensor):
         super().__init__("mock")
 
         self.sent_message = None
-        self._storage.empty()
 
     def _now(self):
         return self.now
@@ -113,6 +115,74 @@ class TestOpeningSensor(unittest.TestCase):
         self.assertEqual(value_stored, StateValue.OFFLINE.value)
 
 
+class TestOpeningSensorRestoreState(unittest.TestCase):
+
+    def setUp(self):
+        work_dir = SetupTest.ensure_clean_work_dir()
+
+        self.storage_path = os.path.join(work_dir, "device_storage.yaml")
+        if os.path.exists(self.storage_path):
+            os.remove(self.storage_path)
+            self.assertFalse(os.path.exists(self.storage_path))
+
+        self.device = MockedOpeningSensor()
+
+        self.device.now = datetime.datetime(2022, 12, 27, 10, 0, 0, tzinfo=get_localzone())
+
+        self.time_last_observation = 120  # different to default value
+
+        self.device.set_config({
+            CONFKEY_ENOCEAN_SENDER: 123,
+            CONFKEY_ENOCEAN_TARGET: 123,
+            CONFKEY_MQTT_CHANNEL_STATE: "channel",
+            CONFKEY_STORAGE_FILE: self.storage_path,
+            CONFKEY_STORAGE_MAX_AGE_SECS: self.time_last_observation,
+        })
+
+    def test_success_status(self):
+        d = self.device
+        time1 = d.now
+
+        d._restore_last_state()
+        self.assertEqual(None, d.sent_message)
+
+        d._determine_and_store_since(StateValue.OPEN)
+        self.assertTrue(os.path.exists(self.storage_path))
+
+        d.now = d.now + datetime.timedelta(seconds=self.time_last_observation - 2)
+        d._restore_last_state()
+
+        self.assertEqual({
+            "device": "mock",
+            "timestamp": time1,
+            "since": time1,
+            "status": "open",
+        }, d.sent_message)
+
+        d.sent_message = None  # reset
+
+        d.now = d.now + datetime.timedelta(seconds=self.time_last_observation + 2)
+        d._restore_last_state()
+        self.assertEqual(None, d.sent_message)
+
+    def test_error_status(self):
+        d = self.device
+
+        d._restore_last_state()
+        self.assertEqual(None, d.sent_message)
+
+        d._determine_and_store_since(StateValue.OPEN)
+        self.assertTrue(os.path.exists(self.storage_path))
+
+        d.now = d.now + datetime.timedelta(seconds=self.time_last_observation - 2)
+        d._determine_and_store_since(StateValue.OFFLINE)
+
+        d.now = d.now + datetime.timedelta(seconds=self.time_last_observation - 2)
+        d._restore_last_state()
+
+        self.assertEqual(None, d.sent_message)
+
+
 class TestEltakoFFG7B(unittest.TestCase):
 
     def test_proceed_enocean(self):
@@ -136,11 +206,11 @@ class TestEltakoFFG7B(unittest.TestCase):
         device.process_enocean_message(message)
 
         self.assertEqual({
-            'device': 'mock',
-            'timestamp': time_1,
-            'since': time_1,
-            'status': 'tilted',
-            'rssi': -58,
+            "device": "mock",
+            "timestamp": time_1,
+            "since": time_1,
+            "status": "tilted",
+            "rssi": -58,
         }, device.sent_message)
 
 
@@ -175,11 +245,11 @@ class TestNodonSdo2105(unittest.TestCase):
             device.process_enocean_message(message)
 
             self.assertEqual({
-                'device': 'mock',
-                'timestamp': time_1,
-                'since': time_1,
-                'status': test_item.expected_status,
-                'rssi': test_item.expected_rssi,
+                "device": "mock",
+                "timestamp": time_1,
+                "since": time_1,
+                "status": test_item.expected_status,
+                "rssi": test_item.expected_rssi,
             }, device.sent_message)
 
 
@@ -214,9 +284,9 @@ class TestEltakoFtkb(unittest.TestCase):
             device.process_enocean_message(message)
 
             self.assertEqual({
-                'device': 'mock',
-                'timestamp': time_1,
-                'since': time_1,
-                'status': test_item.expected_status,
-                'rssi': test_item.expected_rssi,
+                "device": "mock",
+                "timestamp": time_1,
+                "since": time_1,
+                "status": test_item.expected_status,
+                "rssi": test_item.expected_rssi,
             }, device.sent_message)

@@ -141,6 +141,8 @@ class OpeningSensor(Device, CheckCyclicTask):
             self._storage.set(key_state, value_since)
             self._storage.set(key_time, time_since)
 
+            self._storage.set(StorageKey.TIME_LAST_OBSERVATION.value, self._now())
+
             try:
                 self._storage.save()
             except StorageException as ex:
