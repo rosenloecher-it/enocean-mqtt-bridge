@@ -1,6 +1,7 @@
 import copy
 import unittest
 from datetime import datetime, timezone, timedelta
+from typing import Dict, Union
 
 from paho.mqtt.client import MQTTMessage
 
@@ -69,8 +70,8 @@ class _MockFsb61Actor(Fsb61Actor):
     def position(self):
         return self._shutter_position.value
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
-        self.messages.append(message)
+    def _publish_mqtt(self, payload: Union[str, Dict], mqtt_channel: str = None):
+        self.messages.append(payload)
 
     def _send_enocean_packet(self, packet, delay=0):
         self.packets.append(packet)

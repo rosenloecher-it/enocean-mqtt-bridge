@@ -1,4 +1,5 @@
 import unittest
+from typing import Dict, Union
 
 from src.common.switch_status import SwitchStatus
 from src.device.nodon_sin22.sin22_actor import Sin22Actor
@@ -20,8 +21,8 @@ class _MockDevice(Sin22Actor):
     def _now(self):
         return self.now
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
-        self.messages.append(message)
+    def _publish_mqtt(self, payload: Union[str, Dict], mqtt_channel: str = None):
+        self.messages.append(payload)
 
     def _send_enocean_packet(self, packet, delay=0):
         self.packets.append(packet)

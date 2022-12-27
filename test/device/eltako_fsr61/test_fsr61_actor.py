@@ -2,7 +2,7 @@ import json
 import unittest
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Dict, Union
 
 from paho.mqtt.client import MQTTMessage
 
@@ -30,8 +30,8 @@ class _MockDevice(Fsr61Actor):
     def _now(self):
         return self.now
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
-        self.messages.append(message)
+    def _publish_mqtt(self, payload: Union[str, Dict], mqtt_channel: str = None):
+        self.messages.append(payload)
 
     def _send_enocean_packet(self, packet, delay=0):
         self.packets.append(packet)

@@ -1,7 +1,7 @@
 import datetime
-import json
 import unittest
 from collections import namedtuple
+from typing import Dict, Union
 
 from tzlocal import get_localzone
 
@@ -28,8 +28,8 @@ class MockedOpeningSensor(OpeningSensor):
     def _now(self):
         return self.now
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
-        self.sent_message = message
+    def _publish_mqtt(self, payload: Union[str, Dict], mqtt_channel: str = None):
+        self.sent_message = payload
 
 
 class TestOpeningSensor(unittest.TestCase):
@@ -135,14 +135,13 @@ class TestEltakoFFG7B(unittest.TestCase):
         device.now = time_1
         device.process_enocean_message(message)
 
-        sent_data = json.loads(device.sent_message)
-        self.assertEqual(sent_data, {
+        self.assertEqual({
             'device': 'mock',
-            'timestamp': time_1.isoformat(),
-            'since': time_1.isoformat(),
+            'timestamp': time_1,
+            'since': time_1,
             'status': 'tilted',
             'rssi': -58,
-        })
+        }, device.sent_message)
 
 
 class TestNodonSdo2105(unittest.TestCase):
@@ -175,29 +174,16 @@ class TestNodonSdo2105(unittest.TestCase):
             device.now = time_1
             device.process_enocean_message(message)
 
-            sent_data = json.loads(device.sent_message)
-            self.assertEqual(sent_data, {
+            self.assertEqual({
                 'device': 'mock',
-                'timestamp': time_1.isoformat(),
-                'since': time_1.isoformat(),
+                'timestamp': time_1,
+                'since': time_1,
                 'status': test_item.expected_status,
                 'rssi': test_item.expected_rssi,
-            })
+            }, device.sent_message)
 
 
 class TestEltakoFtkb(unittest.TestCase):
-
-    # PACKET_ELTAKO_FTKB_OPEN_1 = """gASVSwAAAAAAAAB9lCiMC3BhY2tldF90eXBllEsBjARkYXRhlF2UKEvVSwhLBUsiSxRL50sAZYwI
-    # b3B0aW9uYWyUXZQoSwBL/0v/S/9L/0tBSwBldS4="""
-    #
-    # PACKET_ELTAKO_FTKB_OPEN_2 = """gASVSwAAAAAAAAB9lCiMC3BhY2tldF90eXBllEsBjARkYXRhlF2UKEvVSwhLBUsiSxRL50sAZYwI
-    # b3B0aW9uYWyUXZQoSwBL/0v/S/9L/0tESwBldS4="""
-    #
-    # PACKET_ELTAKO_FTKB_CLOSED_1 = """gASVSwAAAAAAAAB9lCiMC3BhY2tldF90eXBllEsBjARkYXRhlF2UKEvVSwhLBUsiSxRL50sAZYwI
-    # b3B0aW9uYWyUXZQoSwBL/0v/S/9L/0tBSwBldS4="""
-    #
-    # PACKET_ELTAKO_FTKB_CLOSED_2 = """gASVSwAAAAAAAAB9lCiMC3BhY2tldF90eXBllEsBjARkYXRhlF2UKEvVSwhLBUsiSxRL50sAZYwI
-    # b3B0aW9uYWyUXZQoSwBL/0v/S/9L/0tESwBldS4="""
 
     def test_proceed_enocean(self):
         test_times = [
@@ -227,11 +213,10 @@ class TestEltakoFtkb(unittest.TestCase):
             device.now = time_1
             device.process_enocean_message(message)
 
-            sent_data = json.loads(device.sent_message)
-            self.assertEqual(sent_data, {
+            self.assertEqual({
                 'device': 'mock',
-                'timestamp': time_1.isoformat(),
-                'since': time_1.isoformat(),
+                'timestamp': time_1,
+                'since': time_1,
                 'status': test_item.expected_status,
                 'rssi': test_item.expected_rssi,
-            })
+            }, device.sent_message)

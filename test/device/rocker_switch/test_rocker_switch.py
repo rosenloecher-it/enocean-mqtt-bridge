@@ -32,8 +32,8 @@ class _MockDevice(RockerSwitch):
     def _send_enocean_packet(self, packet, delay=0):
         self.packets.append(packet)
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
-        self.mqtt_messages.append((message, mqtt_channel))
+    def _publish_mqtt(self, payload: str, mqtt_channel: str = None):
+        self.mqtt_messages.append((payload, mqtt_channel))
 
 
 PACKET_0_PRESS = """gAN9cQAoWAsAAABwYWNrZXRfdHlwZXEBSwFYBAAAAGRhdGFxAl1xAyhL9ksQS/5L8kukS3tLMGVY

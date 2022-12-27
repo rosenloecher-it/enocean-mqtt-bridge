@@ -4,16 +4,16 @@ import datetime
 import json
 import logging
 from threading import Timer
-from typing import Optional
+from typing import Optional, Dict, Union
 
 from jsonschema import validate, ValidationError
 from paho.mqtt.client import MQTTMessage
-from tzlocal import get_localzone
 
 from src.common.json_attributes import JsonAttributes
 from src.common.device_exception import DeviceException
 from src.enocean_connector import EnoceanMessage
 from src.mqtt_publisher import MqttPublisher
+from src.tools.time_tools import TimeTools
 
 _class_logger = logging.getLogger(__name__)
 
@@ -169,12 +169,12 @@ class Device:
             self._publish_mqtt(self.mqtt_last_will)
             self._logger.debug("last will sent: disconnecting")
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
+    def _publish_mqtt(self, payload: Union[str, Dict], mqtt_channel: str = None):
         inner_mqtt_channel = mqtt_channel or self._mqtt_channel_state
         if inner_mqtt_channel:
             self._mqtt_publisher.publish(
                 channel=inner_mqtt_channel,
-                message=message,
+                payload=payload,
                 qos=self._mqtt_qos,
                 retain=self._mqtt_retain
             )
@@ -252,4 +252,4 @@ class Device:
 
     def _now(self):
         """overwrite in test to simulate different times"""
-        return datetime.datetime.now(tz=get_localzone())
+        return TimeTools.now()

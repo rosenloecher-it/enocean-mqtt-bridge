@@ -1,4 +1,5 @@
 import unittest
+from typing import Dict, Union
 
 from src.device.base.rocker_actor import RockerSwitchAction, RockerActor
 from src.device.rocker_switch.rocker_switch_tools import RockerSwitchTools
@@ -22,8 +23,8 @@ class _MockDevice(RockerActor):
     def _send_enocean_packet(self, packet, delay=0):
         self.packets.append(packet)
 
-    def _publish_mqtt(self, message: str, mqtt_channel: str = None):
-        self.messages.append(message)
+    def _publish_mqtt(self, payload: Union[str, Dict], mqtt_channel: str = None):
+        self.messages.append(payload)
 
     def process_mqtt_message(self, message):
         """dummy implementation of abstract method"""

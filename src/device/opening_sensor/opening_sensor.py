@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 from collections import namedtuple
 from enum import Enum
@@ -153,7 +152,7 @@ class OpeningSensor(Device, CheckCyclicTask):
                         state: StateValue,
                         since: Optional[datetime.datetime],
                         rssi: Optional[int],
-                        timestamp: Optional[datetime.datetime] = None):
+                        timestamp: Optional[datetime.datetime] = None) -> Dict[str, any]:
 
         if not timestamp:
             timestamp = self._now()
@@ -161,15 +160,14 @@ class OpeningSensor(Device, CheckCyclicTask):
         data = {
             JsonAttributes.DEVICE: self.name,
             JsonAttributes.STATUS: state.value,
-            JsonAttributes.TIMESTAMP: timestamp.isoformat(),
+            JsonAttributes.TIMESTAMP: timestamp,
         }
         if rssi:
             data[JsonAttributes.RSSI] = rssi
         if since is not None:
-            data[JsonAttributes.SINCE] = since.isoformat()
+            data[JsonAttributes.SINCE] = since
 
-        json_text = json.dumps(data, sort_keys=True)
-        return json_text
+        return data
 
     def check_cyclic_tasks(self):
         self._check_and_send_offline()
@@ -213,23 +211,23 @@ class OpeningSensor(Device, CheckCyclicTask):
             #     self._logger.debug("skipped packet with rorg=%s\n%s", hex(packet.rorg), PickleTools.pickle_packet(packet))
             return
 
-        data = EnoceanTools.extract_packet_props(packet, eep_handler.eep)
+        packet_data = EnoceanTools.extract_packet_props(packet, eep_handler.eep)
 
         # fix for Eltako FTKB: skip equal/doubled packets which arrive within short time (usually 3.1s)
         now = self._now()
         if self._last_packet_time and self._last_packet_data:
             diff_seconds = (now - self._last_packet_time).total_seconds()
             if diff_seconds < self.ELTAKO_FTKB_DOUBLED_TIME:
-                if self._last_packet_data == data:
+                if self._last_packet_data == packet_data:
                     self._logger.debug("skipped doubled packet (%.1fs)!", diff_seconds)
                     return
-        self._last_packet_data = data
+        self._last_packet_data = packet_data
         self._last_packet_time = now
 
         self._reset_offline_refresh_timer()
 
         try:
-            value = eep_handler.extract_state(data)
+            value = eep_handler.extract_state(packet_data)
         except DeviceException as ex:
             self._logger.exception(ex)
             value = StateValue.ERROR
@@ -241,8 +239,8 @@ class OpeningSensor(Device, CheckCyclicTask):
 
         since = self._determine_and_store_since(value)
 
-        message = self._create_message(value, since, packet.dBm)
-        self._publish_mqtt(message)
+        message_data = self._create_message(value, since, packet.dBm)
+        self._publish_mqtt(message_data)
 
     def _restore_last_state(self):
         """restore old STATE when in time"""

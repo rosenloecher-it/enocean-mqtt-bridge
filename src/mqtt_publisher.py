@@ -1,9 +1,9 @@
 import logging
 from collections import namedtuple
-from typing import Optional
+from typing import Optional, Dict, Union
 
 from src.mqtt_connector import MqttConnector
-
+from src.tools.json_tools import JsonTools
 
 _logger = logging.getLogger(__name__)
 
@@ -23,16 +23,19 @@ class MqttPublisher:
     def close(self):
         self._mqtt = None
 
-    def publish(self, channel: str, message: str, qos: int = 0, retain: bool = False):
+    def publish(self, channel: str, payload: Union[str, Dict], qos: int = 0, retain: bool = False):
+        if isinstance(payload, dict):
+            payload = JsonTools.dumps(payload)
+
         if self._mqtt:
             self._mqtt.publish(
                 channel=channel,
-                payload=message,
+                payload=payload,
                 qos=qos,
                 retain=retain
             )
         else:
-            _logger.warning("MqttConnector not set! Message is not send: %s=%s", channel, message)
+            _logger.warning("MqttConnector not set! Message is not send: %s=%s", channel, payload)
 
     def store_last_will(self, channel: str, message: str, qos: int = 0, retain: bool = False):
         self.stored_last_wills.append(LastWill(
