@@ -8,6 +8,7 @@ from typing import Dict, List, Set, Optional
 
 from enocean import utils as enocean_utils
 
+from src.common.config_exception import ConfigException
 from src.config import CONFKEY_DEVICES, CONFKEY_ENOCEAN_PORT, CONFKEY_MAIN
 from src.device.base.cyclic_device import CheckCyclicTask
 from src.device.base.device import Device
@@ -241,12 +242,18 @@ class Runner(abc.ABC):
             self._mqtt_state = _MqttState.DISCONNECTED
 
     def _init_devices(self):
+        found_configuration_errors = False
+
         items = self._config[CONFKEY_DEVICES]
         for name, config in items.items():
             try:
                 self._init_device(name, config)
             except DeviceException as ex:
                 _logger.error(ex)
+                found_configuration_errors = True
+
+        if found_configuration_errors:
+            raise ConfigException("Found configuration errors!?")
 
     def _init_device(self, name, config):
         device_instance = DeviceFactory.create_device(name, config)
