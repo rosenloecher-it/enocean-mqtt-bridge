@@ -26,7 +26,7 @@ OPENING_SENSOR_JSONSCHEMA = {
             "type": "number",
             "minimum": 1,
             "description": "After a restart the device state may be restored from file within that period of time (in seconds) "
-                           "and announe that former state and overwrite a former last will message."
+                           "and announce that state and overwrite a former last will message."
         },
     },
     "required": [
