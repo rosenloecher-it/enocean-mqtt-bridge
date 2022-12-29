@@ -31,7 +31,7 @@ In the end you could degrade your smarthome system to a pure GUI tool and switch
 
 ## Release notes
 
-[See here](./docs/release_notes.md)
+[See here](RELEASE_NOTES.md)
 
 ## Requirements
 
