@@ -3,12 +3,13 @@ import time
 from enum import Enum
 from typing import Optional
 
+from paho.mqtt.client import MQTTMessage
+
 from src.command.switch_command import SwitchCommand
 from src.common.json_attributes import JsonAttributes
 from src.common.switch_status import SwitchStatus
 from src.device.base.device import Device
 from src.device.rocker_switch.rocker_switch_tools import RockerSwitchTools, RockerPress, RockerButton, RockerAction
-from src.enocean_connector import EnoceanMessage
 
 
 class RockerSwitchAction(Enum):
@@ -63,6 +64,9 @@ class RockerActor(Device):
     def _execute_actor_command(self, command: SwitchCommand, learn=False):
         destination = 0xffffffff
 
+        if command == SwitchCommand.LEARN:
+            command = SwitchCommand.ON  # simulate a rocker button action
+
         if command.is_on_or_off:
             action = RockerSwitchAction.ON if command.is_on else RockerSwitchAction.OFF
             packet = self._create_switch_packet(action, destination=destination, learn=learn)
@@ -75,7 +79,7 @@ class RockerActor(Device):
         else:
             self._logger.info("command '{}' not supported!".format(command))
 
-    def process_mqtt_message(self, message: EnoceanMessage):
+    def process_mqtt_message(self, message: MQTTMessage):
         self._logger.debug('process_mqtt_message: "%s"', message.payload)
 
         try:
