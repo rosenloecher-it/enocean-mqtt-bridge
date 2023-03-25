@@ -1,5 +1,10 @@
 # Release notes
 
+## v5.2 (2023-03-25)
+
+- requirement upgrades
+- fix not implemented LEARN command for Nodon Sin22
+
 ## v5.1 (2022-12-29)
 
 - refactoring: changed device structure
