@@ -4,4 +4,4 @@ jsonschema == 4.17.3
 paho-mqtt == 1.6.1
 py-dateutil == 2.2
 pyyaml == 6.0
-tzlocal == 4.2
+tzlocal == 4.3
