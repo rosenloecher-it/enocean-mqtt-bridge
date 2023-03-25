@@ -24,8 +24,9 @@ In the end you could degrade your smarthome system to a pure GUI tool and switch
   - [Eltako FSB61NB-230V (roller shutter)](src/device/eltako_fsb61/eltako_fsb61.md)
   - [Eltako FSR61-230V (ON/OFF relay switch)](src/device/eltako_fsr61/eltako_fsr61.md)
   - [Eltako FUD61NP(N)-230V (dimmer)](src/device/eltako_fud61/eltako_fud61.md)
-  - [NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch)](src/device/nodon_sin22/nodon_sin22.md)
   - [RockerSwitch (manual wireless radio switch; forwards manual click events as MQTT commands)](src/device/rocker_switch/rocker_switch.md)
+- Should work, but not supported anymore:
+  - [NodOn SIN-2-2-01 (2-channel ON/OFF lighting relay switch)](src/device/nodon_sin22/nodon_sin22.md)
 - Will never be supported:
   - Nodon SIN-2-RS-01: Not reliable to pair. Questions were not answered by Nodon.
 

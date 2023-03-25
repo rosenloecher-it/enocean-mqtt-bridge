@@ -2,6 +2,13 @@
 
 The NodOn SIN-2-2-01 is a 2-channel ON/OFF lighting relay switch.
 
+As the EEP profile D2-01-12 was not available in the enocean lib (former days),
+the device is switched via standard rocker switch commands (EEP F6-02-02).
+State changes are read automatically via EEP D2-01-01. 
+Maybe these notifications have to be switched on. 
+
+Unfortunatly the device got broken, so changes cannot be tested and there is not support possible any more. 
+
 ## Features
 - Switch and get notifications about state changes.
 - Output JSON

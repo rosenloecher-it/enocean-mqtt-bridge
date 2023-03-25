@@ -34,7 +34,7 @@ class Sin22Actor(RockerActor):
     DEFAULT_EEP = Eep(
         rorg=0xd2,
         func=0x01,
-        type=0x01,  # type should be 0x02, but it's not available within "enocean" lib
+        type=0x01,
         direction=None,
         command=None  # 0x01
     )
