@@ -65,6 +65,14 @@ mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$
 mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -n -r -d
 ```
 
+### Python prerequisites
+
+Python 3 ...
+
+```bash
+sudo apt-get install python3-dev python3-pip python3-venv python3-wheel -y
+```
+
 ### Prepare python environment
 ```bash
 cd /opt
@@ -73,16 +81,14 @@ sudo chown pi:pi enocean-mqtt-bridge  # type in your user
 git clone https://github.com/rosenloecher-it/enocean-mqtt-bridge enocean-mqtt-bridge
 
 cd enocean-mqtt-bridge
-virtualenv -p /usr/bin/python3 venv
+python3 -m venv venv
 
 # activate venv
 source ./venv/bin/activate
 
-# check python version >= 3.7
-python --version
-
 # install required packages
 pip install --upgrade -r requirements.txt
+# or: pip install -r requirements-dev.txt
 ```
 
 ### Configuration
