@@ -66,7 +66,7 @@ class SwitchCommand(Enum):
                 command = SwitchCommand.ON
             elif text in ["OFF"]:
                 command = SwitchCommand.OFF
-            elif text in ["UPDATE", "REFRESH", "QUERY"]:
+            elif text in ["UPDATE", "REFRESH", "QUERY", "STATUS"]:
                 command = SwitchCommand.UPDATE
             elif text in ["LEARN", "TEACH", "TEACH-IN"]:
                 command = SwitchCommand.LEARN
