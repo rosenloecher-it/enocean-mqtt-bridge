@@ -349,7 +349,7 @@ class Fsb61Actor(SceneActor, CheckCyclicTask):
 
     @property
     def _randomized_refresh_rate(self) -> int:
-        return self.DEFAULT_REFRESH_RATE + random.randint(0, self.DEFAULT_REFRESH_RATE * 0.1)
+        return self.DEFAULT_REFRESH_RATE + random.randint(0, int(self.DEFAULT_REFRESH_RATE * 0.1))
 
     def _now(self):
         """overwrite in test to simulate different times"""
