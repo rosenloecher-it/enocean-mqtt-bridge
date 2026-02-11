@@ -15,6 +15,7 @@ class Storage:
     def __init__(self):
         self._file = None
         self._data = {}
+        self._checked_path_exists = False
 
     def set_file(self, file):
         self._file = file
@@ -34,6 +35,11 @@ class Storage:
 
     def save(self):
         if self._file is not None:
+
+            if not self._checked_path_exists:
+                self._checked_path_exists = True
+                os.makedirs(os.path.dirname(self._file), exist_ok=True)
+
             try:
                 # backup and write to a new file to avoid flashing the same sdcards bits again and again?
                 with open(self._file, 'w') as stream:
