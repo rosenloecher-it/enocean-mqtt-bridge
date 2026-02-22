@@ -38,11 +38,11 @@ class EnoceanTools:
 
     @classmethod
     def packet_type_to_string(cls, packet_type):
-        if type(packet_type) == int:
+        if type(packet_type) is int:
             for e in PACKET:
                 if packet_type == e:
                     return e.name
-        elif type(packet_type) == PACKET:
+        elif isinstance(packet_type, PACKET):
             return packet_type.name
         return str(packet_type)
 

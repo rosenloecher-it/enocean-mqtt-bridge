@@ -35,7 +35,7 @@ class Sniffer(Device):
         def add_id_not_none(target, id_input):
             if id_input is None:
                 return
-            elif type(id_input) == int:
+            elif type(id_input) is int:
                 target.add(id)
             else:
                 for i in id_input:

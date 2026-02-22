@@ -160,7 +160,7 @@ class Runner(abc.ABC):
             if base_id:
                 # got a base id
                 EnoceanPacketFactory.set_sender_id(base_id)
-                if type(base_id) == list:
+                if type(base_id) is list:
                     base_id = enocean_utils.combine_hex(base_id)
                 _logger.info("base_id=%s", hex(base_id))
                 break
