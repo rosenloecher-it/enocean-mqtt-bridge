@@ -2,6 +2,7 @@
 .idea/
 
 # setuptools
+/build/
 /dist/
 /*.egg-info
 /*.egg
@@ -46,4 +47,5 @@ enocean-mqtt-bridge.yaml
 enocean-mqtt-bridge.service
 
 /enocean
+README_PRIVATE.md
 

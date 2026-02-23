@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enocean-mqtt-bridge"
+version = "5.2"
+authors = [
+  { name = "Raul Rosenlöcher" },
+]
+license = "MIT"
+description = "Bridges and translates Enocean messages between a (USB) gateway to a MQTT broker for specific devices."
+readme = "README.md"
+requires-python = ">=3.12"
+keywords = ["enocean", "mqtt", "bridge", "iot", "smarthome"]
+classifiers = [
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: POSIX :: Linux",
+  "Topic :: Home Automation",
+]
+dependencies = [
+  "attrs~=25.4.0",
+  "enocean@git+https://github.com/rosenloecher-it/enocean@2026-02-22",
+  "jsonschema~=4.25.1",
+  "paho-mqtt~=2.1.0",
+  "py-dateutil~=2.2",
+  "pyyaml~=6.0.3",
+  "tzlocal~=5.3.1",
+]
+
+[project.optional-dependencies]
+dev = ["ruff"]
+test = ["pytest"]
+
+[project.urls]
+"Homepage" = "https://github.com/rosenloecher-it/enocean-mqtt-bridge"
+"Bug Tracker" = "https://github.com/rosenloecher-it/enocean-mqtt-bridge/issues"
+
+[tool.setuptools]
+packages = ["src"]

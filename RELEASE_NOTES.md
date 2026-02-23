@@ -1,5 +1,11 @@
 # Release notes
 
+## v5.3 (2026-02-28)
+
+- requirement upgrades, especially enocean dependency
+- fixes warnings in enocean dependency
+- migration to pyproject.toml
+
 ## v5.2 (2023-03-25)
 
 - requirement upgrades

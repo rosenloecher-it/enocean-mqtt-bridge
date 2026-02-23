@@ -36,7 +36,7 @@ In the end you could degrade your smarthome system to a pure GUI tool and switch
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.12+
 - Linux / Raspberry Pi
 
 ## Startup
@@ -65,14 +65,6 @@ mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -m "test_$
 mosquitto_pub -h $SERVER -p 1883 -i "client_pub" -d -t smarthome/test -n -r -d
 ```
 
-### Python prerequisites
-
-Python 3 ...
-
-```bash
-sudo apt-get install python3-dev python3-pip python3-venv python3-wheel -y
-```
-
 ### Prepare python environment
 ```bash
 cd /opt
@@ -87,8 +79,7 @@ python3 -m venv venv
 source ./venv/bin/activate
 
 # install required packages
-pip install --upgrade -r requirements.txt
-# or: pip install -r requirements-dev.txt
+pip install --upgrade .
 ```
 
 ### Configuration
