@@ -1,6 +1,6 @@
 # Release notes
 
-## v5.3 (2026-02-28)
+## v5.3 (2026-02-24)
 
 - requirement upgrades, especially enocean dependency
 - fixes warnings in enocean dependency
